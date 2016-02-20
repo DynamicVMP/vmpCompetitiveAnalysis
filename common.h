@@ -21,11 +21,6 @@
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
 int get_v_size(char path_to_file[]);
-/* print matrix and array */
-void print_int_matrix(int ** matrix, int rows, int columns);
-void print_float_matrix(float ** matrix, int rows, int columns);
-void print_int_array(int * array, int columns);
-void print_float_array(float * array, int columns);
 /* load datacenter physical resources and virtual requirements */
 int** load_H(int h_size, char path_to_file[]);
 int** load_V(int v_size, char path_to_file[]);
