@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "print_functions.h"
 /* definitions */
 #define H_HEADER "PHYSICAL MACHINES"
 #define V_HEADER "VIRTUAL MACHINES"
@@ -24,6 +25,3 @@ int get_v_size(char path_to_file[]);
 /* load datacenter physical resources and virtual requirements */
 int** load_H(int h_size, char path_to_file[]);
 int** load_V(int v_size, char path_to_file[]);
-/* load utilization of physical resources and costs of the considered objective functions */
-int*** load_utilization(int **population, int **H, int **V, int number_of_individuals, int h_size, int v_size);
-float** load_objectives(int **population, int ***utilization, int **H, int **V, int **T, int number_of_individuals, int h_size, int v_size, int * K, int ** network_utilization, int l_size);

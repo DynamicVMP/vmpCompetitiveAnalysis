@@ -20,20 +20,17 @@ struct pareto_element{
 #include <math.h>
 #include <time.h>
 /* include own headers */
-#include "common.h"
-#include "initialization.h"
-#include "reparation.h"
-#include "local_search.h"
-#include "variation.h"
+#include "common.h"	 	
 #include "network.h"
-#include "pareto.h"
+#include "print_functions.h"
+
 /* definitions (this could be parameters) */
 #define NUMBER_OF_INDIVIDUALS 100
 #define NUMBER_OF_GENERATIONS 1
 #define SELECTION_PERCENT 0.5
 #define MAX_SLA 1
 
-/* main: Interactive Memetic Algorithm for Virtual Machine Placement (IMAVMP)
+/* 
  * parameter: path to the datacenter infrastructure file
  * returns: exit state
  */
@@ -51,7 +48,7 @@ int main (int argc, char *argv[]) {
 		int h_size = get_h_size(argv[1]);
 		int v_size = get_v_size(argv[1]);
 		int l_size = get_l_size(argv[1]);
-		/ printf("\nH=%d, V=%d, L=%d\n",h_size,v_size,l_size);
+		printf("\nH=%d, V=%d, L=%d\n",h_size,v_size,l_size);
 		/* load physical machines resources, virtual machines requirements and network topology from the datacenter infrastructure file */
 		int **H = load_H(h_size, argv[1]);
 		// printf("\nH LOADED SUCCESSFULLY\n");
@@ -64,10 +61,10 @@ int main (int argc, char *argv[]) {
 		int *K 	= load_K(l_size, argv[1]);
 		// printf("\nK LOADED SUCCESSFULLY\n");
 		/* seed for rand() */
-		srand((unsigned int) time(NULL));
+		// srand((unsigned int) time(NULL));
 		/* randon value of 0-1 */
-		srand48(time(NULL));
-		// printf("\nDATACENTER LOADED SUCCESSFULLY\n");
+		// srand48(time(NULL));
+		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		/* finish him */
 		return 0;
 	}

@@ -5,6 +5,7 @@
  */
 
 #include "scenario.h"
+#include "print_functions.h"
 
 int get_s_size(char path_to_file[]) {
 
@@ -66,50 +67,4 @@ float** load_S(int s_size, char path_to_file[]) {
     }
     fclose(scenario_file);
     return S;
-}
-
-
-int main (int arg, char *argv[]) {
-
-	char file[] = "/home/szalimben/tesis/iMaVMP/inputs/SCENARIOS";
-
-	int s_size = get_s_size(file);
-
-	float ** pepe = load_S(s_size, file);
-
-	// print_int_matrix(pepe, 2, 14);
-	print_float_matrix(pepe, 2, 14);
-
-}
-
-void print_float_matrix(float **matrix, int rows, int columns) {
-	/* iterators */
-	int iterator_row;
-	int iterator_column;
-	/* iterate on rows */	
-	for (iterator_row=0; iterator_row < rows; iterator_row++) {
-		printf("[DEBUG] ROW %d:\t",iterator_row);	
-		/* iterate on columns */
-		for (iterator_column = 0; iterator_column < columns; iterator_column++) {
-			printf("%g\t",matrix[iterator_row][iterator_column]);	
-		}
-		printf("\n");
-	}
-}
-
-void print_int_matrix(int **matrix, int rows, int columns) {
-	/* iterators */
-	int iterator_row;
-	int iterator_column;
-	/* iterate on rows */	
-	for (iterator_row=0; iterator_row < rows; iterator_row++)
-	{
-		printf("[DEBUG] ROW %d:\t\t",iterator_row);	
-		/* iterate on columns */
-		for (iterator_column = 0; iterator_column < columns; iterator_column++)
-		{
-			printf("%d ",matrix[iterator_row][iterator_column]);	
-		}
-		printf("\n");
-	}
 }
