@@ -27,7 +27,7 @@ int** initialization(int number_of_individuals, int h_size, int v_size, int **V,
 	{
 		population[iterator_individual] = (int *) malloc (v_size *sizeof (int));
 		/* iterate on positions of an individual */
-		for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
+		for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++) 
 		{
 			/* individual with SLA != max_SLA */
 			if (V[iterator_individual_position][3] != max_SLA)
@@ -65,4 +65,24 @@ int generate_solution_position(int max_posible, int SLA)
 		/* integer from 1 to max_posible */
 		return rand() % max_posible + 1;
 	} 
+}
+
+/* utilization: initial utilization matrix */
+float** heuristics_utilization_initialization(int h_size) {
+	
+	float **utilization = (float **) malloc (h_size *sizeof (float *));
+	/* iterators */
+	int iterator_physical;
+	int iterator_physical_position;
+	/* iterate on individuals */
+	
+	for (iterator_physical=0; iterator_physical < h_size; iterator_physical++) {	
+		utilization[iterator_physical] = (float *) malloc (2 *sizeof (float));
+		/* iterate on positions of an individual */
+		for (iterator_physical_position = 0; iterator_physical_position < 2; iterator_physical_position++) {
+			utilization[iterator_physical][iterator_physical_position] = 0;
+		}
+	}
+
+	return utilization;
 }

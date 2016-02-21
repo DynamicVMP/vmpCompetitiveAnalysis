@@ -19,12 +19,10 @@ void print_int_matrix(int **matrix, int rows, int columns) {
 	int iterator_row;
 	int iterator_column;
 	/* iterate on rows */	
-	for (iterator_row=0; iterator_row < rows; iterator_row++)
-	{
+	for (iterator_row=0; iterator_row < rows; iterator_row++) {
 		printf("[DEBUG] ROW %d:\t\t",iterator_row);	
 		/* iterate on columns */
-		for (iterator_column = 0; iterator_column < columns; iterator_column++)
-		{
+		for (iterator_column = 0; iterator_column < columns; iterator_column++) {
 			printf("%d ",matrix[iterator_row][iterator_column]);	
 		}
 		printf("\n");
@@ -42,12 +40,10 @@ void print_float_matrix(float **matrix, int rows, int columns) {
 	int iterator_row;
 	int iterator_column;
 	/* iterate on rows */	
-	for (iterator_row=0; iterator_row < rows; iterator_row++)
-	{
+	for (iterator_row=0; iterator_row < rows; iterator_row++) {
 		printf("[DEBUG] ROW %d:\t",iterator_row);	
 		/* iterate on columns */
-		for (iterator_column = 0; iterator_column < columns; iterator_column++)
-		{
+		for (iterator_column = 0; iterator_column < columns; iterator_column++) {
 			printf("%g\t",matrix[iterator_row][iterator_column]);	
 		}
 		printf("\n");
@@ -63,8 +59,7 @@ void print_int_array(int *array, int columns) {
 	/* iterators */
 	int iterator_column;
 	/* iterate on columns */
-	for (iterator_column = 0; iterator_column < columns; iterator_column++)
-	{
+	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
 		printf("[DEBUG] [%d]: %d\n",iterator_column,array[iterator_column]);	
 	}
 }
@@ -78,8 +73,7 @@ void print_float_array(float *array, int columns) {
 	/* iterators */
 	int iterator_column;
 	/* iterate on columns */
-	for (iterator_column = 0; iterator_column < columns; iterator_column++)
-	{
+	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
 		printf("[DEBUG] [%d]: %g\n",iterator_column,array[iterator_column]);	
 	}
 }

@@ -5,12 +5,18 @@
  * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
  */
 
-/* structure of a pareto element */
-struct pareto_element{
-	int *solution;
-	float *costs;
-	struct pareto_element *prev;
-	struct pareto_element *next;
+/* Struct for PM Utilization */
+struct pm_utilization{
+	int totalRam;
+	int totalCpu;
+	int totalHdd;
+};
+
+struct physical_machine {
+	int ram;
+	int cpu;
+	int hdd;
+	int powerConsumption;
 };
 
 /* include libraries */
@@ -23,6 +29,8 @@ struct pareto_element{
 #include "common.h"	 	
 #include "network.h"
 #include "print_functions.h"
+#include "heuristics.h"
+#include "initialization.h"
 
 /* definitions (this could be parameters) */
 #define NUMBER_OF_INDIVIDUALS 100
@@ -35,6 +43,10 @@ struct pareto_element{
  * returns: exit state
  */
 int main (int argc, char *argv[]) {
+    
+    int iterator_row;
+	int iterator_column;
+
     /* parameters verification */
 	if (argc == 1) {
 		/* wrong parameters */	
@@ -46,25 +58,31 @@ int main (int argc, char *argv[]) {
 	else {
 		/* get the number of physical machines, virtual machines and network links from the datacenter infrastructure file (argv[1]) */
 		int h_size = get_h_size(argv[1]);
-		int v_size = get_v_size(argv[1]);
-		int l_size = get_l_size(argv[1]);
-		printf("\nH=%d, V=%d, L=%d\n",h_size,v_size,l_size);
+		int s_size = get_s_size(argv[1]);
+
+		printf("\nH=%d, S=%d\n" ,h_size, s_size);
 		/* load physical machines resources, virtual machines requirements and network topology from the datacenter infrastructure file */
+		int **placement = (int **) malloc (h_size *sizeof (int *));
+		float **utilization = heuristics_utilization_initialization(h_size);
+
+		// print_float_matrix(utilization, h_size, 2);
+
 		int **H = load_H(h_size, argv[1]);
-		// printf("\nH LOADED SUCCESSFULLY\n");
-		int **V = load_V(v_size, argv[1]);	
-		// printf("\nV LOADED SUCCESSFULLY\n");
-		int **T = load_T(v_size, argv[1]);
-		// printf("\nT LOADED SUCCESSFULLY\n");
-		int **G = load_G(h_size, l_size, argv[1]);
-		// printf("\nG LOADED SUCCESSFULLY\n");
-		int *K 	= load_K(l_size, argv[1]);
-		// printf("\nK LOADED SUCCESSFULLY\n");
-		/* seed for rand() */
-		// srand((unsigned int) time(NULL));
-		/* randon value of 0-1 */
-		// srand48(time(NULL));
+		printf("\nPHYSICAL MACHINES LOADED SUCCESSFULLY\n");
+		float **S = load_S(s_size, argv[1]);
+		printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
+	
+		for (iterator_row = 0; iterator_row < s_size; iterator_row++) {
+			for (iterator_column = 0; iterator_column < 1; iterator_column++) {
+				printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
+				first_fit(S[iterator_row], utilization, placement, H, h_size);
+			}
+			printf("\n");
+		}
+
+	
 		/* finish him */
 		return 0;
 	}
@@ -73,8 +91,7 @@ int main (int argc, char *argv[]) {
 /* check_instance: checks if the problem instance has at least one solution
  * returns: 1 if there is no solution, 0 if the is at least one solution
  */
-int check_instance()
-{
+int check_instance() {
 	/* this return alllways 0 for now (this could be implemented this to check if a problem instance have at least one solution) */
 	return 0;
 }

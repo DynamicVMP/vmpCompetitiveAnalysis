@@ -57,7 +57,6 @@ float** load_S(int s_size, char path_to_file[]) {
             if (strstr(input_line,S_HEADER) != NULL) {
                 reading_scenario = 1;
             }
-            
             if (reading_scenario == 1 && strstr(input_line,S_HEADER) == NULL && strcmp(input_line, "\n") != 0) {
                 S[iterator] = (float *) malloc (14 *sizeof (float));
                 sscanf(input_line,"%f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",&S[iterator][0],&S[iterator][1],&S[iterator][2],&S[iterator][3],&S[iterator][4],&S[iterator][5],&S[iterator][6],&S[iterator][7],&S[iterator][8],&S[iterator][9],&S[iterator][10],&S[iterator][11],&S[iterator][12],&S[iterator][13]);
