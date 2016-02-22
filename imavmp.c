@@ -92,5 +92,7 @@ int main (int argc, char *argv[]) {
  */
 int check_instance() {
 	/* this return alllways 0 for now (this could be implemented this to check if a problem instance have at least one solution) */
+
+
 	return 0;
 }
