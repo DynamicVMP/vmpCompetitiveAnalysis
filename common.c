@@ -39,8 +39,8 @@ int get_h_size(char path_to_file[]) {
 				reading_physical = 0;
 				break;
 			}
-			/* if it is the correct block in the file, it is not the header and it is not a blank line, we count */			
-			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0) {
+			/* if it is the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
+			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
 				h_size++;
 			}
 		}
@@ -84,8 +84,8 @@ int** load_H(int h_size, char path_to_file[]) {
 				reading_physical = 0;
 				break;
 			}
-			/* if it's the correct block in the file, it is not the header and it is not a blank line, we count */			
-			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0) {
+			/* if it's the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
+			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
 				/* reserve 4 columns for Processor, Memory, Storage and Power Consumption */
 				H[iterator] = (int *) malloc (4 *sizeof (int));
 				/* load on the matrix and increment iterator */
