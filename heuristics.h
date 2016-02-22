@@ -18,7 +18,8 @@
 
 
 /* get the number of physical and virtual machines */
-int first_fit(float *S, float **utilization, int **placement, int **H, int h_size);
+int first_fit(float *S, float **utilization, int ****placement, int **H, int h_size);
+//int first_fit(float *S, float **utilization,  placement, int **H, int h_size);
 
 int best_fit(float *S, float **utilization, int **placement, int **H, int h_size);
 
@@ -26,7 +27,9 @@ int worst_fit(float *S, float **utilization, int **placement, int **H, int h_siz
 
 int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size);
 
-bool checkResources(float *request, float *utilization, int *H, int h_size);
+bool check_resources(float *request, float *utilization, int *H, int h_size);
+
+void allocate_VM_to_PM(int ****placement, float *request, int pm);
 
 float calculate_weight(int **placement, int *H, int h_index);
 

@@ -14,18 +14,6 @@
 #include "print_functions.h"
 #include "scenario.h"
 #include "heuristics.h"
- 
-struct virtual_machine {
-	int t;
-	int servicio;
-	int datacenter;
-	int vm_id;
-	int cpu;
-	int ram;
-	int net;
-	float revenue;
-	int SLA;
-};
 
 typedef struct {
 	int h_index;
@@ -33,10 +21,10 @@ typedef struct {
 	PM_weight_pair_node* next;
 } PM_weight_pair_node;
 
-/* 
- * Firt Fit Algorithm
+/*
+ * First Fit Algorithm
  */
-int first_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
+int first_fit(float *request, float **utilization, int ****placement, int **H, int h_size) {
 
 	int iterator_physical; 
 	int iterator_scenario;
@@ -44,9 +32,15 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 
 	for (iterator_physical = 0; iterator_physical < h_size; ++iterator_physical) {
 		// If request is in time 0, we directle allocate VM
-		if (checkResources(request, utilization[iterator_physical], H[iterator_physical], h_size)) {
-			printf("\naqui debemos verficar los recursos de todas las PM");
-			//allocateVM(H[iterator_physical]);
+		if (check_resources(request, utilization[iterator_physical], H[iterator_physical], h_size)) {
+			print_float_array(utilization[iterator_physical], 2);
+
+			utilization[iterator_physical][0] =+  request[4]*request[7]/100;
+			utilization[iterator_physical][1] =+ request[5]*request[8]/100;
+
+			// Allocate la VM to VM
+			allocate_VM_to_PM(placement, request, iterator_physical);
+
 			printf("%g\n", request[0]);
 			return 1;
 		}
@@ -104,49 +98,36 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	return 0;
 }
 
-bool checkResources(float *request, float *utilization, int *H, int h_size) {
-
-	/*printf("Utilization:\n");
-	print_float_array(utilization, 2);
-
-	printf("H:\n");
-	print_int_array(H, h_size);*/
+/**
+ * Check if the PM have enough resources for VM
+ */
+bool check_resources(float *request, float *utilization, int *H, int h_size) {
 
 	printf("\nCheck CPU resources\n");
 	if (utilization[0] + (request[4]*request[7]/100) <= H[0] 
 		&& utilization[1] + (request[5]*request[8]/100) <= H[1]) {
 
-		utilization[0] =+ request[4]*request[7]/100;
-		utilization[1] =+ request[5]*request[8]/100;
-
-		// magic_functions_allocate_VM_to_PM
-		/*printf("Request RAM: %g\n", request[4]);
-		printf("Real Use RAM: %g%c\n", request[7], '%');
-		printf("Utilizacion real: %g\n", (request[4]*request[7]/100) );
-		
-		printf("Existe lugar acorde CPU\n");*/
-
-		printf("Utilizacion CPU H: %g\n", utilization[0]);
-		printf("Utilizacion RAM H: %g\n", utilization[1]);
+		printf("Actual CPU H: %g\n", utilization[0]);
+		printf("Actual RAM H: %g\n", utilization[1]);
 
 		return true;
 	} else {
 		return false;
 		printf("No existe lugar");
 	}
-
-/*	printf("\nCheck RAM resources\n");
-	if (utilization[1] + (request[5]*request[8]/100) <= H[1] ) {
-		printf("Request RAM: %g\n", request[5]);
-		printf("Real Use RAM: %g%c\n", request[8], '%');
-		printf("Utilizacion RAM H: %g\n", utilization[1] );
-		printf("Utilizacion real: %g\n", (request[5]*request[8]/100) );
-		printf("Existe lugar acorde RAM\n");
-	} else {
-		return false;
-		printf("No existe lugar");
-	}*/
 }
+/**
+ *
+ *
+ */
+void allocate_VM_to_PM(int ****placement, float *request, int pm ) {
+
+	placement[pm] = (int ***) malloc (sizeof (int ***));
+	placement[pm][ (int) request[1]] = (int **) malloc (sizeof (int **));
+	placement[pm][ (int) request[1]][ (int) request[2]] = (int *) malloc (sizeof (int *));
+	placement[pm][ (int) request[1]][ (int) request[2]][ (int) request[3]] = 1;
+}
+
 
 float calculate_weight(int **placement, int *H, int h_index){
 	float weight_PM = 0.0;

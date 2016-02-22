@@ -6,7 +6,7 @@
  */
 
 /* Struct for PM Utilization */
-struct pm_utilization{
+struct pm_utilization {
 	int totalRam;
 	int totalCpu;
 	int totalHdd;
@@ -62,29 +62,28 @@ int main (int argc, char *argv[]) {
 
 		printf("\nH=%d, S=%d\n" ,h_size, s_size);
 		/* load physical machines resources, virtual machines requirements and network topology from the datacenter infrastructure file */
-		int **placement = (int **) malloc (h_size *sizeof (int *));
+		int ****placement = (int ****) malloc (h_size *sizeof (int ***));
 		float **utilization = heuristics_utilization_initialization(h_size);
 
 		// print_float_matrix(utilization, h_size, 2);
 
 		int **H = load_H(h_size, argv[1]);
-		printf("\nPHYSICAL MACHINES LOADED SUCCESSFULLY\n");
+		// printf("\nPHYSICAL MACHINES LOADED SUCCESSFULLY\n");
 		float **S = load_S(s_size, argv[1]);
-		printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
 
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 	
 		for (iterator_row = 0; iterator_row < s_size; iterator_row++) {
-			for (iterator_column = 0; iterator_column < 1; iterator_column++) {
-				printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
-				first_fit(S[iterator_row], utilization, placement, H, h_size);
+			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
+			first_fit(S[iterator_row], utilization, placement, H, h_size);
 //				best_fit(S[iterator_row], utilization, placement, H, h_size);
 //				worst_fit(S[iterator_row], utilization, placement, H, h_size);
-			}
-			printf("\n");
 		}
 
-	
+		printf("Placement 1: %d\n", placement[0][0][1][0]);
+		printf("Placement 2: %d\n", placement[0][1][1][2]);
+
 		/* finish him */
 		return 0;
 	}
