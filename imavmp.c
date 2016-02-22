@@ -75,11 +75,10 @@ int main (int argc, char *argv[]) {
 	
 		for (iterator_row = 0; iterator_row < s_size; iterator_row++) {
 			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
-			int j = first_fit(S[iterator_row], utilization, placement, H, h_size);
+			first_fit(S[iterator_row], utilization, placement, H, h_size);
+			// best_fit(S[iterator_row], utilization, placement, H, h_size);
+			// worst_fit(S[iterator_row], utilization, placement, H, h_size);
 		}
-
-		printf("Placement 1: %d\n", placement[0][0][1][0]);
-		printf("Placement 2: %d\n", placement[0][1][1][2]);
 
 		/* finish him */
 		return 0;
