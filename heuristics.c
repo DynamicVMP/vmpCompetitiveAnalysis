@@ -24,18 +24,18 @@ int first_fit(float *request, float **utilization, int ****placement, int **H, i
 	int iterator_scenario;
 	int requestRejected = 0;
 
-	for (iterator_physical = 0; iterator_physical < h_size; ++iterator_physical) {
+	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
+
 		if (check_resources(request, utilization[iterator_physical], H[iterator_physical], h_size)) {
-			print_float_array(utilization[iterator_physical], 2);
-			
-			utilization[iterator_physical][0] =+  request[4]*request[7]/100;
-			utilization[iterator_physical][1] =+ request[5]*request[8]/100;
+						
+			utilization[iterator_physical][0] += request[4]*request[7]/100;
+			utilization[iterator_physical][1] += request[5]*request[8]/100;
 
 			// Allocate la VM to VM
 			allocate_VM_to_PM(placement, request, iterator_physical);
+			printf("Placement FF: %d\n", placement[iterator_physical][ (int) request[1]][ (int) request[2]][ (int) request[3]] );
 
-			printf("%g\n", request[0]);
 			return 1;
 		}
 	}
@@ -55,27 +55,24 @@ int first_fit(float *request, float **utilization, int ****placement, int **H, i
  */
 bool check_resources(float *request, float *utilization, int *H, int h_size) {
 
-	printf("\nCheck CPU resources\n");
-	if (utilization[0] + (request[4]*request[7]/100) <= H[0] 
-		&& utilization[1] + (request[5]*request[8]/100) <= H[1]) {
-
-		printf("Actual CPU H: %g\n", utilization[0]);
-		printf("Actual RAM H: %g\n", utilization[1]);
-
-		return true;
-	} else {
-		return false;
-		printf("No existe lugar");
-	}
+	return (utilization[0] + (request[4]*request[7]/100) <= H[0] 
+			&& utilization[1] + (request[5]*request[8]/100) <= H[1]);
 }
+
 /**
- *
- *
+ * Allocate VM to PM
+ * Update the placement matrix
  */
 void allocate_VM_to_PM(int ****placement, float *request, int pm ) {
 
+	printf("\nLos valores son: %d%d%d%d\n", pm, (int) request[1], (int) request[2], (int) request[3] );
+
 	placement[pm] = (int ***) malloc (sizeof (int ***));
-	placement[pm][ (int) request[1]] = (int **) malloc (sizeof (int **));
-	placement[pm][ (int) request[1]][ (int) request[2]] = (int *) malloc (sizeof (int *));
-	placement[pm][ (int) request[1]][ (int) request[2]][ (int) request[3]] = 1;
+	placement[pm][(int) request[1]] = (int **) malloc (sizeof (int **));
+	placement[pm][(int) request[1]] [ (int) request[2]] = (int *) malloc (sizeof (int *));
+	placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
+
+	//printf("Placement 1: %d\n", placement[pm][ (int) request[1]][ (int) request[2]][ (int) request[3]] );
+	//printf("Placement 0010: %d\n", placement[0][1][0][0]);
+	// printf("Placement 0112: %d\n", placement[1][1][2][0]);
 }

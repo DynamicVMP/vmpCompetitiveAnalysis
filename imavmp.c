@@ -33,9 +33,8 @@ struct physical_machine {
 #include "initialization.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_INDIVIDUALS 100
-#define NUMBER_OF_GENERATIONS 1
-#define SELECTION_PERCENT 0.5
+#define NUMBER_OF_SERVICES 1
+#define NUMBER_OF_DATACENTER 1
 #define MAX_SLA 1
 
 /* 
@@ -76,12 +75,12 @@ int main (int argc, char *argv[]) {
 	
 		for (iterator_row = 0; iterator_row < s_size; iterator_row++) {
 			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
-			first_fit(S[iterator_row], utilization, placement, H, h_size);
+			int j = first_fit(S[iterator_row], utilization, placement, H, h_size);
 		}
 
 		printf("Placement 1: %d\n", placement[0][0][1][0]);
 		printf("Placement 2: %d\n", placement[0][1][1][2]);
-		
+
 		/* finish him */
 		return 0;
 	}
