@@ -52,6 +52,18 @@ int first_fit(float *request, float **utilization, int ****placement, int **H, i
 	printf("Request Rejected: %d\n", requestRejected);
 }
 
+/**
+ * Allocate VM to PM
+ * Update the placement matrix
+ */
+void allocate_VM_to_PM(int ****placement, float *request, int pm ) {
+
+	printf("\nLos valores son: %d%d%d%d\n", pm, (int) request[1], (int) request[2], (int) request[3] );
+
+	placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
+
+}
+
 int best_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
 	return best_or_worst_fit(true, request, utilization, placement, H, h_size);
 }
@@ -102,22 +114,6 @@ bool check_resources(float *request, float *utilization, int *H) {
 	return (utilization[0] + (request[4]*request[7]/100) <= H[0] 
 			&& utilization[1] + (request[5]*request[8]/100) <= H[1]);
 }
-
-/**
- * Allocate VM to PM
- * Update the placement matrix
- */
-void allocate_VM_to_PM(int ****placement, float *request, int pm ) {
-
-	printf("\nLos valores son: %d%d%d%d\n", pm, (int) request[1], (int) request[2], (int) request[3] );
-
-	placement[pm] = (int ***) malloc (sizeof (int ***));
-	placement[pm][(int) request[1]] = (int **) malloc (sizeof (int **));
-	placement[pm][(int) request[1]] [ (int) request[2]] = (int *) malloc (sizeof (int *));
-	placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
-
-}
-
 
 float calculate_weight(int **placement, int *H, int h_index){
 	float weight_PM = 0.0;

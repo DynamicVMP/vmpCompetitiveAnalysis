@@ -33,8 +33,8 @@ struct physical_machine {
 #include "initialization.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_SERVICES 1
-#define NUMBER_OF_DATACENTER 1
+#define NUMBER_OF_SERVICES 2
+#define NUMBER_OF_DATACENTER 2
 #define MAX_SLA 1
 
 /* 
@@ -62,6 +62,21 @@ int main (int argc, char *argv[]) {
 		printf("\nH=%d, S=%d\n" ,h_size, s_size);
 		/* load physical machines resources, virtual machines requirements and network topology from the datacenter infrastructure file */
 		int ****placement = (int ****) malloc (h_size *sizeof (int ***));
+
+		int iterator_physical;
+		int iterator_service;
+		int iterator_datacenter;
+
+		for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
+			placement[iterator_physical] = (int ***) malloc (sizeof (int **));
+			for (iterator_service = 0; iterator_service < NUMBER_OF_SERVICES; iterator_service++) {
+				placement[iterator_physical][iterator_service] = (int **) malloc (sizeof (int *));
+				for(iterator_datacenter = 0; iterator_datacenter < NUMBER_OF_DATACENTER; iterator_datacenter++) {
+					placement[iterator_physical][iterator_service][iterator_datacenter] = (int *) malloc (sizeof (int));		
+				}	
+			}
+		}
+
 		float **utilization = heuristics_utilization_initialization(h_size);
 
 		// print_float_matrix(utilization, h_size, 2);
@@ -79,6 +94,10 @@ int main (int argc, char *argv[]) {
 			// best_fit(S[iterator_row], utilization, placement, H, h_size);
 			// worst_fit(S[iterator_row], utilization, placement, H, h_size);
 		}
+
+		printf("Placement 1: %d\n", placement[0][0][1][0]);
+		printf("Placement 2: %d\n", placement[0][1][1][2]);
+		printf("Placement 2: %d\n", placement[0][1][0][2]);
 
 		/* finish him */
 		return 0;
