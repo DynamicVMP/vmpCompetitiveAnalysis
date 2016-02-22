@@ -15,7 +15,11 @@
 #include "scenario.h"
  
 /* definitions */
-
+typedef struct PM_weight_pair_node{
+    int h_index;
+    float weight;
+    struct PM_weight_pair_node* next;
+} PM_weight_pair_node;
 
 /* get the number of physical and virtual machines */
 int first_fit(float *S, float **utilization, int ****placement, int **H, int h_size);
@@ -33,7 +37,7 @@ void allocate_VM_to_PM(int ****placement, float *request, int pm);
 
 float calculate_weight(int **placement, int *H, int h_index);
 
-void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node PM_ordered_list, float weight_PM, int h_index);
+void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index);
 
 bool best_comparator(float weight_A, float weight_B);
 

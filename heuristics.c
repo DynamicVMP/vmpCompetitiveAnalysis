@@ -15,11 +15,6 @@
 #include "scenario.h"
 #include "heuristics.h"
 
-typedef struct {
-	int h_index;
-	float weight;
-	PM_weight_pair_node* next;
-} PM_weight_pair_node;
 
 /*
  * First Fit Algorithm
@@ -78,11 +73,11 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	}
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
-		if (checkResources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index], h_size)) {
-			printf("Allocate VM into PM %d",PM_ordered_list->h_index);
-			//allocateVM(H[PM_ordered_list->h_index]);
-			return 1;
-		}
+//		if (checkResources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index], h_size)) {
+//			printf("Allocate VM into PM %d",PM_ordered_list->h_index);
+//			//allocateVM(H[PM_ordered_list->h_index]);
+//			return 1;
+//		}
 		PM_ordered_list = PM_ordered_list->next;
 	}
 
