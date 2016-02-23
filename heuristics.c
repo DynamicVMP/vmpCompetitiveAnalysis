@@ -36,7 +36,7 @@ int first_fit(float *request, float **utilization, int ****placement, int **H, i
 
 			// Allocate la VM to VM
 			allocate_VM_to_PM(placement, request, iterator_physical);
-			printf("Placement FF: %d\n", placement[iterator_physical][ (int) request[1]][ (int) request[2]][ (int) request[3]] );
+			// printf("Placement: %d\n", placement[iterator_physical][ (int) request[1]][ (int) request[2]][ (int) request[3]] );
 
 			return 1;
 		}
@@ -59,7 +59,6 @@ int first_fit(float *request, float **utilization, int ****placement, int **H, i
 void allocate_VM_to_PM(int ****placement, float *request, int pm ) {
 
 	printf("\nLos valores son: %d%d%d%d\n", pm, (int) request[1], (int) request[2], (int) request[3] );
-
 	placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
 
 }

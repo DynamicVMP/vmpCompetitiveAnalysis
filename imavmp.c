@@ -88,16 +88,35 @@ int main (int argc, char *argv[]) {
 
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 	
-		for (iterator_row = 0; iterator_row < s_size; iterator_row++) {
+		int tiempo = 0;
+		
+		/*do {
+			if(S[iterator_row][0] != tiempo ) {
+				printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
+				tiempo = S[iterator_row][0];				
+			}
+			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
+			first_fit(S[iterator_row], utilization, placement, H, h_size);
+			++iterator_row;
+		} while(iterator_row < s_size);*/
+
+		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
+
+			if(S[iterator_row][0] != tiempo ) {
+				printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
+				tiempo = S[iterator_row][0];				
+			}
 			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
 			first_fit(S[iterator_row], utilization, placement, H, h_size);
 			// best_fit(S[iterator_row], utilization, placement, H, h_size);
 			// worst_fit(S[iterator_row], utilization, placement, H, h_size);
 		}
-
+		printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
+		
+		printf("\nPlacement\n");
 		printf("Placement 1: %d\n", placement[0][0][1][0]);
 		printf("Placement 2: %d\n", placement[0][1][1][2]);
-		printf("Placement 2: %d\n", placement[0][1][0][2]);
+		printf("Placement 3: %d\n", placement[0][1][0][0]);
 
 		/* finish him */
 		return 0;

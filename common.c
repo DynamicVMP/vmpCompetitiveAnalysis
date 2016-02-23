@@ -97,3 +97,28 @@ int** load_H(int h_size, char path_to_file[]) {
 	fclose(datacenter_file);
 	return H;
 }
+
+float power_consumption (float **utilization, int **H, int h_size) {
+	/* iterate on physical machines */
+	int iterator_physical;
+	float utilidad = 0;
+	float power_consumption = 0;
+
+	for (iterator_physical = 0 ; iterator_physical < h_size ; iterator_physical++) {
+		if (utilization[iterator_physical][0] > 0) {
+			
+			/* calculates utility of a physical machine */
+			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
+			/* calculates energy consumption of a physical machine */
+			
+			/*printf("Uso: %g\n", utilization[iterator_physical][0] );
+			printf("Consumo Max: %d\n", H[iterator_physical][0]);
+			printf("Utilidad: %g\n", utilidad);*/
+			
+			power_consumption += ( (float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6) ) * utilidad + 
+			(float)H[iterator_physical][3]*0.6;
+		}
+	}
+	return power_consumption;
+}
+
