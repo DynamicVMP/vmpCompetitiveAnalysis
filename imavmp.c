@@ -5,20 +5,6 @@
  * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
  */
 
-/* Struct for PM Utilization */
-struct pm_utilization {
-	int totalRam;
-	int totalCpu;
-	int totalHdd;
-};
-
-struct physical_machine {
-	int ram;
-	int cpu;
-	int hdd;
-	int powerConsumption;
-};
-
 /* include libraries */
 #include <stdio.h>
 #include <string.h>
@@ -33,8 +19,9 @@ struct physical_machine {
 #include "initialization.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_SERVICES 2
-#define NUMBER_OF_DATACENTER 2
+#define NUMBER_OF_SERVICES 1
+#define NUMBER_OF_DATACENTER 1
+
 #define MAX_SLA 1
 
 /* 
@@ -43,8 +30,12 @@ struct physical_machine {
  */
 int main (int argc, char *argv[]) {
     
+    // Iterators 
     int iterator_row;
 	int iterator_column;
+	int iterator_physical;
+	int iterator_service;
+	int iterator_datacenter;
 
     /* parameters verification */
 	if (argc == 1) {
@@ -60,14 +51,13 @@ int main (int argc, char *argv[]) {
 		int s_size = get_s_size(argv[1]);
 
 		printf("\nH=%d, S=%d\n" ,h_size, s_size);
-		/* load physical machines resources, virtual machines requirements and network topology from the datacenter infrastructure file */
-		int ****placement = (int ****) malloc (h_size *sizeof (int ***));
-
-		int iterator_physical;
-		int iterator_service;
-		int iterator_datacenter;
-
-		for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
+		
+		// int ****placement = (int ****) malloc (h_size *sizeof (int ***));
+		
+		int **placement = placement_initialization(h_size);
+		float **utilization = utilization_initialization(h_size);
+		
+		/*for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 			placement[iterator_physical] = (int ***) malloc (sizeof (int **));
 			for (iterator_service = 0; iterator_service < NUMBER_OF_SERVICES; iterator_service++) {
 				placement[iterator_physical][iterator_service] = (int **) malloc (sizeof (int *));
@@ -75,14 +65,18 @@ int main (int argc, char *argv[]) {
 					placement[iterator_physical][iterator_service][iterator_datacenter] = (int *) malloc (sizeof (int));		
 				}	
 			}
-		}
+		}*/
 
-		float **utilization = heuristics_utilization_initialization(h_size);
+		
+		printf("\nUTILIZATION\n");
+		print_float_matrix(utilization, h_size, 3);
+		
+		printf("\nPLACEMENT\n");
+		print_int_matrix(placement, 3, h_size);
 
-		// print_float_matrix(utilization, h_size, 2);
 
 		int **H = load_H(h_size, argv[1]);
-		// printf("\nPHYSICAL MACHINES LOADED SUCCESSFULLY\n");
+		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
 		float **S = load_S(s_size, argv[1]);
 		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
 
@@ -113,10 +107,7 @@ int main (int argc, char *argv[]) {
 		}
 		printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
 		
-		printf("\nPlacement\n");
-		printf("Placement 1: %d\n", placement[0][0][1][0]);
-		printf("Placement 2: %d\n", placement[0][1][1][2]);
-		printf("Placement 3: %d\n", placement[0][1][0][0]);
+		
 
 		/* finish him */
 		return 0;
@@ -128,7 +119,5 @@ int main (int argc, char *argv[]) {
  */
 int check_instance() {
 	/* this return alllways 0 for now (this could be implemented this to check if a problem instance have at least one solution) */
-
-
 	return 0;
 }
