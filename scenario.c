@@ -1,11 +1,11 @@
 /* 
  * scenario.c: Virtual Machine Placement Problem - Scenario Load
  * Date: February, 2016
- * Author: Saúl Zalimben
+ * Author: Saúl Zalimben (szalimben93@gmail)
  */
 
+/* include libraries */
 #include "scenario.h"
-#include "print_functions.h"
 
 int get_s_size(char path_to_file[]) {
 

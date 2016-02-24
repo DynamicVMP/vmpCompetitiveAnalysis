@@ -5,14 +5,7 @@
  */
 
 /* include libraries */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <stdbool.h>
-#include "print_functions.h"
-#include "scenario.h"
+#include "common.h"
  
 /* definitions */
 typedef struct PM_weight_pair_node{
@@ -24,9 +17,7 @@ typedef struct PM_weight_pair_node{
 
 
 bool check_resources(float *request, float *utilization, int *H);
-void allocate_VM_to_PM(int **placement, float *request, int pm);
-
-
+bool allocate_VM_to_PM(int **placement, float *request, int pm);
 
 /* get the number of physical and virtual machines */
 // int first_fit(float *S, float **utilization, int ****placement, int **H, int h_size);

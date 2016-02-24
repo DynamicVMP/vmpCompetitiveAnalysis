@@ -6,26 +6,18 @@
  */
 
 /* include libraries */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <stdbool.h>
-#include "print_functions.h"
-#include "scenario.h"
 #include "heuristics.h"
-
 
 /**
  * Allocate VM to PM
  * Update the placement matrix
  */
-void allocate_VM_to_PM(int **placement, float *request, int pm ) {
+bool allocate_VM_to_PM(int **placement, float *request, int pm ) {
 
-	printf("\nLos valores son: %d%d\n", pm, (int) request[3]);
+	// printf("\nLos valores son: %d%d\n", pm, (int) request[3]);
 	// placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
-	placement[pm][(int) request[3]] = 1;
+	placement[(int) request[3]][pm] = 1;
+	return true;
 }
 
 /**
@@ -34,7 +26,8 @@ void allocate_VM_to_PM(int **placement, float *request, int pm ) {
 bool check_resources(float *request, float *utilization, int *H) {
 
 	return (utilization[0] + (request[4]*request[7]/100) <= H[0] 
-			&& utilization[1] + (request[5]*request[8]/100) <= H[1]);
+			&& utilization[1] + (request[5]*request[8]/100) <= H[1]
+			&& utilization[2] + (request[6]*request[9]/100) <= H[2]);
 }
 
 
@@ -51,15 +44,19 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 		// If request is in time 0, we directle allocate VM
 
 		if (check_resources(request, utilization[iterator_physical], H[iterator_physical])) {
-						
-			utilization[iterator_physical][0] += request[4]*request[7]/100;
-			utilization[iterator_physical][1] += request[5]*request[8]/100;
+			
+			// Allocate la VM to VM			
+			if(allocate_VM_to_PM(placement, request, iterator_physical)) {
 
-			// Allocate la VM to VM
-			allocate_VM_to_PM(placement, request, iterator_physical);
-			// printf("Placement: %d\n", placement[iterator_physical][ (int) request[1]][ (int) request[2]][ (int) request[3]] );
+				utilization[iterator_physical][0] += request[4]*request[7]/100;
+				utilization[iterator_physical][1] += request[5]*request[8]/100;
+				utilization[iterator_physical][2] += request[6]*request[9]/100;
 
-			return 1;
+				// printf("\nVM ubicada correctamente\n");
+	
+			}
+			
+			return 0;
 		}
 	}
 	/*if (SLA == MAX_SLA) {

@@ -5,23 +5,16 @@
  * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
  */
 
-/* include libraries */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
 /* include own headers */
-#include "common.h"	 	
-#include "network.h"
-#include "print_functions.h"
 #include "heuristics.h"
 #include "initialization.h"
+#include "scenario.h"
 
 /* definitions (this could be parameters) */
 #define NUMBER_OF_SERVICES 1
 #define NUMBER_OF_DATACENTER 1
-
+#define NUMBER_VM_PER_DC 100 // Number of VMs VMj in DCc;
+#define RESOURCES 3 // Number of VMs VMj in DCc;
 #define MAX_SLA 1
 
 /* 
@@ -46,18 +39,25 @@ int main (int argc, char *argv[]) {
 	} 
     /* good parameters */	
 	else {
-		/* get the number of physical machines, virtual machines and network links from the datacenter infrastructure file (argv[1]) */
+		/* get the number of physical machines and virtual machines from the datacenter infrastructure file (argv[1]) */
 		int h_size = get_h_size(argv[1]);
 		int s_size = get_s_size(argv[1]);
 
-		printf("\nH=%d, S=%d\n" ,h_size, s_size);
+		printf("\nH=%d, S=%d\n", h_size, s_size);
+
+		int **H = load_H(h_size, argv[1]);
+		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
+		float **S = load_S(s_size, argv[1]);
+		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
 		
-		// int ****placement = (int ****) malloc (h_size *sizeof (int ***));
+		// Placement matrix 
+		int **placement = placement_initialization(h_size, NUMBER_VM_PER_DC);
 		
-		int **placement = placement_initialization(h_size);
-		float **utilization = utilization_initialization(h_size);
+		// Utilization matrix 
+		float **utilization = utilization_initialization(h_size, RESOURCES);
 		
-		/*for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
+		/* int ****placement = (int ****) malloc (h_size *sizeof (int ***));
+		for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 			placement[iterator_physical] = (int ***) malloc (sizeof (int **));
 			for (iterator_service = 0; iterator_service < NUMBER_OF_SERVICES; iterator_service++) {
 				placement[iterator_physical][iterator_service] = (int **) malloc (sizeof (int *));
@@ -67,48 +67,40 @@ int main (int argc, char *argv[]) {
 			}
 		}*/
 
+		// printf("\nUTILIZATION\n");
+		// print_float_matrix(utilization, h_size, 3);
 		
-		printf("\nUTILIZATION\n");
-		print_float_matrix(utilization, h_size, 3);
-		
-		printf("\nPLACEMENT\n");
-		print_int_matrix(placement, 3, h_size);
-
-
-		int **H = load_H(h_size, argv[1]);
-		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
-		float **S = load_S(s_size, argv[1]);
-		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
-
+		// printf("\nPLACEMENT\n");
+		// print_int_matrix(placement, 3, h_size);
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
-	
+		printf("\n STARTING THE EXPERIMENT \n");
+
 		int tiempo = 0;
-		
-		/*do {
-			if(S[iterator_row][0] != tiempo ) {
-				printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
-				tiempo = S[iterator_row][0];				
-			}
-			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
-			first_fit(S[iterator_row], utilization, placement, H, h_size);
-			++iterator_row;
-		} while(iterator_row < s_size);*/
-
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
-
 			if(S[iterator_row][0] != tiempo ) {
-				printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
-				tiempo = S[iterator_row][0];				
+				printf("\nPower Consumption(t= %d) :  %g\n\n", tiempo, power_consumption(utilization, H, h_size));
+				// printf("\nPLACEMENT\n");
+				// print_int_matrix(placement, 3, h_size);
+				tiempo = S[iterator_row][0];
 			}
-			printf("Tiempo t: %g\n", S[iterator_row][iterator_column]);
+			printf("Tiempo t: %g", S[iterator_row][iterator_column]);
 			first_fit(S[iterator_row], utilization, placement, H, h_size);
 			// best_fit(S[iterator_row], utilization, placement, H, h_size);
 			// worst_fit(S[iterator_row], utilization, placement, H, h_size);
 		}
-		printf("Power Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
-		
-		
+		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
+		printf("\nFINAL - PLACEMENT\n");
+		print_int_matrix(placement, 3, h_size);
 
+
+		/* CLEANING */
+		free_float_matrix(utilization, h_size);
+		free_int_matrix(placement, 3);
+		free_int_matrix(H, h_size);
+		free_float_matrix(S, s_size);
+
+		printf("\n EXPERIMENT COMPLETED \n");
+		
 		/* finish him */
 		return 0;
 	}

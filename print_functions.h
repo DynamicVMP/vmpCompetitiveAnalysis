@@ -5,6 +5,7 @@
  * Edited by: Saúl Zalimben 20-02-2016
  */
 
+/* include libraries */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
