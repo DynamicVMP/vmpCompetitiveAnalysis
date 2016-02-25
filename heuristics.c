@@ -14,8 +14,6 @@
  */
 bool allocate_VM_to_PM(int **placement, float *request, int pm ) {
 
-	// printf("\nLos valores son: %d%d\n", pm, (int) request[3]);
-	// placement[pm][(int) request[1]] [ (int) request[2]] [ (int) request[3]] = 1;
 	placement[(int) request[3]][pm] = 1;
 	return true;
 }
@@ -38,47 +36,26 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 
 	int iterator_physical; 
 	int iterator_scenario;
-	int requestRejected = 0;
+	
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
 
-		if (check_resources(request, utilization[iterator_physical], H[iterator_physical])) {
-			
-			// Allocate la VM to VM			
-			if(allocate_VM_to_PM(placement, request, iterator_physical)) {
+		if (check_resources(request, utilization[iterator_physical], H[iterator_physical])) {		
+			// Allocate la VM to VM		
 
+			if(allocate_VM_to_PM(placement, request, iterator_physical)) {
 				utilization[iterator_physical][0] += request[4]*request[7]/100;
 				utilization[iterator_physical][1] += request[5]*request[8]/100;
-				utilization[iterator_physical][2] += request[6]*request[9]/100;
-
-				// printf("\nVM ubicada correctamente\n");
-	
+				utilization[iterator_physical][2] += request[6]*request[9]/100;	
 			}
 			
-			return 0;
+			return 1;
 		}
 	}
-	/*if (SLA == MAX_SLA) {
-		int allocate = forceAllocate(S);
-		if (allocate != 0) {
-			requestRejected++;
-		}
-	} else {
-		requestRejected++;
-	}*/
 	return 0;
-//	printf("Request Rejected: %d\n", requestRejected);
 }
 
-
-int best_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
-	return best_or_worst_fit(true, request, utilization, placement, H, h_size);
-}
-
-int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
-	return best_or_worst_fit(false, request, utilization, placement, H, h_size);
-}
 
 int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size) {
 
@@ -88,15 +65,24 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	PM_weight_pair_node* PM_ordered_list = malloc(sizeof(PM_weight_pair_node));
 	PM_weight_pair_node* clean_list;
 	float weight_PM = 0.0;
-
+	
+	// printf("Creating ordered list of PM based on average weight\n");
+	
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		weight_PM = calculate_weight(utilization, H[iterator_physical], iterator_physical);
+		// printf("Weight calculated for iterator %d\n", iterator_physical);
 		insert_PM_to_ordered_list(is_best, &PM_ordered_list, weight_PM, iterator_physical);
+		// printf("PM %d inserted on ordered list\n",iterator_physical);
 	}
+
+	// printf("Ordered list created\n");
 	clean_list = PM_ordered_list;
+	
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
+		// // printf("Checking resources for index %d\n",PM_ordered_list->h_index);
 		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
 			// Allocate the VM into the PM
+			// printf("Allocating VM\n");
 			if(allocate_VM_to_PM(placement, request, PM_ordered_list->h_index)) {
 
 				utilization[PM_ordered_list->h_index][0] += request[4]*request[7]/100;
@@ -104,13 +90,24 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 				utilization[PM_ordered_list->h_index][2] += request[6]*request[9]/100;
 
 			}
-
+			// printf("VM allocated %d\n", clean_list->h_index);
+			// free_list(clean_list);
 			return 1;
 		}
+		// printf("Iterating over the ordered list\n");
 		PM_ordered_list = PM_ordered_list->next;
 	}
-	free_list(clean_list);
+	// printf("VM not allocated\n");
+	// free_list(clean_list);
 	return 0;
+}
+
+int best_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
+	return best_or_worst_fit(true, request, utilization, placement, H, h_size);
+}
+
+int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
+	return best_or_worst_fit(false, request, utilization, placement, H, h_size);
 }
 
 
@@ -122,7 +119,7 @@ float calculate_weight(float **utilization, int *H, int h_index){
 	return weight_PM;
 }
 
-void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index){
+void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index) {
 
 	bool ( *comparator )( float, float );
 	PM_weight_pair_node* new_node = malloc(sizeof(PM_weight_pair_node));
@@ -130,32 +127,42 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
 	new_node->weight = weight_PM;
 	new_node->h_index = h_index;
 	new_node->next = NULL;
-
+	
 	if(is_best){
 		comparator = &best_comparator;
 	}else{
 		comparator = &worst_comparator;
 	}
 
-	if((*comparator)(new_node->weight,(*PM_ordered_list)->weight)){
+	if((*comparator)(new_node->weight,(*PM_ordered_list)->weight)) {
+		// printf("Insert first in list\n");
 		new_node->next = *PM_ordered_list;
 		*PM_ordered_list = new_node;
+		// printf("Index %d\n",new_node->h_index);
+		// printf("Index %d\n",(*PM_ordered_list)->h_index);
 		return;
 	}
 
 	PM_weight_pair_node* parent = *PM_ordered_list;
-	PM_weight_pair_node* actual = (*PM_ordered_list)->next;
-
-	while(actual != NULL){
+	PM_weight_pair_node* actual = parent->next;
+	
+	while(actual != NULL) {
+		// // printf("IN WHILE  Index %d\n", actual->h_index);
 		if((*comparator)(new_node->weight,actual->weight)){
-			new_node->next = parent->next;
+			// printf("new_node %d\n", new_node->h_index);
+			new_node->next = actual;
 			parent->next = new_node;
+			// printf("new_node %d\n", new_node->h_index);
+			// printf("Insert in list\n");
+			// printf("Index %d\n", actual->h_index);
 			return;
 		}
 		parent = actual;
 		actual = actual->next;
 	}
 	parent->next = new_node;
+	// printf("Insert last in list\n");
+	// printf("Index %d\n",new_node->h_index);
 	return;
 
 }
@@ -170,9 +177,13 @@ bool worst_comparator(float weight_A, float weight_B){
 
 void free_list(PM_weight_pair_node* list_to_free){
 	PM_weight_pair_node* tmp_pointer;
+	// printf("Release memory\n");
 	while(list_to_free != NULL){
-		tmp_pointer = list_to_free->next;
-		free(list_to_free);
-		list_to_free = tmp_pointer;
+		tmp_pointer = list_to_free;
+		list_to_free = list_to_free->next;
+		// printf("free begin\n");
+		free(tmp_pointer);
+		// printf("free end\n");
 	}
+	// printf("Memory released\n");
 }

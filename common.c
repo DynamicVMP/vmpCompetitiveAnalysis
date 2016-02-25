@@ -34,8 +34,8 @@ int get_h_size(char path_to_file[]) {
 			if (strstr(input_line,H_HEADER) != NULL) {
 				reading_physical = 1;
 			}
-			/* if the line is equal to V_HEADER, we end the physical machines block in the file */
-			if (strstr(input_line,V_HEADER) != NULL) {
+			/* if the line is equal to S_HEADER, we end the physical machines block in the file */
+			if (strstr(input_line,S_HEADER) != NULL) {
 				reading_physical = 0;
 				break;
 			}
@@ -80,7 +80,7 @@ int** load_H(int h_size, char path_to_file[]) {
 				reading_physical = 1;
 			}
 			/* if the line is equal to V_HEADER, we end the physical machines block in the file */
-			if (strstr(input_line,V_HEADER) != NULL) {
+			if (strstr(input_line,S_HEADER) != NULL) {
 				reading_physical = 0;
 				break;
 			}

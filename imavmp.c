@@ -1,8 +1,8 @@
 /* 
- * imavmp.c: Interactive Memetic Algorithm for Virtual Machine Placement (IMAVMP)
+ * imavmp.c: Heuristic Algorithms for Virtual Machine Placement (IMAVMP)
  * Date: 17-11-2014
- * Author: Fabio Lopez Pires (flopezpires@gmail.com)
- * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
+ * Author: Saúl Zalimben (szalimben93@gmail.com)
+ * Author: Rodrigo Ferreira (rodrigofepy@gmail.com)
  */
 
 /* include own headers */
@@ -13,7 +13,7 @@
 /* definitions (this could be parameters) */
 #define NUMBER_OF_SERVICES 1
 #define NUMBER_OF_DATACENTER 1
-#define NUMBER_VM_PER_DC 100 // Number of VMs VMj in DCc;
+#define NUMBER_VM_PER_DC 300 // Number of VMs VMj in DCc;
 #define RESOURCES 3 // Number of VMs VMj in DCc;
 #define MAX_SLA 1
 
@@ -29,7 +29,9 @@ int main (int argc, char *argv[]) {
 	int iterator_physical;
 	int iterator_service;
 	int iterator_datacenter;
-	int (*heuristics_array[3])(float *S, float **utilization, int **placement, int **H, int h_size);
+	int requestRejected = 0;
+
+	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size);
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
 
 	heuristics_array[0] = first_fit;
@@ -52,9 +54,9 @@ int main (int argc, char *argv[]) {
 		printf("\nH=%d, S=%d\n", h_size, s_size);
 
 		int **H = load_H(h_size, argv[1]);
-		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
+		printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
 		float **S = load_S(s_size, argv[1]);
-		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+		printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
 		
 		// Placement matrix 
 		int **placement = placement_initialization(h_size, NUMBER_VM_PER_DC);
@@ -62,28 +64,13 @@ int main (int argc, char *argv[]) {
 		// Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
 		
-		/* int ****placement = (int ****) malloc (h_size *sizeof (int ***));
-		for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
-			placement[iterator_physical] = (int ***) malloc (sizeof (int **));
-			for (iterator_service = 0; iterator_service < NUMBER_OF_SERVICES; iterator_service++) {
-				placement[iterator_physical][iterator_service] = (int **) malloc (sizeof (int *));
-				for(iterator_datacenter = 0; iterator_datacenter < NUMBER_OF_DATACENTER; iterator_datacenter++) {
-					placement[iterator_physical][iterator_service][iterator_datacenter] = (int *) malloc (sizeof (int));		
-				}	
-			}
-		}*/
-
-		// printf("\nUTILIZATION\n");
-		// print_float_matrix(utilization, h_size, 3);
-		
-		// printf("\nPLACEMENT\n");
-		// print_int_matrix(placement, 3, h_size);
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		printf("\n STARTING THE EXPERIMENT \n");
 		printf("\n SELECT THE HEURISTIC TO USE");
 		printf("\n1-) First Fit");
 		printf("\n2-) Best Fit");
 		printf("\n3-) Worst Fit");
+
 		int heuristic = 0;
 		while (heuristic == 0){
 			printf("\n Option: ");
@@ -93,21 +80,24 @@ int main (int argc, char *argv[]) {
 				heuristic = 0;
 			}
 		}
+
 		printf("\n USING %s HEURISTIC", heuristics_names[heuristic-1]);
 		int tiempo = 0;
 		printf("\nInstant t: 0");
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
+			
+			// printf("Scenario: %d\n", iterator_row );
+
 			if(S[iterator_row][0] != tiempo ) {
-				printf("\nPower Consumption(t= %d) :  %g\n\n", tiempo, power_consumption(utilization, H, h_size));
-				printf("Instant t: %g", S[iterator_row][iterator_column]);
+				// printf("\nPower Consumption(t= %d) :  %g\n\n", tiempo, power_consumption(utilization, H, h_size));
+				// printf("Instant t: %g", S[iterator_row][iterator_column]);
 				tiempo = S[iterator_row][0];
 			}
 			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size);
 		}
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
 		printf("\nFINAL - PLACEMENT\n");
-		print_int_matrix(placement, 3, h_size);
-
+		// print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
