@@ -67,7 +67,8 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 	} else {
 		requestRejected++;
 	}*/
-	printf("Request Rejected: %d\n", requestRejected);
+	return 0;
+//	printf("Request Rejected: %d\n", requestRejected);
 }
 
 
@@ -88,34 +89,35 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	float weight_PM = 0.0;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
-		weight_PM = calculate_weight(placement, H[iterator_physical], iterator_physical);
+		weight_PM = calculate_weight(utilization, H[iterator_physical], iterator_physical);
 		insert_PM_to_ordered_list(is_best, &PM_ordered_list, weight_PM, iterator_physical);
 	}
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
-//		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
-//			printf("Allocate VM into PM %d",PM_ordered_list->h_index);
-//			//allocateVM(H[PM_ordered_list->h_index]);
-//			return 1;
-//		}
+		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
+			// Allocate the VM into the PM
+			if(allocate_VM_to_PM(placement, request, PM_ordered_list->h_index)) {
+
+				utilization[PM_ordered_list->h_index][0] += request[4]*request[7]/100;
+				utilization[PM_ordered_list->h_index][1] += request[5]*request[8]/100;
+				utilization[PM_ordered_list->h_index][2] += request[6]*request[9]/100;
+
+			}
+
+			return 1;
+		}
 		PM_ordered_list = PM_ordered_list->next;
 	}
-
-//	if (SLA == MAX_SLA) {
-//		int allocate = forceAllocate(S);
-//		if (allocate != 0) {
-//			requestRejected++;
-//		}
-//	} else {
-//		requestRejected++;
-//	}
 
 	return 0;
 }
 
 
-float calculate_weight(int **placement, int *H, int h_index){
+float calculate_weight(float **utilization, int *H, int h_index){
 	float weight_PM = 0.0;
+	weight_PM += utilization[h_index][0] / H[0];
+	weight_PM += utilization[h_index][1] / H[1];
+	weight_PM += utilization[h_index][2] / H[2];
 	return weight_PM;
 }
 

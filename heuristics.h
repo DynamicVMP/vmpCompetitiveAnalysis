@@ -29,7 +29,7 @@ int worst_fit(float *S, float **utilization, int **placement, int **H, int h_siz
 
 int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size);
 
-float calculate_weight(int **placement, int *H, int h_index);
+float calculate_weight(float **utilization, int *H, int h_index);
 
 void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index);
 

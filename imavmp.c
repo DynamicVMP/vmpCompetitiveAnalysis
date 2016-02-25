@@ -29,6 +29,12 @@ int main (int argc, char *argv[]) {
 	int iterator_physical;
 	int iterator_service;
 	int iterator_datacenter;
+	int (*heuristics_array[3])(float *S, float **utilization, int **placement, int **H, int h_size);
+	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
+
+	heuristics_array[0] = first_fit;
+	heuristics_array[1] = best_fit;
+	heuristics_array[2] = worst_fit;
 
     /* parameters verification */
 	if (argc == 1) {
@@ -74,19 +80,29 @@ int main (int argc, char *argv[]) {
 		// print_int_matrix(placement, 3, h_size);
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		printf("\n STARTING THE EXPERIMENT \n");
-
+		printf("\n SELECT THE HEURISTIC TO USE");
+		printf("\n1-) First Fit");
+		printf("\n2-) Best Fit");
+		printf("\n3-) Worst Fit");
+		int heuristic = 0;
+		while (heuristic == 0){
+			printf("\n Option: ");
+			scanf("%d",&heuristic);
+			if(heuristic > 3 || heuristic < 1) {
+				printf("\n INVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
+				heuristic = 0;
+			}
+		}
+		printf("\n USING %s HEURISTIC", heuristics_names[heuristic-1]);
 		int tiempo = 0;
+		printf("\nInstant t: 0");
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
 			if(S[iterator_row][0] != tiempo ) {
 				printf("\nPower Consumption(t= %d) :  %g\n\n", tiempo, power_consumption(utilization, H, h_size));
-				// printf("\nPLACEMENT\n");
-				// print_int_matrix(placement, 3, h_size);
+				printf("Instant t: %g", S[iterator_row][iterator_column]);
 				tiempo = S[iterator_row][0];
 			}
-			printf("Tiempo t: %g", S[iterator_row][iterator_column]);
-			first_fit(S[iterator_row], utilization, placement, H, h_size);
-			// best_fit(S[iterator_row], utilization, placement, H, h_size);
-			// worst_fit(S[iterator_row], utilization, placement, H, h_size);
+			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size);
 		}
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
 		printf("\nFINAL - PLACEMENT\n");
