@@ -86,13 +86,14 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	int iterator_scenario;
 	int request_rejected = 0;
 	PM_weight_pair_node* PM_ordered_list = malloc(sizeof(PM_weight_pair_node));
+	PM_weight_pair_node* clean_list;
 	float weight_PM = 0.0;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		weight_PM = calculate_weight(utilization, H[iterator_physical], iterator_physical);
 		insert_PM_to_ordered_list(is_best, &PM_ordered_list, weight_PM, iterator_physical);
 	}
-
+	clean_list = PM_ordered_list;
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
 		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
 			// Allocate the VM into the PM
@@ -108,7 +109,7 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 		}
 		PM_ordered_list = PM_ordered_list->next;
 	}
-
+	free_list(clean_list);
 	return 0;
 }
 
@@ -165,4 +166,13 @@ bool best_comparator(float weight_A, float weight_B){
 
 bool worst_comparator(float weight_A, float weight_B){
 	return weight_A > weight_B;
+}
+
+void free_list(PM_weight_pair_node* list_to_free){
+	PM_weight_pair_node* tmp_pointer;
+	while(list_to_free != NULL){
+		tmp_pointer = list_to_free->next;
+		free(list_to_free);
+		list_to_free = tmp_pointer;
+	}
 }

@@ -36,3 +36,5 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
 bool best_comparator(float weight_A, float weight_B);
 
 bool worst_comparator(float weight_A, float weight_B);
+
+void free_list(PM_weight_pair_node* list_to_free);
