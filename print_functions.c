@@ -8,6 +8,7 @@
 /* include common header */
 #include "print_functions.h"
 
+
 /* print_int_matrix: prints on screen a integer matrix
  * parameter: matrix to print
  * parameter: number of individuals
@@ -76,4 +77,47 @@ void print_float_array(float *array, int columns) {
 	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
 		printf("[DEBUG] [%d]: %g\n",iterator_column,array[iterator_column]);	
 	}
+}
+
+/* print_float_matrix: prints on screen a int matrix
+ * parameter: matrix to print
+ * parameter: number of individuals
+ * parameter: number of virtual machines
+ * returns: nothing, it's void
+ */
+void print_placement_to_file(char * heuristics, int ** matrix, int rows, int columns) {
+	
+	FILE *placement_result;
+
+	char heuristics_placement[40] = "results/";
+	strcat(heuristics_placement, heuristics);
+	placement_result = fopen(heuristics_placement,"a");
+
+	/* iterators */
+	int iterator_row;
+	int iterator_column;
+	/* iterate on rows */	
+	for (iterator_row=0; iterator_row < rows; iterator_row++) {
+		/* iterate on columns */
+		for (iterator_column = 0; iterator_column < columns; iterator_column++) {
+			fprintf(placement_result, "%d\t",matrix[iterator_row][iterator_column]);	
+		}
+		fprintf(placement_result,"\n");
+	}
+	fprintf(placement_result,"\n");
+}
+
+void print_utilization_to_file(char * resources ,float * array, int columns) {
+	/* iterators */
+	FILE *utilization_result;
+	char file[40] = "results/";
+	strcat(file, resources);
+	
+	utilization_result = fopen(file,"a");
+	int iterator_column;
+	/* iterate on columns */
+	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
+		fprintf(utilization_result, "%g\t",array[iterator_column]);	
+	}
+	fprintf(utilization_result, "\n");
 }

@@ -13,9 +13,9 @@
 /* definitions (this could be parameters) */
 #define NUMBER_OF_SERVICES 1
 #define NUMBER_OF_DATACENTER 1
-#define NUMBER_VM_PER_DC 300 // Number of VMs VMj in DCc;
-#define RESOURCES 3 // Number of VMs VMj in DCc;
-#define MAX_SLA 1
+#define NUMBER_VM_PER_DC 4 			// Number of VMs VMj in DCc;
+#define RESOURCES 3 				
+#define MAX_SLA 4
 
 /* 
  * parameter: path to the datacenter infrastructure file
@@ -30,6 +30,9 @@ int main (int argc, char *argv[]) {
 	int iterator_service;
 	int iterator_datacenter;
 	int requestRejected = 0;
+
+	FILE *power_consumption_file;
+	power_consumption_file = fopen("results/power_consumption","a");
 
 	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size);
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
@@ -54,15 +57,17 @@ int main (int argc, char *argv[]) {
 		printf("\nH=%d, S=%d\n", h_size, s_size);
 
 		int **H = load_H(h_size, argv[1]);
-		printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
+		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
 		float **S = load_S(s_size, argv[1]);
-		printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
 		
 		// Placement matrix 
 		int **placement = placement_initialization(h_size, NUMBER_VM_PER_DC);
+		// print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		
 		// Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
+		// print_float_matrix(utilization, RESOURCES, h_size);
 		
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		printf("\n STARTING THE EXPERIMENT \n");
@@ -83,21 +88,22 @@ int main (int argc, char *argv[]) {
 
 		printf("\n USING %s HEURISTIC", heuristics_names[heuristic-1]);
 		int tiempo = 0;
-		printf("\nInstant t: 0");
+		// printf("\nInstant t: 0");
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
-			
-			// printf("Scenario: %d\n", iterator_row );
-
-			if(S[iterator_row][0] != tiempo ) {
-				// printf("\nPower Consumption(t= %d) :  %g\n\n", tiempo, power_consumption(utilization, H, h_size));
+ 			if(S[iterator_row][0] != tiempo ) {
+				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
 				// printf("Instant t: %g", S[iterator_row][iterator_column]);
 				tiempo = S[iterator_row][0];
 			}
 			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size);
 		}
-		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power_consumption(utilization, H, h_size));
+		float power = power_consumption(utilization, H, h_size);
+		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
+		fprintf(power_consumption_file, "%g\n", power);
 		printf("\nFINAL - PLACEMENT\n");
-		// print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
+		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
+		printf("\nFINAL - UTILIZATION\n");
+		print_float_matrix(utilization, RESOURCES, h_size);
 
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);

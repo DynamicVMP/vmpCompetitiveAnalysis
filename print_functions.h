@@ -11,9 +11,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 /* print matrix and array */
 void print_int_matrix(int ** matrix, int rows, int columns);
 void print_float_matrix(float ** matrix, int rows, int columns);
 void print_int_array(int * array, int columns);
 void print_float_array(float * array, int columns);
+
+/* Print to FILE */
+void print_placement_to_file(char * heuristics, int ** matrix, int rows, int columns);
+void print_utilization_to_file(char * resources ,float * array, int columns);
