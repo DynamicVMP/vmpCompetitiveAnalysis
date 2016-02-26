@@ -46,13 +46,6 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 				utilization[0][iterator_physical] += request[4]*request[7]/100;
 				utilization[1][iterator_physical] += request[5]*request[8]/100;
 				utilization[2][iterator_physical] += request[6]*request[9]/100;	
-
-				// Save FILE
-				print_placement_to_file("first_fit/placement_result", placement, 4, h_size);
-				print_utilization_to_file("first_fit/cpu_utilization", utilization[0], h_size);
-				print_utilization_to_file("first_fit/ram_utilization", utilization[1], h_size);
-				print_utilization_to_file("first_fit/net_utilization", utilization[2], h_size);
-
 			}
 			
 			return 1;
@@ -93,21 +86,6 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 				utilization[0][PM_ordered_list->h_index] += request[4]*request[7]/100;
 				utilization[1][PM_ordered_list->h_index] += request[5]*request[8]/100;
 				utilization[2][PM_ordered_list->h_index] += request[6]*request[9]/100;
-				
-				// Save FILE
-				if(is_best) {
-					print_placement_to_file("best_fit/placement_result", placement, 4, h_size);
-					print_utilization_to_file("best_fit/cpu_utilization", utilization[0], h_size);
-					print_utilization_to_file("best_fit/ram_utilization", utilization[1], h_size);
-					print_utilization_to_file("best_fit/net_utilization", utilization[2], h_size);	
-				} else {
-					print_placement_to_file("worst_fit/placement_result", placement, 4, h_size);
-					print_utilization_to_file("worst_fit/cpu_utilization", utilization[0], h_size);
-					print_utilization_to_file("worst_fit/ram_utilization", utilization[1], h_size);
-					print_utilization_to_file("worst_fit/net_utilization", utilization[2], h_size);	
-				}
-				
-
 			}
 			// printf("VM allocated %d\n", clean_list->h_index);
 			// free_list(clean_list);

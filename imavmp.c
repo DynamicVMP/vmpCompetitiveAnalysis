@@ -93,13 +93,27 @@ int main (int argc, char *argv[]) {
  			if(S[iterator_row][0] != tiempo ) {
 				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
 				// printf("Instant t: %g", S[iterator_row][iterator_column]);
+
+				// Save FILE
+				print_placement_to_file("placement_result", placement, 4, h_size);
+				print_utilization_to_file("cpu_utilization", utilization[0], h_size);
+				print_utilization_to_file("ram_utilization", utilization[1], h_size);
+				print_utilization_to_file("net_utilization", utilization[2], h_size);
+
 				tiempo = S[iterator_row][0];
 			}
 			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size);
 		}
 		float power = power_consumption(utilization, H, h_size);
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
+		
+		// Save to FILE
 		fprintf(power_consumption_file, "%g\n", power);
+		print_placement_to_file("placement_result", placement, 4, h_size);
+		print_utilization_to_file("cpu_utilization", utilization[0], h_size);
+		print_utilization_to_file("ram_utilization", utilization[1], h_size);
+		print_utilization_to_file("net_utilization", utilization[2], h_size);
+
 		printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		printf("\nFINAL - UTILIZATION\n");
