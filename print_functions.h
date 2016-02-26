@@ -22,3 +22,4 @@ void print_float_array(float * array, int columns);
 /* Print to FILE */
 void print_placement_to_file(char * heuristics, int ** matrix, int rows, int columns);
 void print_utilization_to_file(char * resources ,float * array, int columns);
+void print_utilization_matrix_to_file(char * heuristics, float ** matrix, int rows, int columns);

@@ -11,16 +11,16 @@
 /* utilization: initial utilization matrix */
 float** utilization_initialization(int h_size, int resources) {
 	
-	float **utilization = (float **) malloc (resources *sizeof (float *));
+	float **utilization = (float **) malloc (h_size *sizeof (float *));
 	/* iterators */
 	int iterator_physical;
 	int iterator_physical_position;
 	/* iterate on individuals */
 	
-	for (iterator_physical=0; iterator_physical < resources; iterator_physical++) {	
-		utilization[iterator_physical] = (float *) malloc (h_size *sizeof (float));
+	for (iterator_physical=0; iterator_physical < h_size; iterator_physical++) {	
+		utilization[iterator_physical] = (float *) malloc (resources *sizeof (float));
 		/* iterate on positions of an individual */
-		for (iterator_physical_position = 0; iterator_physical_position < h_size; iterator_physical_position++) {
+		for (iterator_physical_position = 0; iterator_physical_position < resources; iterator_physical_position++) {
 			utilization[iterator_physical][iterator_physical_position] = 0;
 		}
 	}

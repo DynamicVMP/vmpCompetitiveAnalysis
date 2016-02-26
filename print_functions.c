@@ -107,6 +107,28 @@ void print_placement_to_file(char * heuristics, int ** matrix, int rows, int col
 	fprintf(placement_result,"\n");
 }
 
+void print_utilization_matrix_to_file(char * heuristics, float ** matrix, int rows, int columns) {
+	
+	FILE *placement_result;
+
+	char heuristics_placement[40] = "results/";
+	strcat(heuristics_placement, heuristics);
+	placement_result = fopen(heuristics_placement,"a");
+
+	/* iterators */
+	int iterator_row;
+	int iterator_column;
+	/* iterate on rows */	
+	for (iterator_row=0; iterator_row < rows; iterator_row++) {
+		/* iterate on columns */
+		for (iterator_column = 0; iterator_column < columns; iterator_column++) {
+			fprintf(placement_result, "%g\t",matrix[iterator_row][iterator_column]);	
+		}
+		fprintf(placement_result,"\n");
+	}
+	fprintf(placement_result,"\n");
+}
+
 void print_utilization_to_file(char * resources ,float * array, int columns) {
 	/* iterators */
 	FILE *utilization_result;

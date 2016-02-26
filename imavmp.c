@@ -32,7 +32,14 @@ int main (int argc, char *argv[]) {
 	int requestRejected = 0;
 
 	FILE *power_consumption_file;
+	FILE *cpu_utilization;
+	FILE *ram_utilization;
+	FILE *net_utilization;
+
 	power_consumption_file = fopen("results/power_consumption","a");
+	cpu_utilization = fopen("results/cpu_utilization", "a");
+	ram_utilization = fopen("results/ram_utilization", "a");
+	net_utilization = fopen("results/net_utilization", "a");
 
 	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size);
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
@@ -67,7 +74,7 @@ int main (int argc, char *argv[]) {
 		
 		// Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
-		// print_float_matrix(utilization, RESOURCES, h_size);
+		print_float_matrix(utilization, h_size, RESOURCES);
 		
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		printf("\n STARTING THE EXPERIMENT \n");
@@ -88,17 +95,25 @@ int main (int argc, char *argv[]) {
 
 		printf("\n USING %s HEURISTIC", heuristics_names[heuristic-1]);
 		int tiempo = 0;
+		int iterator_pm;
 		// printf("\nInstant t: 0");
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			if(S[iterator_row][0] != tiempo ) {
-				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
-				// printf("Instant t: %g", S[iterator_row][iterator_column]);
-
+				
 				// Save FILE
+				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
 				print_placement_to_file("placement_result", placement, 4, h_size);
-				print_utilization_to_file("cpu_utilization", utilization[0], h_size);
-				print_utilization_to_file("ram_utilization", utilization[1], h_size);
-				print_utilization_to_file("net_utilization", utilization[2], h_size);
+				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
+
+				for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++) {
+					/* for each physical resource */
+					fprintf(cpu_utilization,"%g\t",utilization[iterator_physical][0]);
+					fprintf(ram_utilization,"%g\t",utilization[iterator_physical][1]);
+					fprintf(net_utilization,"%g\t",utilization[iterator_physical][2]);
+				}
+				fprintf(cpu_utilization,"\n");
+				fprintf(ram_utilization,"\n");
+				fprintf(net_utilization,"\n");
 
 				tiempo = S[iterator_row][0];
 			}
@@ -109,15 +124,20 @@ int main (int argc, char *argv[]) {
 		
 		// Save to FILE
 		fprintf(power_consumption_file, "%g\n", power);
-		print_placement_to_file("placement_result", placement, 4, h_size);
-		print_utilization_to_file("cpu_utilization", utilization[0], h_size);
-		print_utilization_to_file("ram_utilization", utilization[1], h_size);
-		print_utilization_to_file("net_utilization", utilization[2], h_size);
+		print_placement_to_file("placement_result", placement, NUMBER_VM_PER_DC, h_size);
+		print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
+
+		for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++) {
+			/* for each physical resource */
+			fprintf(cpu_utilization,"%g\t",utilization[iterator_physical][0]);
+			fprintf(ram_utilization,"%g\t",utilization[iterator_physical][1]);
+			fprintf(net_utilization,"%g\t",utilization[iterator_physical][2]);
+		}
 
 		printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		printf("\nFINAL - UTILIZATION\n");
-		print_float_matrix(utilization, RESOURCES, h_size);
+		print_float_matrix(utilization, h_size, RESOURCES);
 
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
