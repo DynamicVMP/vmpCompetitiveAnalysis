@@ -1,14 +1,17 @@
 /* 
  * initialization.c: Virtual Machine Placement Problem - Initialization Stage
- * Date: 17-11-2014
- * Author: Fabio Lopez Pires (flopezpires@gmail.com)
- * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
+ * Date: February, 2016
+ * Author: Saúl Zalimben (szalimben93@gmail.com)
  */
 
 /* include initialization stage header */
 #include "initialization.h"
 
-/* utilization: initial utilization matrix */
+/* utilization_initialization: initial utilization matrix 
+ * parameter: number of physical machines
+ * parameter: number of resources
+ * return: initial utilization matrix
+ */
 float** utilization_initialization(int h_size, int resources) {
 	
 	float **utilization = (float **) malloc (h_size *sizeof (float *));
@@ -28,7 +31,11 @@ float** utilization_initialization(int h_size, int resources) {
 	return utilization;
 }
 
-/* utilization: initial utilization matrix */
+/* placement_initialization: initial placement matrix 
+ * parameter: number of physical machines
+ * parameter: number of virtual machines
+ * return: initial placement matrix
+ */
 int** placement_initialization(int h_size, int v_size) {
 	
 	int **placement = (int **) malloc (v_size *sizeof (int *));

@@ -7,6 +7,11 @@
 /* include libraries */
 #include "scenario.h"
 
+/**
+ * get_s_size: get the number of request
+ * parameter: path to file
+ * returns: number of request
+ */
 int get_s_size(char path_to_file[]) {
 
     /* scenario file to read from */
@@ -31,7 +36,8 @@ int get_s_size(char path_to_file[]) {
                 reading_scenario = 1;
             }
             /* if it is the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-            if (reading_scenario == 1 && strstr(input_line,S_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+            if (reading_scenario == 1 && strstr(input_line,S_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+                && input_line[0] != 13) {
                 s_size++;
             }
         }
@@ -42,6 +48,12 @@ int get_s_size(char path_to_file[]) {
     return s_size;
 }
 
+/**
+ * load_S: load the scenario
+ * parameter: s_size: nummber of request
+ * parameter: path to file
+ * return: request matrix
+ */
 float** load_S(int s_size, char path_to_file[]) {
 
     FILE *scenario_file;

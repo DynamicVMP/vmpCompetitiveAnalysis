@@ -1,16 +1,20 @@
 /* 
  * heuristics.c: Virtual Machine Placement Problem - Heuristics Functions Header
- * Date: 21-02-2016
+ * Date: February, 2016
+ * Author: Rodrigo Ferreira (rodrigofepy@gmail.com) 
  * Author: Saúl Zalimben (szalimben93@gmail.com)
- * Author: Rodrigo Ferreira (rodrigofepy@gmail.com)
  */
 
 /* include libraries */
 #include "heuristics.h"
 
 /**
- * Allocate VM to PM
- * Update the placement matrix
+ * allocate_VM_to_PM: update the placement matrix, allocate VM to PM
+ * parameter: placement matrix
+ * parameter: request of VM
+ * parameter: physical machine
+ * return: True, if the VM war correctly allocate
+ * 		   False, other case.	
  */
 bool allocate_VM_to_PM(int **placement, float *request, int pm ) {
 
@@ -19,7 +23,9 @@ bool allocate_VM_to_PM(int **placement, float *request, int pm ) {
 }
 
 /**
- * Check if the PM have enough resources for VM
+ * check_resources: check the available resources of the physical machine
+ * parameter: request of VM
+ * parameter: array utilization
  */
 bool check_resources(float *request, float *utilization, int *H) {
 
@@ -29,8 +35,16 @@ bool check_resources(float *request, float *utilization, int *H) {
 }
 
 
+
+// ################################## Heuristics ############################################### //
 /*
- * First Fit Algorithm
+ * first_fit: First Fit Algorithm
+ * parameter: request of VM
+ * parameter: utilization matrix	
+ * parameter: placement matrix
+ * parameter: number of physical machines
+ * returns: True (1), if the VM was correctly allocate.
+ * 			False(0), other case.
  */
 int first_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
 
@@ -54,15 +68,28 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 	return 0;
 }
 
-
+/*
+ * best_or_worst_fit: Best/First Fit Algorithm
+ * parameter: logical value that indicates which strategy will be applied.
+ * parameter: request of VM
+ * parameter: utilization matrix	
+ * parameter: placement matrix
+ * parameter: H matrix
+ * parameter: number of physical machines
+ * returns: True (1), if the VM was correctly allocate.
+ * 			False(0), other case.
+ */
 int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size) {
 
+	/* iterators */
 	int iterator_physical;
 	int iterator_scenario;
 	int request_rejected = 0;
+
 	PM_weight_pair_node* PM_ordered_list = (PM_weight_pair_node*)calloc(1,sizeof(PM_weight_pair_node));
 	PM_ordered_list->h_index = -1;
 	PM_weight_pair_node* clean_list;
+
 	float weight_PM = 0.0;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
@@ -80,7 +107,7 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 				utilization[PM_ordered_list->h_index][1] += request[5]*request[8]/100;
 				utilization[PM_ordered_list->h_index][2] += request[6]*request[9]/100;
 			}
-			 free_list(clean_list);
+			free_list(clean_list);
 			return 1;
 		}
 		PM_ordered_list = PM_ordered_list->next;
@@ -89,15 +116,42 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	return 0;
 }
 
+
+/*
+ * best_fit: call best_or_worst_fit function with a true value. (Execute best_fit algorithm)
+ * parameter: request of VM
+ * parameter: utilization matrix	
+ * parameter: placement matrix
+ * parameter: H matrix
+ * parameter: number of physical machines
+ * returns: True (1), if the VM was correctly allocate.
+ * 			False(0), other case.
+ */
 int best_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
 	return best_or_worst_fit(true, request, utilization, placement, H, h_size);
 }
 
+/*
+ * worst_fit: call best_or_worst_fit function with a false value. (Execute worst_fit algorithm)
+ * parameter: request of VM
+ * parameter: utilization matrix	
+ * parameter: placement matrix
+ * parameter: H matrix
+ * parameter: number of physical machines
+ * returns: True (1), if the VM was correctly allocate.
+ * 			False(0), other case.
+ */
 int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
 	return best_or_worst_fit(false, request, utilization, placement, H, h_size);
 }
 
-
+/**
+ * calculate_weight: Calculates the Weight of the physical machine
+ * parameter: utilization matrix
+ * parameter: H array (One physical machine)
+ * parameter: number of physical machine
+ * returns: Weight of the utilization 
+ */
 float calculate_weight(float **utilization, int *H, int h_index){
 	float weight_PM = 0.0;
 	weight_PM += utilization[h_index][0] / H[0];
@@ -106,6 +160,14 @@ float calculate_weight(float **utilization, int *H, int h_index){
 	return weight_PM;
 }
 
+/**
+ * insert_PM_to_ordered_list:
+ * parameter: logical value that indicates which strategy will be applied.
+ * parameter: ordered list
+ * parameter: weight of the physical machine
+ * parameter: number of physical machine
+ * returns: nothing, it is a void function
+ */
 void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index) {
 
 	bool ( *comparator )( float, float );
@@ -149,14 +211,32 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
 
 }
 
+
+/**
+ * best_comparator: Compares two weights from different physical machines
+ * parameter: Weight A
+ * parameter: Weight B
+ * returns: True, if Weight A is bigger than Weight B
+ */
 bool best_comparator(float weight_A, float weight_B){
 	return weight_A > weight_B;
 }
 
+/**
+ * worst_comparator: Compares two weights from different physical machines
+ * parameter: Weight A
+ * parameter: Weight B
+ * returns: True, if Weight A is smaller than Weight B
+ */
 bool worst_comparator(float weight_A, float weight_B){
 	return weight_A < weight_B;
 }
 
+/**
+ * free_list: free memory
+ * parameter: list of nodes
+ * returns: nothing, it is a void function
+ */
 void free_list(PM_weight_pair_node* list_to_free){
 	PM_weight_pair_node* tmp_pointer;
 	while(list_to_free != NULL){

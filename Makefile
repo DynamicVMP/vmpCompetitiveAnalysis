@@ -1,10 +1,14 @@
 all:
-	gcc -c common.c initialization.c reparation.c local_search.c variation.c network.c pareto.c imavmp.c
-	gcc -o imavmp common.o initialization.o reparation.o local_search.o variation.o network.o pareto.o imavmp.o -lm
+	gcc -c common.c print_functions.c utils.c scenario.c heuristics.c initialization.c imavmp.c
+	gcc -o imavmp common.o initialization.o print_functions.o utils.o scenario.o heuristics.o imavmp.o -lm
+
 clean:
 	rm -rf *o imavmp
 init: 
-	rm -rf results/pareto_*
-debug:
-	gcc -g -c common.c initialization.c reparation.c local_search.c variation.c network.c pareto.c imavmp.c
-	gcc -g -o imavmp common.o initialization.o reparation.o local_search.o variation.o network.o pareto.o imavmp.o -lm
+	rm -rf results/*
+
+run_mini_input:
+	./imavmp /home/szalimben/tesis/vmpCompetitiveAnalysis/inputs/mini_input.vmp
+
+run:
+	./imavmp /home/szalimben/tesis/vmpCompetitiveAnalysis/inputs/4x8.vmp

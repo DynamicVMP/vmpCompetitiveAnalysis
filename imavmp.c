@@ -1,8 +1,8 @@
 /* 
  * imavmp.c: Heuristic Algorithms for Virtual Machine Placement (IMAVMP)
- * Date: 17-11-2014
- * Author: Saúl Zalimben (szalimben93@gmail.com)
+ * Date: February, 2016
  * Author: Rodrigo Ferreira (rodrigofepy@gmail.com)
+ * Author: Saúl Zalimben (szalimben93@gmail.com)
  */
 
 /* include own headers */

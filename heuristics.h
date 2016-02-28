@@ -1,6 +1,7 @@
 /* 
  * heuristics.h: Virtual Machine Placement Problem - Heuristics Functions Header
- * Date: 21-02-2016
+ * Date: February, 2016
+ * Author: Rodrigo Ferreira (rodrigofepy@gmail.com) 
  * Author: Saúl Zalimben (szalimben93@gmail.com)
  */
 
@@ -19,8 +20,6 @@ typedef struct PM_weight_pair_node{
 bool check_resources(float *request, float *utilization, int *H);
 bool allocate_VM_to_PM(int **placement, float *request, int pm);
 
-/* get the number of physical and virtual machines */
-// int first_fit(float *S, float **utilization, int ****placement, int **H, int h_size);
 int first_fit(float *S, float **utilization, int **placement, int **H, int h_size);
 
 int best_fit(float *S, float **utilization, int **placement, int **H, int h_size);

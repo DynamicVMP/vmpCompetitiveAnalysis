@@ -1,8 +1,9 @@
 /* 
  * common.c: Virtual Machine Placement Problem - Common Functions
- * Date: 17-11-2014
+ * Date: February, 2016
  * Author: Fabio Lopez Pires (flopezpires@gmail.com)
- * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
+ * Author: Rodrigo Ferreira (rodrigofepy@gmail.com)
+ * Author: Saúl Zalimben (szalimben93@gmail.com)
  */
 	
 /* include common header */
@@ -40,7 +41,8 @@ int get_h_size(char path_to_file[]) {
 				break;
 			}
 			/* if it is the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				h_size++;
 			}
 		}
@@ -85,7 +87,8 @@ int** load_H(int h_size, char path_to_file[]) {
 				break;
 			}
 			/* if it's the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_physical == 1 && strstr(input_line,H_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				/* reserve 4 columns for Processor, Memory, Storage and Power Consumption */
 				H[iterator] = (int *) malloc (4 *sizeof (int));
 				/* load on the matrix and increment iterator */
@@ -98,6 +101,13 @@ int** load_H(int h_size, char path_to_file[]) {
 	return H;
 }
 
+/**
+ * power_consumption: returns the power comsumption
+ * parameter: utilization matrix
+ * parameter: H matrix
+ * parameter: number of physical machines
+ * returns: power comsumption
+ */
 float power_consumption (float **utilization, int **H, int h_size) {
 	/* iterate on physical machines */
 	int iterator_physical;
@@ -110,10 +120,7 @@ float power_consumption (float **utilization, int **H, int h_size) {
 			/* calculates utility of a physical machine */
 			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
 			/* calculates energy consumption of a physical machine */
-			// printf("\nUtilidad: %g\n", utilidad);
-			// printf("\nPM: %d\n", iterator_physical);
-			power_consumption += ( (float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6) ) * utilidad + 
-			(float)H[iterator_physical][3]*0.6;
+			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				 + (float)H[iterator_physical][3]*0.6;
 		}
 	}
 	return power_consumption;

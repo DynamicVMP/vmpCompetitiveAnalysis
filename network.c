@@ -40,7 +40,8 @@ int get_l_size(char path_to_file[]) {
 				break;
 			}
 			/* if we are in the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_links == 1 && strstr(input_line,L_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_links == 1 && strstr(input_line,L_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				l_size++;
 			}
 		}
@@ -86,7 +87,8 @@ int** load_T(int v_size, char path_to_file[]) {
 				reading_traffic = 1;
 			}
 			/* if it's the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_traffic == 1 && strstr(input_line,T_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_traffic == 1 && strstr(input_line,T_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				/* memory reserve for v_size virtual machines */
 				T[iterator_row] = (int *) malloc (v_size *sizeof (int));
 				/* strtok first time and load the value */
@@ -143,7 +145,8 @@ int** load_G(int h_size, int l_size, char path_to_file[]) {
 				reading_topology = 1;
 			}
 			/* if it's the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_topology == 1 && strstr(input_line,L_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_topology == 1 && strstr(input_line,L_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				/* memory reserve for h_size physical machines */
 				G[iterator_row] = (int *) malloc (h_size *sizeof (int));
 				/* strtok first time and load the value */
@@ -196,7 +199,8 @@ int* load_K(int l_size, char path_to_file[]) {
 				reading_capacity = 1;
 			}
 			/* if it's the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
-			if (reading_capacity == 1 && strstr(input_line,C_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+			if (reading_capacity == 1 && strstr(input_line,C_HEADER) == NULL && strcmp(input_line, "\n") != 0 
+				&& input_line[0] != 13) {
 				/* strtok first time and load the value */
 				ptr = strtok(input_line," \n\t");
 				sscanf(ptr,"%d",&K[iterator_row]);

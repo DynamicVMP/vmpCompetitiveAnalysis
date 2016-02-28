@@ -1,8 +1,9 @@
 /* 
- * common.h: Virtual Machine Placement Problem - Common Functions Header
- * Date: 17-11-2014
+ * common.h: Virtual Machine Placement Problem - Common Functions
+ * Date: February, 2016
  * Author: Fabio Lopez Pires (flopezpires@gmail.com)
- * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
+ * Author: Rodrigo Ferreira (rodrigofepy@gmail.com)
+ * Author: Saúl Zalimben (szalimben93@gmail.com)
  */
 
 /* include libraries */
@@ -18,6 +19,9 @@
 #define TAM_BUFFER BUFSIZ
 #define CONSTANT 10000
 #define BIG_COST 1000000
+
+
+/* function headers definitions */
 
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
