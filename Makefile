@@ -8,7 +8,7 @@ init:
 	rm -rf results/*
 
 run_mini_input:
-	./imavmp /home/szalimben/tesis/vmpCompetitiveAnalysis/inputs/mini_input.vmp
+	./imavmp inputs/mini_input.vmp
 
 run:
-	./imavmp /home/szalimben/tesis/vmpCompetitiveAnalysis/inputs/4x8.vmp
+	./imavmp inputs/4x8.vmp
