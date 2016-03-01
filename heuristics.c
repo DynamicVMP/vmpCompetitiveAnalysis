@@ -150,13 +150,13 @@ int worst_fit(float *request, float **utilization, int **placement, int **H, int
  * parameter: utilization matrix
  * parameter: H array (One physical machine)
  * parameter: number of physical machine
- * returns: Weight of the utilization 
+ * returns: Weight of the idle resources
  */
 float calculate_weight(float **utilization, int *H, int h_index){
 	float weight_PM = 0.0;
-	weight_PM += utilization[h_index][0] / H[0];
-	weight_PM += utilization[h_index][1] / H[1];
-	weight_PM += utilization[h_index][2] / H[2];
+	weight_PM += (1.0 - utilization[h_index][0] / H[0]);
+	weight_PM += (1.0 - utilization[h_index][1] / H[1]);
+	weight_PM += (1.0 - utilization[h_index][2] / H[2]);
 	return weight_PM;
 }
 
@@ -219,7 +219,7 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
  * returns: True, if Weight A is bigger than Weight B
  */
 bool best_comparator(float weight_A, float weight_B){
-	return weight_A > weight_B;
+	return weight_A < weight_B;
 }
 
 /**
@@ -229,7 +229,7 @@ bool best_comparator(float weight_A, float weight_B){
  * returns: True, if Weight A is smaller than Weight B
  */
 bool worst_comparator(float weight_A, float weight_B){
-	return weight_A < weight_B;
+	return weight_A > weight_B;
 }
 
 /**
