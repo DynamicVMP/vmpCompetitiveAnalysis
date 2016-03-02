@@ -6,6 +6,7 @@
 
 /* include libraries */
 #include "print_functions.h"
+#include <time.h>
 
 /* Clean Memory Functions */
 void free_int_matrix(int ** matrix, int rows);

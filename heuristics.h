@@ -7,7 +7,7 @@
 
 /* include libraries */
 #include "common.h"
- 
+
 /* definitions */
 typedef struct PM_weight_pair_node{
     int h_index;
@@ -20,13 +20,13 @@ typedef struct PM_weight_pair_node{
 bool check_resources(float *request, float *utilization, int *H);
 bool allocate_VM_to_PM(int **placement, float *request, int pm);
 
-int first_fit(float *S, float **utilization, int **placement, int **H, int h_size);
+int first_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
 
-int best_fit(float *S, float **utilization, int **placement, int **H, int h_size);
+int best_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
 
-int worst_fit(float *S, float **utilization, int **placement, int **H, int h_size);
+int worst_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
 
-int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size);
+int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
 
 float calculate_weight(float **utilization, int *H, int h_index);
 

@@ -12,9 +12,12 @@
 
 /* definitions (this could be parameters) */
 #define NUMBER_OF_SERVICES 1
-#define NUMBER_OF_DATACENTER 1
-#define NUMBER_VM_PER_DC 4 			// Number of VMs VMj in DCc;
-#define RESOURCES 3 				
+#define NUMBER_OF_DATACENTER 25
+#define NUMBER_VM_PER_DC 300 			// Number of VMs VMj in DCc;
+#define RESOURCES 3
+/*#define NUMBER_OF_DATACENTER 3*/
+/*#define NUMBER_VM_PER_DC 4*/
+
 #define MAX_SLA 4
 
 /* 
@@ -29,19 +32,28 @@ int main (int argc, char *argv[]) {
 	int iterator_physical;
 	int iterator_service;
 	int iterator_datacenter;
-	int requestRejected = 0;
+	int request_rejected = 0;
+	int iterator_pm;
 
+	// File pointers
 	FILE *power_consumption_file;
 	FILE *cpu_utilization;
 	FILE *ram_utilization;
 	FILE *net_utilization;
+	FILE *execution_time_file;
 
+	// Timer
+	clock_t start;
+	clock_t diff;
+	int msec;
+
+	execution_time_file = fopen("results/time","a");
 	power_consumption_file = fopen("results/power_consumption","a");
 	cpu_utilization = fopen("results/cpu_utilization", "a");
 	ram_utilization = fopen("results/ram_utilization", "a");
 	net_utilization = fopen("results/net_utilization", "a");
 
-	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size);
+	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
 
 	heuristics_array[0] = first_fit;
@@ -61,7 +73,7 @@ int main (int argc, char *argv[]) {
 		int h_size = get_h_size(argv[1]);
 		int s_size = get_s_size(argv[1]);
 
-		printf("\nH=%d, S=%d\n", h_size, s_size);
+		printf("\nTotal Physical Machines: %d\nTotal request: %d\n", h_size, s_size);
 
 		int **H = load_H(h_size, argv[1]);
 		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
@@ -74,11 +86,10 @@ int main (int argc, char *argv[]) {
 		
 		// Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
-		print_float_matrix(utilization, h_size, RESOURCES);
+		// print_float_matrix(utilization, h_size, RESOURCES);
 		
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
-		printf("\n STARTING THE EXPERIMENT \n");
-		printf("\n SELECT THE HEURISTIC TO USE");
+		printf("\nSELECT THE HEURISTIC TO USE");
 		printf("\n1-) First Fit");
 		printf("\n2-) Best Fit");
 		printf("\n3-) Worst Fit");
@@ -88,15 +99,17 @@ int main (int argc, char *argv[]) {
 			printf("\n Option: ");
 			scanf("%d",&heuristic);
 			if(heuristic > 3 || heuristic < 1) {
-				printf("\n INVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
+				printf("\nINVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
 				heuristic = 0;
 			}
 		}
 
-		printf("\n USING %s HEURISTIC", heuristics_names[heuristic-1]);
+		printf("\nSTARTING THE EXPERIMENT");
+		printf("\nUSING %s HEURISTIC", heuristics_names[heuristic-1]);
 		int tiempo = 0;
-		int iterator_pm;
-		// printf("\nInstant t: 0");
+			
+		// Set Timer
+		start = clock();
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			if(S[iterator_row][0] != tiempo ) {
 				
@@ -117,11 +130,14 @@ int main (int argc, char *argv[]) {
 
 				tiempo = S[iterator_row][0];
 			}
-			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size);
+			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected);
 		}
 		float power = power_consumption(utilization, H, h_size);
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
 		
+		diff = clock() - start;
+		msec = diff * 1000 / CLOCKS_PER_SEC;
+
 		// Save to FILE
 		fprintf(power_consumption_file, "%g\n", power);
 		print_placement_to_file("placement_result", placement, NUMBER_VM_PER_DC, h_size);
@@ -134,18 +150,24 @@ int main (int argc, char *argv[]) {
 			fprintf(net_utilization,"%g\t",utilization[iterator_physical][2]);
 		}
 
+		// RESULTS
 		printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		printf("\nFINAL - UTILIZATION\n");
 		print_float_matrix(utilization, h_size, RESOURCES);
-
+		printf("\nRESULTS\n");
+		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
+		printf("Number of times the objective function was assessed: %d\n", tiempo);
+		printf("Number of rejected requests: %d\n" , request_rejected);
+		fprintf(execution_time_file, "%d:%d\n", msec/1000, msec%1000);
+		
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
 		free_int_matrix(placement, 3);
 		free_int_matrix(H, h_size);
 		free_float_matrix(S, s_size);
 
-		printf("\n EXPERIMENT COMPLETED \n");
+		printf("\nEXPERIMENT COMPLETED\n");
 		
 		/* finish him */
 		return 0;
