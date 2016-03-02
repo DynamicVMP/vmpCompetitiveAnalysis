@@ -120,7 +120,8 @@ float power_consumption (float **utilization, int **H, int h_size) {
 			/* calculates utility of a physical machine */
 			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
 			/* calculates energy consumption of a physical machine */
-			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				 + (float)H[iterator_physical][3]*0.6;
+			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				 
+								   + (float)H[iterator_physical][3]*0.6;
 		}
 	}
 	return power_consumption;

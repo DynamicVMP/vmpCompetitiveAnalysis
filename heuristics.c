@@ -59,13 +59,11 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 				utilization[iterator_physical][0] += request[4]*request[7]/100;
 				utilization[iterator_physical][1] += request[5]*request[8]/100;
 				utilization[iterator_physical][2] += request[6]*request[9]/100;
-				printf("Allocated\n");
 				return 1;
 			}
 		} 
 	}
 	*request_rejected = *request_rejected + 1;
-	printf("NotAllocated\n");
 	return 0;
 }
 
@@ -112,6 +110,7 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 		}
 		PM_ordered_list = PM_ordered_list->next;
 	}
+	*request_rejected = *request_rejected + 1;
 	free_list(clean_list);
 	return 0;
 }
