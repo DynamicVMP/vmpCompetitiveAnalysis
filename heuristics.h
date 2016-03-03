@@ -37,3 +37,7 @@ bool best_comparator(float weight_A, float weight_B);
 bool worst_comparator(float weight_A, float weight_B);
 
 void free_list(PM_weight_pair_node* list_to_free);
+
+void prepare_input_for_decreasing_heuristics(float **S, int s_size);
+
+bool is_better_than(float* scenario_A, float* scenario_B);

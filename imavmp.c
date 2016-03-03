@@ -42,7 +42,7 @@ int main (int argc, char *argv[]) {
 	net_utilization = fopen("results/net_utilization", "a");
 
 	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size);
-	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT"};
+	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
 	heuristics_array[0] = first_fit;
 	heuristics_array[1] = best_fit;
@@ -82,12 +82,14 @@ int main (int argc, char *argv[]) {
 		printf("\n1-) First Fit");
 		printf("\n2-) Best Fit");
 		printf("\n3-) Worst Fit");
+		printf("\n4-) First Fit Decreasing");
+		printf("\n5-) Best Fit Decreasing");
 
 		int heuristic = 0;
 		while (heuristic == 0){
 			printf("\n Option: ");
 			scanf("%d",&heuristic);
-			if(heuristic > 3 || heuristic < 1) {
+			if(heuristic > 5 || heuristic < 1) {
 				printf("\n INVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
 				heuristic = 0;
 			}
@@ -97,6 +99,10 @@ int main (int argc, char *argv[]) {
 		int tiempo = 0;
 		int iterator_pm;
 		// printf("\nInstant t: 0");
+		if( heuristic > 3 && heuristic <= 5){
+			prepare_input_for_decreasing_heuristics(S, s_size);
+			heuristic -= 3;
+		}
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			if(S[iterator_row][0] != tiempo ) {
 				

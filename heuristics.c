@@ -245,3 +245,39 @@ void free_list(PM_weight_pair_node* list_to_free){
 		free(tmp_pointer);
 	}
 }
+
+void prepare_input_for_decreasing_heuristics(float **S, int s_size){
+	int s_index = 0;
+	float * temp_scenario = (float *) malloc (14 *sizeof (float));
+	bool need_changes = true;
+
+	// TODO: use a more efficient sorting algorithm
+	while(need_changes) {
+		need_changes = false;
+		for (s_index = 0; s_index < s_size - 1; s_index++) {
+			if (!is_better_than(S[s_index], S[s_index + 1])) {
+				memcpy(temp_scenario, S[s_index], 14 * sizeof(float));
+				memcpy(S[s_index], S[s_index + 1], 14 * sizeof(float));
+				memcpy(S[s_index + 1], temp_scenario, 14 * sizeof(float));
+				need_changes = true;
+			}
+		}
+	}
+
+	free(temp_scenario);
+}
+
+bool is_better_than(float* scenario_A, float* scenario_B){
+	// If the scenario A occurs before B, A is better than B
+	if(scenario_A[0] < scenario_B[0]){
+		return true;
+	}
+	// TODO: define a DCR to use for the comparison
+	// For now we compare the CPU requested for the VMs while the DCR (resource-Demand to server-Capacity
+	// Ratio) is not defined yet.
+	if(scenario_A[4] > scenario_B[4]){
+		return true;
+	}
+	// B is better than A
+	return false;
+}
