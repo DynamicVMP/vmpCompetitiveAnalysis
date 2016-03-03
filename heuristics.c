@@ -46,25 +46,24 @@ bool check_resources(float *request, float *utilization, int *H) {
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int first_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
+int first_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
 
 	int iterator_physical; 
 	int iterator_scenario;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
-
 		if (check_resources(request, utilization[iterator_physical], H[iterator_physical])) {		
 			// Allocate la VM to VM		
 			if(allocate_VM_to_PM(placement, request, iterator_physical)) {
 				utilization[iterator_physical][0] += request[4]*request[7]/100;
 				utilization[iterator_physical][1] += request[5]*request[8]/100;
-				utilization[iterator_physical][2] += request[6]*request[9]/100;	
+				utilization[iterator_physical][2] += request[6]*request[9]/100;
+				return 1;
 			}
-			
-			return 1;
-		}
+		} 
 	}
+	*request_rejected = *request_rejected + 1;
 	return 0;
 }
 
@@ -79,12 +78,11 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size) {
+int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
 
 	/* iterators */
 	int iterator_physical;
 	int iterator_scenario;
-	int request_rejected = 0;
 
 	PM_weight_pair_node* PM_ordered_list = (PM_weight_pair_node*)calloc(1,sizeof(PM_weight_pair_node));
 	PM_ordered_list->h_index = -1;
@@ -112,7 +110,8 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 		}
 		PM_ordered_list = PM_ordered_list->next;
 	}
-	 free_list(clean_list);
+	*request_rejected = *request_rejected + 1;
+	free_list(clean_list);
 	return 0;
 }
 
@@ -127,8 +126,8 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
-	return best_or_worst_fit(true, request, utilization, placement, H, h_size);
+int best_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
+	return best_or_worst_fit(true, request, utilization, placement, H, h_size, request_rejected);
 }
 
 /*
@@ -141,8 +140,8 @@ int best_fit(float *request, float **utilization, int **placement, int **H, int 
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size) {
-	return best_or_worst_fit(false, request, utilization, placement, H, h_size);
+int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
+	return best_or_worst_fit(false, request, utilization, placement, H, h_size, request_rejected);
 }
 
 /**

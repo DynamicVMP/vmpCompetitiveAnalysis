@@ -91,7 +91,7 @@ void print_placement_to_file(char * file, int ** matrix, int rows, int columns) 
 
 	char heuristics_placement[40] = "results/";
 	strcat(heuristics_placement, file);
-	placement_result = fopen(heuristics_placement,"a");
+	placement_result = fopen(heuristics_placement,"a+");
 
 	/* iterators */
 	int iterator_row;
@@ -119,7 +119,7 @@ void print_utilization_matrix_to_file(char * file, float ** matrix, int rows, in
 
 	char heuristics_utilization[40] = "results/";
 	strcat(heuristics_utilization, file);
-	utilization_result = fopen(heuristics_utilization,"a");
+	utilization_result = fopen(heuristics_utilization,"a+");
 
 	/* iterators */
 	int iterator_row;
