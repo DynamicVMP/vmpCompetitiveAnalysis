@@ -151,8 +151,10 @@ int main (int argc, char *argv[]) {
 
 				tiempo = S[iterator_row][0];
 			}
-			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected, &VM_list);
-			
+
+			if(S[iterator_row][0] <= S[iterator_row][12]) {
+				(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected, &VM_list);	
+			}
 		}
 		float power = power_consumption(utilization, H, h_size);
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
@@ -176,7 +178,7 @@ int main (int argc, char *argv[]) {
 		/* printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		printf("\nFINAL - UTILIZATION\n");
-		print_float_matrix(utilization, h_size, RESOURCES); */
+		print_float_matrix(utilization, h_size, RESOURCES);*/
 		printf("\nRESULTS\n");
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", tiempo);
