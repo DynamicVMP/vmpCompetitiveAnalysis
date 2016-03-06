@@ -36,7 +36,7 @@ bool check_resources(float *request, float *utilization, int *H) {
 
 
 
-// ################################## Heuristics ############################################### //
+// ############################################ Heuristics ############################################### //
 /*
  * first_fit: First Fit Algorithm
  * parameter: request of VM
@@ -46,7 +46,7 @@ bool check_resources(float *request, float *utilization, int *H) {
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int first_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
+int first_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
 
 	int iterator_physical; 
 	int iterator_scenario;
@@ -59,6 +59,7 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
 				utilization[iterator_physical][0] += request[4]*request[7]/100;
 				utilization[iterator_physical][1] += request[5]*request[8]/100;
 				utilization[iterator_physical][2] += request[6]*request[9]/100;
+				insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
 				return 1;
 			}
 		} 
@@ -78,7 +79,7 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
+int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
 
 	/* iterators */
 	int iterator_physical;
@@ -93,8 +94,9 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		weight_PM = calculate_weight(utilization, H[iterator_physical], iterator_physical);
 		insert_PM_to_ordered_list(is_best, &PM_ordered_list, weight_PM, iterator_physical);
+		//print_PM_list(PM_ordered_list);
 	}
-
+ 
 	clean_list = PM_ordered_list;
 	
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
@@ -104,6 +106,7 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 				utilization[PM_ordered_list->h_index][0] += request[4]*request[7]/100;
 				utilization[PM_ordered_list->h_index][1] += request[5]*request[8]/100;
 				utilization[PM_ordered_list->h_index][2] += request[6]*request[9]/100;
+				insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
 			}
 			free_list(clean_list);
 			return 1;
@@ -126,8 +129,8 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
-	return best_or_worst_fit(true, request, utilization, placement, H, h_size, request_rejected);
+int best_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+	return best_or_worst_fit(true, request, utilization, placement, H, h_size, request_rejected, vm_tend_list);
 }
 
 /*
@@ -140,8 +143,8 @@ int best_fit(float *request, float **utilization, int **placement, int **H, int 
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected) {
-	return best_or_worst_fit(false, request, utilization, placement, H, h_size, request_rejected);
+int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+	return best_or_worst_fit(false, request, utilization, placement, H, h_size, request_rejected, vm_tend_list);
 }
 
 /**
@@ -157,6 +160,52 @@ float calculate_weight(float **utilization, int *H, int h_index){
 	weight_PM += (1.0 - utilization[h_index][1] / H[1]);
 	weight_PM += (1.0 - utilization[h_index][2] / H[2]);
 	return weight_PM;
+}
+
+
+/**
+ * insert_VM_to_VMtend_list: Insert VM to List of VM 
+ * parameter VM_tend_list: 	List of nodes 	
+ * parameter vm_index:	VM index
+ */
+void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical_machine) {
+
+	VM_tend* new_node = (VM_tend*)calloc(1,sizeof(VM_tend));
+
+	new_node->vm_index = request[3];
+	new_node->tend = request[13];
+	new_node->ram_utilization = request[4]*request[7]/100;
+	new_node->cpu_utilization = request[5]*request[8]/100;
+	new_node->net_utilization = request[6]*request[9]/100;
+	new_node->pm = physical_machine;
+	new_node->next = NULL; 
+
+	// first insert
+	if((*vm_tend_list)->vm_index == -1){
+		*vm_tend_list = new_node;
+		return;
+	}
+
+	if(time_comparator(new_node->tend,(*vm_tend_list)->tend)) {
+		new_node->next = *vm_tend_list;
+		*vm_tend_list = new_node;
+		return;
+	}
+
+	VM_tend* parent = *vm_tend_list;
+	VM_tend* actual = parent->next;
+
+	while(actual != NULL) {
+		if(time_comparator(new_node->tend,actual->tend)){
+			new_node->next = actual;
+			parent->next = new_node;
+			return;
+		}
+		parent = actual;
+		actual = actual->next;
+	}
+	parent->next = new_node;
+	return;
 }
 
 /**
@@ -210,12 +259,11 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
 
 }
 
-
 /**
  * best_comparator: Compares two weights from different physical machines
  * parameter: Weight A
  * parameter: Weight B
- * returns: True, if Weight A is bigger than Weight B
+ * returns: True, if Weight A is less than Weight B
  */
 bool best_comparator(float weight_A, float weight_B){
 	return weight_A < weight_B;
@@ -225,26 +273,18 @@ bool best_comparator(float weight_A, float weight_B){
  * worst_comparator: Compares two weights from different physical machines
  * parameter: Weight A
  * parameter: Weight B
- * returns: True, if Weight A is smaller than Weight B
+ * returns: True, if Weight A is greater than Weight B
  */
 bool worst_comparator(float weight_A, float weight_B){
 	return weight_A > weight_B;
 }
 
 /**
- * free_list: free memory
- * parameter: list of nodes
- * returns: nothing, it is a void function
+ * prepare_input_for_decreasing_heuristics:
+ * parameter S      [description]
+ * parameter s_size [description]
+ * return: nothing, it's a void	function
  */
-void free_list(PM_weight_pair_node* list_to_free){
-	PM_weight_pair_node* tmp_pointer;
-	while(list_to_free != NULL){
-		tmp_pointer = list_to_free;
-		list_to_free = list_to_free->next;
-		free(tmp_pointer);
-	}
-}
-
 void prepare_input_for_decreasing_heuristics(float **S, int s_size){
 	int s_index = 0;
 	float * temp_scenario = (float *) malloc (14 *sizeof (float));
@@ -266,6 +306,14 @@ void prepare_input_for_decreasing_heuristics(float **S, int s_size){
 	free(temp_scenario);
 }
 
+/**
+ * is_better_than:
+ *
+ * parameter:
+ * parameter:
+ *
+ * return 
+ */
 bool is_better_than(float* scenario_A, float* scenario_B){
 	// If the scenario A occurs before B, A is better than B
 	if(scenario_A[0] < scenario_B[0]){
@@ -279,4 +327,109 @@ bool is_better_than(float* scenario_A, float* scenario_B){
 	}
 	// B is better than A
 	return false;
+}
+
+bool time_comparator(int time_A, int time_B){
+	return time_A < time_B;
+}
+
+/**
+ * remove_VM_from_placement: Remove the VM from Placement matrix and update the Utilization matrix
+ * parameter vm_to_remove: VM to shut down
+ * parameter placement:	Placement matrix
+ * parameter utilization: Utilization matrix
+ * parameter current_time: Current time
+ * parameter h_size: Number of physical machines
+ * return: nothing, it's a void function.
+ */
+void remove_VM_from_placement(VM_tend* vm_to_remove, int **placement, float **utilization, int current_time, 
+	int h_size) {
+	VM_tend* tmp_pointer;
+	int iterator_physical;
+	
+	while(vm_to_remove != NULL) {
+		tmp_pointer = vm_to_remove;
+		vm_to_remove = vm_to_remove->next;
+
+		// check tend of the VM
+		if(tmp_pointer->tend == current_time) {			
+			// update the placement matrix
+			for(iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
+				placement[tmp_pointer->vm_index][iterator_physical] = 0;
+			}	
+			// update the utilization matrix
+			utilization[tmp_pointer->pm][0] -= tmp_pointer->ram_utilization;
+			utilization[tmp_pointer->pm][1] -= tmp_pointer->cpu_utilization;
+			utilization[tmp_pointer->pm][2] -= tmp_pointer->net_utilization;	
+		}
+	}
+}
+
+
+// ############################################ Clean Memory ############################################# //
+/**
+ * free_list: free memory
+ * parameter: list of nodes
+ * returns: nothing, it is a void function
+ */
+void free_VM_list(VM_tend* list_to_free) {
+	VM_tend* tmp_pointer;
+	while(list_to_free != NULL){
+		tmp_pointer = list_to_free;
+		list_to_free = list_to_free->next;
+		free(tmp_pointer);
+	}
+}
+
+/**
+ * free_list: free memory
+ * parameter: list of nodes
+ * returns: nothing, it is a void function
+ */
+void free_list(PM_weight_pair_node* list_to_free) {
+	PM_weight_pair_node* tmp_pointer;
+	while(list_to_free != NULL){
+		tmp_pointer = list_to_free;
+		list_to_free = list_to_free->next;
+		free(tmp_pointer);
+	}
+}
+
+// ############################################## Print ################################################## //
+
+/**
+ * print_PM_list description: Clean memory
+ * parameter: List of nodes
+ * returns: nothing, it's a void function.
+ */
+void print_VM_list(VM_tend* list_to_free) {
+	VM_tend* tmp_pointer;
+	printf("\n");
+	while(list_to_free != NULL){
+		tmp_pointer = list_to_free;
+		list_to_free = list_to_free->next;
+		printf("(VM: %d, ", tmp_pointer->vm_index);
+		printf("PM: %d, ", tmp_pointer->pm);
+		printf("Ttend: %d)\t", tmp_pointer->tend);
+		printf("->");
+	}
+	printf("NULL\n");
+}
+
+/**
+ * print_PM_list description: Clean memory
+ * parameter: List of nodes
+ * returns: nothing, it's a void function.
+ */
+void print_PM_list(PM_weight_pair_node* list_to_free) {
+	PM_weight_pair_node* tmp_pointer;
+	printf("\n");
+	while(list_to_free != NULL){
+		tmp_pointer = list_to_free;
+		list_to_free = list_to_free->next;
+		printf("(PM: %d, ", tmp_pointer->h_index);
+		printf("Weight: %d)\t", tmp_pointer->weight);
+		printf("->");
+	}
+	printf("NULL\n");
 }

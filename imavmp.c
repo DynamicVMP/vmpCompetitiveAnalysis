@@ -12,8 +12,8 @@
 
 /* definitions (this could be parameters) */
 #define NUMBER_OF_SERVICES 1
-#define NUMBER_OF_DATACENTER 25
-#define NUMBER_VM_PER_DC 300 			// Number of VMs VMj in DCc;
+#define NUMBER_OF_DATACENTER 1
+#define NUMBER_VM_PER_DC 300		// Number of VMs VMj in DCc;
 #define RESOURCES 3
 /*#define NUMBER_OF_DATACENTER 3*/
 /*#define NUMBER_VM_PER_DC 4*/
@@ -47,14 +47,25 @@ int main (int argc, char *argv[]) {
 	clock_t diff;
 	int msec;
 
+	// Files
 	execution_time_file = fopen("results/time","a");
 	power_consumption_file = fopen("results/power_consumption","a");
 	cpu_utilization = fopen("results/cpu_utilization", "a");
 	ram_utilization = fopen("results/ram_utilization", "a");
 	net_utilization = fopen("results/net_utilization", "a");
 
-	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
+	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
+
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
+
+	VM_tend* VM_list = (VM_tend*)calloc(1,sizeof(VM_tend));
+	VM_list->vm_index = -1;
+	VM_list->tend = 0;
+	VM_list->pm = 0;
+	VM_list->next = NULL;
+
+	/*printf("Initial VM List");
+	print_VM_list(VM_list);*/
 
 	heuristics_array[0] = first_fit;
 	heuristics_array[1] = best_fit;
@@ -116,10 +127,11 @@ int main (int argc, char *argv[]) {
 			prepare_input_for_decreasing_heuristics(S, s_size);
 			heuristic -= 3;
 		}
+
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
- 			if(S[iterator_row][0] != tiempo ) {
-				
-				// Save FILE
+ 			if(S[iterator_row][0] != tiempo ) {	
+
+ 				// Save FILE
 				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
 				print_placement_to_file("placement_result", placement, 4, h_size);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
@@ -134,9 +146,13 @@ int main (int argc, char *argv[]) {
 				fprintf(ram_utilization,"\n");
 				fprintf(net_utilization,"\n");
 
+				// check_VM_tend_list and update the VM placement
+				remove_VM_from_placement(VM_list, placement, utilization, tiempo, h_size);
+
 				tiempo = S[iterator_row][0];
 			}
-			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected);
+			(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected, &VM_list);
+			
 		}
 		float power = power_consumption(utilization, H, h_size);
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
@@ -157,10 +173,10 @@ int main (int argc, char *argv[]) {
 		}
 
 		// RESULTS
-		printf("\nFINAL - PLACEMENT\n");
+		/* printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
 		printf("\nFINAL - UTILIZATION\n");
-		print_float_matrix(utilization, h_size, RESOURCES);
+		print_float_matrix(utilization, h_size, RESOURCES); */
 		printf("\nRESULTS\n");
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", tiempo);
@@ -172,6 +188,7 @@ int main (int argc, char *argv[]) {
 		free_int_matrix(placement, 3);
 		free_int_matrix(H, h_size);
 		free_float_matrix(S, s_size);
+		free_VM_list(VM_list);
 
 		printf("\nEXPERIMENT COMPLETED\n");
 		

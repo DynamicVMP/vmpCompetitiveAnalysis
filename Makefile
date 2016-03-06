@@ -4,11 +4,14 @@ all:
 
 clean:
 	rm -rf *o imavmp
+
 init: 
 	rm -rf results/*
+	rm -rf *o imavmp
 
 run_mini_input:
 	./imavmp inputs/mini_input.vmp
 
 run:
 	./imavmp inputs/4x8.vmp
+

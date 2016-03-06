@@ -15,18 +15,27 @@ typedef struct PM_weight_pair_node{
     struct PM_weight_pair_node* next;
 } PM_weight_pair_node;
 
+typedef struct VM_tend{
+    int vm_index;
+    int tend;
+    int pm;
+    float ram_utilization;
+    float cpu_utilization;
+    float net_utilization;
+    struct VM_tend* next;
+} VM_tend;
 
-
+/* function headers definitions */
 bool check_resources(float *request, float *utilization, int *H);
 bool allocate_VM_to_PM(int **placement, float *request, int pm);
 
-int first_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
+int first_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int best_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
+int best_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int worst_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
+int worst_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected);
+int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
 float calculate_weight(float **utilization, int *H, int h_index);
 
@@ -36,8 +45,17 @@ bool best_comparator(float weight_A, float weight_B);
 
 bool worst_comparator(float weight_A, float weight_B);
 
-void free_list(PM_weight_pair_node* list_to_free);
-
 void prepare_input_for_decreasing_heuristics(float **S, int s_size);
 
 bool is_better_than(float* scenario_A, float* scenario_B);
+
+void insert_VM_to_tend_list(VM_tend** VM_tend_list, float * request, int h_index);
+bool time_comparator(int time_A, int time_B);
+
+/* Print functions definitions */
+void print_VM_list(VM_tend* list_to_free);
+void print_PM_list(PM_weight_pair_node* list_to_free);
+
+/* Free memory functions definitions */
+void free_VM_list(VM_tend* list_to_free);
+void free_list(PM_weight_pair_node* list_to_free);
