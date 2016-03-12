@@ -127,3 +127,18 @@ float power_consumption (float **utilization, int **H, int h_size) {
 	return power_consumption;
 }
 
+/**
+ * number_unique_vm: return the number of unique VM 
+ * parameter: S matrix
+ * return: number of unique VM
+ */
+int number_unique_vm (float **S, int s_size) {	
+	int number_unique_vm = 0;
+	int iterator_row;
+	for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
+ 		if(S[iterator_row][0] <= S[iterator_row][12]) {
+			number_unique_vm++;
+		}
+ 	}
+ 	return number_unique_vm;
+}

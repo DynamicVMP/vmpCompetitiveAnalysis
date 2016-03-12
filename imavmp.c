@@ -34,6 +34,7 @@ int main (int argc, char *argv[]) {
 	int iterator_datacenter;
 	int request_rejected = 0;
 	int iterator_pm;
+	int unique_vm = 0;
 
 	// File pointers
 	FILE *power_consumption_file;
@@ -54,8 +55,10 @@ int main (int argc, char *argv[]) {
 	ram_utilization = fopen("results/ram_utilization", "a");
 	net_utilization = fopen("results/net_utilization", "a");
 
+	// Heuristic
 	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
 
+	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
 	VM_tend* VM_list = (VM_tend*)calloc(1,sizeof(VM_tend));
@@ -63,9 +66,6 @@ int main (int argc, char *argv[]) {
 	VM_list->tend = 0;
 	VM_list->pm = 0;
 	VM_list->next = NULL;
-
-	/*printf("Initial VM List");
-	print_VM_list(VM_list);*/
 
 	heuristics_array[0] = first_fit;
 	heuristics_array[1] = best_fit;
@@ -89,11 +89,16 @@ int main (int argc, char *argv[]) {
 		int **H = load_H(h_size, argv[1]);
 		// printf("\nPHSYICAL MACHINES LOADED SUCCESSFULLY\n");
 		float **S = load_S(s_size, argv[1]);
-		// printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+		//printf("\nSCENARIOS LOADED SUCCESSFULLY\n");
+		//print_float_matrix(S, s_size, 14);
 		
+		// Number of Unique VM 
+		unique_vm = number_unique_vm (S,s_size);
+		printf("Unique VM: %d\n", unique_vm);
+
 		// Placement matrix 
-		int **placement = placement_initialization(h_size, NUMBER_VM_PER_DC);
-		// print_int_matrix(placement, NUMBER_VM_PER_DC, h_size);
+		int **placement = placement_initialization(h_size, unique_vm);
+		print_int_matrix(placement, unique_vm, h_size);
 		
 		// Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
@@ -129,7 +134,10 @@ int main (int argc, char *argv[]) {
 		}
 
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
- 			if(S[iterator_row][0] != tiempo ) {	
+ 			if(S[iterator_row][0] != tiempo ) {
+
+ 				// check_VM_tend_list and update the VM placement
+				remove_VM_from_placement(VM_list, placement, utilization, tiempo, h_size);
 
  				// Save FILE
 				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
@@ -146,15 +154,13 @@ int main (int argc, char *argv[]) {
 				fprintf(ram_utilization,"\n");
 				fprintf(net_utilization,"\n");
 
-				// check_VM_tend_list and update the VM placement
-				remove_VM_from_placement(VM_list, placement, utilization, tiempo, h_size);
-
 				tiempo = S[iterator_row][0];
 			}
 
 			if(S[iterator_row][0] <= S[iterator_row][12]) {
 				(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected, &VM_list);	
 			}
+			// actualizacion utilization VM
 		}
 		float power = power_consumption(utilization, H, h_size);
 		printf("\nPower Consumption(t= %d) :  %g\n", tiempo, power);
