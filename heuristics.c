@@ -319,7 +319,7 @@ void quicksort_decreasing_sort(float **S, int first_index, int last_index){
 		while(from_first_index < from_last_index){
 			while(compare_requests(S[from_first_index], S[pivot]) != -1 && from_first_index < last_index)
 				from_first_index++;
-			while(compare_requests(S[from_last_index], S[pivot]) != 1 && from_first_index < last_index)
+			while(compare_requests(S[from_last_index], S[pivot]) == -1)
 				from_last_index--;
 			if(from_first_index < from_last_index){
 				memcpy(temp_request, S[from_first_index], 14 * sizeof(float));
