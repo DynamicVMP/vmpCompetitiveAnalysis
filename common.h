@@ -25,9 +25,12 @@
 
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
+
 /* load datacenter physical resources and virtual requirements */
 int** load_H(int h_size, char path_to_file[]);
 
+/* return the number of unique VM */
+int number_unique_vm (float **S, int s_size);
+
 /* objective functions */
 float power_consumption (float **utilization, int **H, int h_size);
-

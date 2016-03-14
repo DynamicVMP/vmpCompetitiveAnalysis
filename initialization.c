@@ -36,17 +36,17 @@ float** utilization_initialization(int h_size, int resources) {
  * parameter: number of virtual machines
  * return: initial placement matrix
  */
-int** placement_initialization(int h_size, int v_size) {
+int** placement_initialization(int vm_parameter, int v_size) {
 	
-	int **placement = (int **) malloc (v_size *sizeof (int *));
+	int **placement = (int **) malloc (vm_parameter *sizeof (int *));
 	/* iterators */
 	int iterator_physical;
 	int iterator_physical_position;
 	
-	for (iterator_physical=0; iterator_physical < v_size; iterator_physical++) {	
-		placement[iterator_physical] = (int *) malloc (h_size *sizeof (int));
+	for (iterator_physical=0; iterator_physical < vm_parameter; iterator_physical++) {	
+		placement[iterator_physical] = (int *) malloc (v_size *sizeof (int));
 		/* iterate on positions of an individual */
-		for (iterator_physical_position = 0; iterator_physical_position < h_size; iterator_physical_position++) {
+		for (iterator_physical_position = 0; iterator_physical_position < v_size; iterator_physical_position++) {
 			placement[iterator_physical][iterator_physical_position] = 0;
 		}
 	}
