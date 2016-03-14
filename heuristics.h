@@ -49,6 +49,8 @@ void prepare_input_for_decreasing_heuristics(float **S, int s_size);
 
 void quicksort_decreasing_sort(float **S, int first_index, int last_index);
 
+int quicksort_partition(float **S, int first_index, int last_index);
+
 int compare_requests(float* request_A, float* request_B);
 
 void insert_VM_to_tend_list(VM_tend** VM_tend_list, float * request, int h_index);

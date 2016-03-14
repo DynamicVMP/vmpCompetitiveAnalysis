@@ -83,36 +83,48 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	/* iterators */
 	int iterator_physical;
 
+	// allocate resources for a new sorted list
 	PM_weight_pair_node* PM_ordered_list = (PM_weight_pair_node*)calloc(1,sizeof(PM_weight_pair_node));
 	PM_ordered_list->h_index = -1;
+	// pointer to keep the reference to the first element of the sorted list used to free the memory at the end of the function
 	PM_weight_pair_node* clean_list;
 
 	float weight_PM = 0.0;
 
+	// Sort the PMs based on the weight of the idle resources
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		weight_PM = calculate_weight(utilization, H[iterator_physical], iterator_physical);
 		insert_PM_to_ordered_list(is_best, &PM_ordered_list, weight_PM, iterator_physical);
-		//print_PM_list(PM_ordered_list);
 	}
- 
+
+	// keep the reference to the first element of the sorted list
 	clean_list = PM_ordered_list;
-	
+
+	// for each PM do
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
+		// check if the current PM of the sorted list can allocate the requested resources of the VM
 		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
+			// allocate the VM into the PM
 			if(allocate_VM_to_PM(placement, request, PM_ordered_list->h_index)) {
 
 				utilization[PM_ordered_list->h_index][0] += request[4]*request[7]/100;
 				utilization[PM_ordered_list->h_index][1] += request[5]*request[8]/100;
 				utilization[PM_ordered_list->h_index][2] += request[6]*request[9]/100;
 				insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
+
 			}
 			free_list(clean_list);
+			// VM allocated successfully
 			return 1;
 		}
+		// go to next node
 		PM_ordered_list = PM_ordered_list->next;
 	}
+	// the requested resources can't be allocated so they will be rejected
 	*request_rejected = *request_rejected + 1;
+	// free the allocated memory for the sorted list
 	free_list(clean_list);
+
 	return 0;
 }
 
@@ -146,7 +158,7 @@ int worst_fit(float *request, float **utilization, int **placement, int **H, int
 }
 
 /**
- * calculate_weight: Calculates the Weight of the physical machine
+ * calculate_weight: Calculates the Weight of the physical machine, based on the idle resources
  * parameter: utilization matrix
  * parameter: H array (One physical machine)
  * parameter: number of physical machine
@@ -207,11 +219,11 @@ void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical
 }
 
 /**
- * insert_PM_to_ordered_list:
- * parameter: logical value that indicates which strategy will be applied.
- * parameter: ordered list
- * parameter: weight of the physical machine
- * parameter: number of physical machine
+ * insert_PM_to_ordered_list: insert a given PM inside a ordered list
+ * parameter is_best: logical value that indicates which strategy will be applied. True for best_fit, False for worst_fit
+ * parameter PM_ordered_list: ordered list of al the PMs, in the first iteration this will be null
+ * parameter weight_PM: weight of the physical machine
+ * parameter h_index: index of the physical machine
  * returns: nothing, it is a void function
  */
 void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_list, float weight_PM, int h_index) {
@@ -219,39 +231,49 @@ void insert_PM_to_ordered_list(bool is_best, PM_weight_pair_node** PM_ordered_li
 	bool ( *comparator )( float, float );
 	PM_weight_pair_node* new_node = (PM_weight_pair_node*)calloc(1,sizeof(PM_weight_pair_node));
 
+	// Set the new node
 	new_node->weight = weight_PM;
 	new_node->h_index = h_index;
 	new_node->next = NULL;
-	
+
+	// select the comparator to use
 	if(is_best){
 		comparator = &best_comparator;
 	}else{
 		comparator = &worst_comparator;
 	}
 
+	// if the ordered_list have the index -1 means that the list is empty, so we insert the new node in the first pointer
 	if((*PM_ordered_list)->h_index == -1){
 		*PM_ordered_list = new_node;
 		return;
 	}
 
+	// if the comparation between the new node and the first item in the ordered list returns true, the new node will be
+	// inserted before the actual head of the list
 	if((*comparator)(new_node->weight,(*PM_ordered_list)->weight)) {
 		new_node->next = *PM_ordered_list;
 		*PM_ordered_list = new_node;
 		return;
 	}
 
+	// set the initial configuration to iterate through the ordered list
 	PM_weight_pair_node* parent = *PM_ordered_list;
 	PM_weight_pair_node* actual = parent->next;
-	
+
+	// ensure that the actual value isn't null
 	while(actual != NULL) {
+		// compare the new node with all the elements of the list to found his place
 		if((*comparator)(new_node->weight,actual->weight)){
 			new_node->next = actual;
 			parent->next = new_node;
 			return;
 		}
+		// go to the next element
 		parent = actual;
 		actual = actual->next;
 	}
+	// the new node will be inserted at the bottom of the list
 	parent->next = new_node;
 	return;
 
@@ -288,55 +310,87 @@ void prepare_input_for_decreasing_heuristics(float **S, int s_size) {
 	int index, temp_t = 0;
 
 	for (index = 1; index < s_size; index++) {
+		// split all the requests in groups of same T, to avoid unnecessary comparisons of the sort algorithm
 		if (S[temp_t][0] < S[index][0]) {
-			printf("for and if\n");
 			quicksort_decreasing_sort(S, temp_t, index - 1);
 			temp_t = index;
 		} else if (index == s_size - 1) {
-			printf("for and elseif\n");
 			quicksort_decreasing_sort(S, temp_t, index);
 		}
 	}
 
-	for (index = 0; index < s_size; index++) {
-		printf("VM: %f\n", S[index][3]);
-	}
 }
 
 /**
+ * quicksort_decreasing_sort: Sort the Scenario with quicksort in-place based on representative weights
+ * parameter S: Scenario to sort
+ * parameter first_index: index of the first element in S
+ * parameter last_index: index of the last element in S
  *
+ * returns: nothing, it's a void function.
  */
-
 void quicksort_decreasing_sort(float **S, int first_index, int last_index){
 
-	if(first_index < last_index){
-		int pivot, from_last_index, from_first_index;
-		float * temp_request = (float *) calloc (sizeof (float), 14);
+	int pivot_index = 0;
 
-		pivot = first_index;
-		from_first_index = first_index;
-		from_last_index = last_index;
-		while(from_first_index < from_last_index){
-			while(compare_requests(S[from_first_index], S[pivot]) != -1 && from_first_index < last_index)
-				from_first_index++;
-			while(compare_requests(S[from_last_index], S[pivot]) == -1)
-				from_last_index--;
-			if(from_first_index < from_last_index){
-				memcpy(temp_request, S[from_first_index], 14 * sizeof(float));
-				memcpy(S[from_first_index], S[from_last_index], 14 * sizeof(float));
-				memcpy(S[from_last_index], temp_request, 14 * sizeof(float));
-			}
+	if(first_index < last_index) {
+		pivot_index = quicksort_partition(S, first_index, last_index);
+		quicksort_decreasing_sort(S, first_index, (pivot_index - 1));
+		quicksort_decreasing_sort(S, (pivot_index + 1), last_index);
+	}
+
+}
+
+/**
+ * quicksort_partition: partition of the quicksort algorithm
+ * parameter S: Scenario to sort
+ * parameter first_index: index of the first element in S
+ * parameter last_index: index of the last element in S
+ *
+ * returns: the position of the pivot to use.
+ */
+int quicksort_partition(float **S, int first_index, int last_index) {
+
+	int up_index, down_index;
+	bool first_iteration = true;
+	float * temp = (float *) calloc (sizeof (float), 14);
+	float * pivot = (float *) calloc (sizeof (float), 14);
+
+	memcpy(pivot, S[first_index], 14 * sizeof(float));
+	up_index = first_index;
+	down_index = last_index;
+
+	do {
+		// If is not the first iteration, to avoid the use of goto statements
+		if(!first_iteration) {
+			memcpy(temp, S[up_index], 14 * sizeof(float));
+			memcpy(S[up_index], S[down_index], 14 * sizeof(float));
+			memcpy(S[down_index], temp, 14 * sizeof(float));
+		}
+		first_iteration = false;
+
+		// While the up element is better or equal than the selected pivot
+		while (compare_requests(S[up_index], pivot) != -1 && up_index < last_index) {
+			up_index++;
 		}
 
-		memcpy(temp_request, S[pivot], 14 * sizeof(float));
-		memcpy(S[pivot], S[from_last_index], 14 * sizeof(float));
-		memcpy(S[from_last_index], temp_request, 14 * sizeof(float));
+		// While the down element is worst than the selected pivot
+		while (compare_requests(S[down_index], pivot) == -1  && down_index > first_index ) {
+			down_index--;
+		}
 
-		quicksort_decreasing_sort(S, first_index, from_last_index - 1);
-		quicksort_decreasing_sort(S, from_last_index + 1, last_index);
+	} while (down_index > up_index);
 
-		free(temp_request);
+	if(compare_requests(S[first_index], S[down_index]) == -1) {
+		memcpy(S[first_index], S[down_index], 14 * sizeof(float));
+		memcpy(S[down_index], pivot, 14 * sizeof(float));
 	}
+
+	// free allocated memory
+	free(temp);
+	free(pivot);
+
+	return down_index;
 
 }
 
