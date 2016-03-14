@@ -16,7 +16,7 @@
  * return: True, if the VM war correctly allocate
  * 		   False, other case.	
  */
-void allocate_VM_to_PM(int **placement, float **utilization, float *request, int physical_machine ) {
+void allocate_VM_to_PM(int **placement, float **utilization, float *request, int physical_machine) {
 
 	// Update the Placement matrix
 	placement[0][(int) request[3]] = request[1]; 			// Cloud Service
@@ -41,7 +41,6 @@ void allocate_VM_to_PM(int **placement, float **utilization, float *request, int
  * parameter: array utilization
  */
 bool check_resources(float *request, float *utilization, int *H) {
-
 
 	return (utilization[0] + request[4] <= H[0] 
 			&& utilization[1] + request[5]<= H[1]
@@ -92,7 +91,8 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size, 
+	int *request_rejected, VM_tend** vm_tend_list) {
 
 	/* iterators */
 	int iterator_physical;
@@ -115,7 +115,7 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
 		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
 			allocate_VM_to_PM(placement, utilization, request, PM_ordered_list->h_index);
-			insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
+			insert_VM_to_tend_list(vm_tend_list, request, PM_ordered_list->h_index);
 			free_list(clean_list);
 			return 1;
 		}
@@ -328,13 +328,13 @@ void prepare_input_for_decreasing_heuristics(float **S, int s_size) {
 bool is_better_than(float* scenario_A, float* scenario_B) {
 	
 	// If the scenario A occurs before B, A is better than B
-	if(scenario_A[0] < scenario_B[0]){
+	if(scenario_A[0] < scenario_B[0]) {
 		return true;
 	}
 	// TODO: define a DCR to use for the comparison
 	// For now we compare the CPU requested for the VMs while the DCR (resource-Demand to server-Capacity
 	// Ratio) is not defined yet.
-	if(scenario_A[4] > scenario_B[4]){
+	if(scenario_A[4] > scenario_B[4]) {
 		return true;
 	}
 	// B is better than A
@@ -365,7 +365,6 @@ void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **u
 	int h_size) {
 
 	VM_tend* parent = *vm_tend_list;
-
 	while(parent->tend == current_time) {
 		// update the placement matrix and set -1 PM for the VM
 		placement[2][parent->vm_index] = -1;	
@@ -378,7 +377,6 @@ void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **u
 		*vm_tend_list = (*vm_tend_list)->next;
 		parent = *vm_tend_list;
 		free(temp);
-		//print_VM_list(parent);
     }
 }
 
