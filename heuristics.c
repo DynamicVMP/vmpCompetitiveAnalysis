@@ -49,7 +49,6 @@ bool check_resources(float *request, float *utilization, int *H) {
 int first_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
 
 	int iterator_physical; 
-	int iterator_scenario;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
@@ -83,7 +82,6 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 
 	/* iterators */
 	int iterator_physical;
-	int iterator_scenario;
 
 	PM_weight_pair_node* PM_ordered_list = (PM_weight_pair_node*)calloc(1,sizeof(PM_weight_pair_node));
 	PM_ordered_list->h_index = -1;
@@ -280,53 +278,100 @@ bool worst_comparator(float weight_A, float weight_B){
 }
 
 /**
- * prepare_input_for_decreasing_heuristics:
- * parameter S      [description]
- * parameter s_size [description]
+ * prepare_input_for_decreasing_heuristics: sort the list of requests in decreasing order
+ * parameter S: list of requests in the Scenario
+ * parameter s_size: number of requests in the Scenario
  * return: nothing, it's a void	function
  */
-void prepare_input_for_decreasing_heuristics(float **S, int s_size){
-	int s_index = 0;
-	float * temp_scenario = (float *) malloc (14 *sizeof (float));
-	bool need_changes = true;
+void prepare_input_for_decreasing_heuristics(float **S, int s_size) {
 
-	// TODO: use a more efficient sorting algorithm
-	while(need_changes) {
-		need_changes = false;
-		for (s_index = 0; s_index < s_size - 1; s_index++) {
-			if (!is_better_than(S[s_index], S[s_index + 1])) {
-				memcpy(temp_scenario, S[s_index], 14 * sizeof(float));
-				memcpy(S[s_index], S[s_index + 1], 14 * sizeof(float));
-				memcpy(S[s_index + 1], temp_scenario, 14 * sizeof(float));
-				need_changes = true;
-			}
+	int index, temp_t = 0;
+
+	for (index = 1; index < s_size; index++) {
+		if (S[temp_t][0] < S[index][0]) {
+			printf("for and if\n");
+			quicksort_decreasing_sort(S, temp_t, index - 1);
+			temp_t = index;
+		} else if (index == s_size - 1) {
+			printf("for and elseif\n");
+			quicksort_decreasing_sort(S, temp_t, index);
 		}
 	}
 
-	free(temp_scenario);
+	for (index = 0; index < s_size; index++) {
+		printf("VM: %f\n", S[index][3]);
+	}
 }
 
 /**
- * is_better_than:
  *
- * parameter:
- * parameter:
- *
- * return 
  */
-bool is_better_than(float* scenario_A, float* scenario_B){
-	// If the scenario A occurs before B, A is better than B
-	if(scenario_A[0] < scenario_B[0]){
-		return true;
+
+void quicksort_decreasing_sort(float **S, int first_index, int last_index){
+
+	if(first_index < last_index){
+		int pivot, from_last_index, from_first_index;
+		float * temp_request = (float *) calloc (sizeof (float), 14);
+
+		pivot = first_index;
+		from_first_index = first_index;
+		from_last_index = last_index;
+		while(from_first_index < from_last_index){
+			while(compare_requests(S[from_first_index], S[pivot]) != -1 && from_first_index < last_index)
+				from_first_index++;
+			while(compare_requests(S[from_last_index], S[pivot]) != 1 && from_first_index < last_index)
+				from_last_index--;
+			if(from_first_index < from_last_index){
+				memcpy(temp_request, S[from_first_index], 14 * sizeof(float));
+				memcpy(S[from_first_index], S[from_last_index], 14 * sizeof(float));
+				memcpy(S[from_last_index], temp_request, 14 * sizeof(float));
+			}
+		}
+
+		memcpy(temp_request, S[pivot], 14 * sizeof(float));
+		memcpy(S[pivot], S[from_last_index], 14 * sizeof(float));
+		memcpy(S[from_last_index], temp_request, 14 * sizeof(float));
+
+		quicksort_decreasing_sort(S, first_index, from_last_index - 1);
+		quicksort_decreasing_sort(S, from_last_index + 1, last_index);
+
+		free(temp_request);
 	}
-	// TODO: define a DCR to use for the comparison
-	// For now we compare the CPU requested for the VMs while the DCR (resource-Demand to server-Capacity
-	// Ratio) is not defined yet.
-	if(scenario_A[4] > scenario_B[4]){
-		return true;
+
+}
+
+/**
+ * is_better_than: Compare two requests, is used in decreasing algorithms
+ * parameter request_A: the request to be compared
+ * parameter request_B: the request to be compared
+ *
+ * returns: 1, if request A is better than request B
+ * 			0, if A and B are equals
+ * 			-1, if B is better than A
+ */
+int compare_requests(float* request_A, float* request_B){
+	// Coefficients defined to make equal-significant the variation of the requested resources
+	float alpha = 1.0, beta = 1.0, gamma = 1.0;
+	// The average value of the requests A and B
+	float representative_weight_A, representative_weight_B;
+	// If the request A occurs before B, A is better than B
+	if(request_A[0] < request_B[0]){
+		return 1;
+	}if(request_A[0] > request_B[0]){
+		return -1;
+	}
+
+	// The sum of all the resources multiplied by their coefficient divided by the number of resources
+	representative_weight_A = (request_A[4] * alpha + request_A[5] * beta + request_A[6] * gamma) / 3;
+	representative_weight_B = (request_B[4] * alpha + request_B[5] * beta + request_B[6] * gamma) / 3;
+
+	if(representative_weight_A > representative_weight_B){
+		return 1;
+	} else if (representative_weight_A == representative_weight_B){
+		return 0;
 	}
 	// B is better than A
-	return false;
+	return -1;
 }
 
 bool time_comparator(int time_A, int time_B){
@@ -398,16 +443,16 @@ void free_list(PM_weight_pair_node* list_to_free) {
 // ############################################## Print ################################################## //
 
 /**
- * print_PM_list description: Clean memory
+ * print_PM_list description: Print all the VMs in the list
  * parameter: List of nodes
  * returns: nothing, it's a void function.
  */
-void print_VM_list(VM_tend* list_to_free) {
+void print_VM_list(VM_tend* list) {
 	VM_tend* tmp_pointer;
 	printf("\n");
-	while(list_to_free != NULL){
-		tmp_pointer = list_to_free;
-		list_to_free = list_to_free->next;
+	while(list != NULL){
+		tmp_pointer = list;
+		list = list->next;
 		printf("(VM: %d, ", tmp_pointer->vm_index);
 		printf("PM: %d, ", tmp_pointer->pm);
 		printf("Ttend: %d)\t", tmp_pointer->tend);
@@ -417,18 +462,18 @@ void print_VM_list(VM_tend* list_to_free) {
 }
 
 /**
- * print_PM_list description: Clean memory
+ * print_PM_list description: Print all the PMs in the list
  * parameter: List of nodes
  * returns: nothing, it's a void function.
  */
-void print_PM_list(PM_weight_pair_node* list_to_free) {
+void print_PM_list(PM_weight_pair_node* list) {
 	PM_weight_pair_node* tmp_pointer;
 	printf("\n");
-	while(list_to_free != NULL){
-		tmp_pointer = list_to_free;
-		list_to_free = list_to_free->next;
+	while(list != NULL){
+		tmp_pointer = list;
+		list = list->next;
 		printf("(PM: %d, ", tmp_pointer->h_index);
-		printf("Weight: %d)\t", tmp_pointer->weight);
+		printf("Weight: %f)\t", tmp_pointer->weight);
 		printf("->");
 	}
 	printf("NULL\n");
