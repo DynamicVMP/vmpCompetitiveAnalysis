@@ -16,7 +16,7 @@
  * return: True, if the VM war correctly allocate
  * 		   False, other case.	
  */
-void allocate_VM_to_PM(int **placement, float **utilization, float *request, int physical_machine) {
+void allocate_VM_to_PM(int **placement, float **utilization, float **resources_requested, float *request, int physical_machine) {
 
 	// Update the Placement matrix
 	placement[0][(int) request[3]] = request[1]; 			// Cloud Service
@@ -33,6 +33,11 @@ void allocate_VM_to_PM(int **placement, float **utilization, float *request, int
 	utilization[physical_machine][0] += request[4]*request[7]/100;
 	utilization[physical_machine][1] += request[5]*request[8]/100;
 	utilization[physical_machine][2] += request[6]*request[9]/100;
+
+	resources_requested[physical_machine][0] += request[4];
+	resources_requested[physical_machine][1] += request[5];
+	resources_requested[physical_machine][2] += request[6];
+
 }
 
 /**
@@ -40,11 +45,11 @@ void allocate_VM_to_PM(int **placement, float **utilization, float *request, int
  * parameter: request of VM
  * parameter: array utilization
  */
-bool check_resources(float *request, float *utilization, int *H) {
+bool check_resources(float *request, float *utilization, float *resources_requested, int *H) {
 
-	return (utilization[0] + request[4] <= H[0]
-			&& utilization[1] + request[5]<= H[1]
-			&& utilization[2] + request[6]<= H[2]);
+	return (resources_requested[0] + request[4] <= H[0]
+			&& resources_requested[1] + request[5]<= H[1]
+			&& resources_requested[2] + request[6]<= H[2]);
 
 	// For overbooking
 	/*return (utilization[0] + (request[4]*request[7]/100) <= H[0]
@@ -62,15 +67,15 @@ bool check_resources(float *request, float *utilization, int *H) {
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int first_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+int first_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
 
 	int iterator_physical;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
-		if (check_resources(request, utilization[iterator_physical], H[iterator_physical])) {		
+		if (check_resources(request, utilization[iterator_physical], resources_requested[iterator_physical], H[iterator_physical])) {		
 			// Allocate la VM to VM		
-			allocate_VM_to_PM(placement, utilization, request, iterator_physical);
+			allocate_VM_to_PM(placement, utilization, resources_requested, request, iterator_physical);
 			insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
 			return 1;
 		} 
@@ -90,7 +95,8 @@ int first_fit(float *request, float **utilization, int **placement, int **H, int
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_or_worst_fit(bool is_best,float *request, float **utilization, int **placement, int **H, int h_size,
+int best_or_worst_fit(bool is_best,float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size,
+	
 	int *request_rejected, VM_tend** vm_tend_list) {
 
 	/* iterators */
@@ -116,9 +122,9 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
 	// for each PM do
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
 		// check if the current PM of the sorted list can allocate the requested resources of the VM
-		if (check_resources(request, utilization[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
+		if (check_resources(request, utilization[PM_ordered_list->h_index], resources_requested[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
 			// allocate the VM into the PM
-			allocate_VM_to_PM(placement, utilization, request, PM_ordered_list->h_index);
+			allocate_VM_to_PM(placement, utilization, resources_requested, request, PM_ordered_list->h_index);
 			insert_VM_to_tend_list(vm_tend_list, request, PM_ordered_list->h_index);
 			free_list(clean_list);
 			// VM allocated successfully
@@ -146,8 +152,8 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, int **pl
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int best_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
-	return best_or_worst_fit(true, request, utilization, placement, H, h_size, request_rejected, vm_tend_list);
+int best_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+	return best_or_worst_fit(true, request, utilization, resources_requested, placement, H, h_size, request_rejected, vm_tend_list);
 }
 
 /*
@@ -160,8 +166,8 @@ int best_fit(float *request, float **utilization, int **placement, int **H, int 
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-int worst_fit(float *request, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
-	return best_or_worst_fit(false, request, utilization, placement, H, h_size, request_rejected, vm_tend_list);
+int worst_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+	return best_or_worst_fit(false, request, utilization, resources_requested, placement, H, h_size, request_rejected, vm_tend_list);
 }
 
 /**
@@ -457,7 +463,7 @@ bool time_comparator(int time_A, int time_B) {
  * parameter h_size: Number of physical machines
  * return: nothing, it's a void function.
  */
-void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **utilization, int current_time,
+void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **utilization, float **resources_requested, int current_time,
 	int h_size) {
 
 	VM_tend* parent = *vm_tend_list;
@@ -468,6 +474,11 @@ void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **u
 		utilization[parent->pm][0] -= placement[3][parent->vm_index]*placement[6][parent->vm_index]/100;
 		utilization[parent->pm][1] -= placement[4][parent->vm_index]*placement[7][parent->vm_index]/100;
 		utilization[parent->pm][2] -= placement[5][parent->vm_index]*placement[8][parent->vm_index]/100;
+
+		resources_requested[parent->pm][0] -= placement[3][parent->vm_index];
+		resources_requested[parent->pm][1] -= placement[4][parent->vm_index];
+		resources_requested[parent->pm][2] -= placement[5][parent->vm_index];
+
 		// Delete node from ordered list
 		VM_tend* temp = *vm_tend_list;
 		*vm_tend_list = (*vm_tend_list)->next;
@@ -486,7 +497,7 @@ void remove_VM_from_placement(VM_tend** vm_tend_list, int **placement, float **u
  * return 	True, if the VM does not need a migration
  * 			False, other case
  */
-bool update_VM_resources(int **placement, float **utilization, float *request, VM_tend** vm_list, int **H) {
+bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_tend** vm_list, int **H) {
 
 	int physical_machine = placement[2][(int) request[3]];
 	float *temp_request = (float *) malloc (14 *sizeof (float));
@@ -505,12 +516,17 @@ bool update_VM_resources(int **placement, float **utilization, float *request, V
 	}
 
 	// Verify if the PM can hold the VM's new resources.
-	if(check_resources(temp_request, utilization[physical_machine], H[physical_machine])) {
+	if(check_resources(temp_request, utilization[physical_machine], resources_requested[physical_machine],  H[physical_machine])) {
 		free(temp_request);
 		utilization[physical_machine][0] -= placement[3][(int) request[3]]*placement[6][(int) request[3]]/100;
 		utilization[physical_machine][1] -= placement[4][(int) request[3]]*placement[7][(int) request[3]]/100;
 		utilization[physical_machine][2] -= placement[5][(int) request[3]]*placement[8][(int) request[3]]/100;
-		allocate_VM_to_PM(placement, utilization, request, physical_machine);
+
+		resources_requested[physical_machine][0] -= placement[3][(int) request[3]];
+		resources_requested[physical_machine][1] -= placement[4][(int) request[3]];
+		resources_requested[physical_machine][2] -= placement[5][(int) request[3]];
+
+		allocate_VM_to_PM(placement, utilization, resources_requested, request, physical_machine);
 		return true;
 	} else {
 		free(temp_request);

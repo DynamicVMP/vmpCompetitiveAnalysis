@@ -26,16 +26,16 @@ typedef struct VM_tend{
 } VM_tend;
 
 /* function headers definitions */
-bool check_resources(float *request, float *utilization, int *H);
-void allocate_VM_to_PM(int **placement, float **utilization, float *request, int pm);
+bool check_resources(float *request, float *utilization, float *resources_requested, int *H);
+void allocate_VM_to_PM(int **placement, float **utilization, float **resources_requested, float *request, int pm);
 
-int first_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
+int first_fit(float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int best_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
+int best_fit(float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int worst_fit(float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
+int worst_fit(float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
-int best_or_worst_fit(bool is_best, float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
+int best_or_worst_fit(bool is_best, float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list);
 
 float calculate_weight(float **utilization, int *H, int h_index);
 
@@ -56,7 +56,7 @@ int compare_requests(float* request_A, float* request_B);
 void insert_VM_to_tend_list(VM_tend** VM_tend_list, float * request, int h_index);
 bool time_comparator(int time_A, int time_B);
 
-bool update_VM_resources(int **placement, float **utilization, float *request, VM_tend** vm_tend_list, int **H);
+bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_tend** vm_tend_list, int **H);
 
 /* Print functions definitions */
 void print_VM_list(VM_tend* list_to_free);

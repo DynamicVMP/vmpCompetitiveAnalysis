@@ -56,7 +56,7 @@ int main (int argc, char *argv[]) {
 	net_utilization = fopen("results/net_utilization", "a");
 
 	// Heuristic
-	int (*heuristics_array[3]) (float *S, float **utilization, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
+	int (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
 
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
@@ -98,6 +98,7 @@ int main (int argc, char *argv[]) {
 		
 		// Initial Utilization matrix 
 		float **utilization = utilization_initialization(h_size, RESOURCES);
+		float **resources_requested = utilization_initialization(h_size, RESOURCES);
 		
 		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
 		printf("\nSELECT THE HEURISTIC TO USE");
@@ -150,12 +151,12 @@ int main (int argc, char *argv[]) {
 			}
 
 			if(S[iterator_row][0] <= S[iterator_row][12]) {
-				(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, placement, H, h_size, &request_rejected, &VM_list);
+				(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &request_rejected, &VM_list);
 			} else {
 				// Update VM resources
 				// printf("\nRequest: %g %g %g %g %g", S[iterator_row][0], S[iterator_row][1], S[iterator_row][2], S[iterator_row][3], S[iterator_row][13] );
 				if(S[iterator_row][0] < S[iterator_row][13] 
-					&& update_VM_resources(placement, utilization, S[iterator_row], &VM_list, H)) {
+					&& update_VM_resources(placement, utilization, resources_requested, S[iterator_row], &VM_list, H)) {
 					// printf("\nVM Update successful!\n");
 					request_update++;
 				} else {
