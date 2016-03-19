@@ -22,6 +22,8 @@ typedef struct VM_tend{
     float ram_utilization;
     float cpu_utilization;
     float net_utilization;
+    float revenue;
+    float SLA;
     struct VM_tend* next;
 } VM_tend;
 
@@ -65,3 +67,5 @@ void print_PM_list(PM_weight_pair_node* list_to_free);
 /* Free memory functions definitions */
 void free_VM_list(VM_tend* list_to_free);
 void free_list(PM_weight_pair_node* list_to_free);
+
+void economical_revenue (VM_tend** VM_tend_list, float *revenue, float *qos);

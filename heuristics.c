@@ -28,6 +28,8 @@ void allocate_VM_to_PM(int **placement, float **utilization, float **resources_r
 	placement[6][(int) request[3]] = request[7];			// CPU utilization (%)
 	placement[7][(int) request[3]] = request[8];			// RAM utilization (%)
 	placement[8][(int) request[3]] = request[9];			// NET utilization (%)
+	placement[9][(int) request[3]] = request[10];			// Revenue
+	placement[10][(int) request[3]] = request[11];			// SLA
 
 	// Update the Utilization matrix
 	utilization[physical_machine][0] += request[4]*request[7]/100;
@@ -37,7 +39,6 @@ void allocate_VM_to_PM(int **placement, float **utilization, float **resources_r
 	resources_requested[physical_machine][0] += request[4];
 	resources_requested[physical_machine][1] += request[5];
 	resources_requested[physical_machine][2] += request[6];
-
 }
 
 /**
@@ -185,24 +186,27 @@ float calculate_weight(float **utilization, int *H, int h_index) {
 	return weight_PM;
 }
 
-
 /**
  * insert_VM_to_VMtend_list: Insert VM to List of VM 
- * parameter VM_tend_list: 	List of nodes 	
- * parameter vm_index:	VM index
+ * 
+ * parameter vm_tend_list:     	List of nodes
+ * parameter request:         	Request 
+ * parameter physical_machine: 	PM id
  */
 void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical_machine) {
 
 	VM_tend* new_node = (VM_tend*)calloc(1,sizeof(VM_tend));
 
 	// New Node to add
-	new_node->vm_index = request[3];
-	new_node->tend = request[13];
-	new_node->ram_utilization = request[4]*request[7]/100;
-	new_node->cpu_utilization = request[5]*request[8]/100;
-	new_node->net_utilization = request[6]*request[9]/100;
-	new_node->pm = physical_machine;
-	new_node->next = NULL; 
+	new_node->vm_index = request[3];						// VM id
+	new_node->tend = request[13];							// t end
+	new_node->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
+	new_node->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
+	new_node->net_utilization = request[6]*request[9]/100;  // NET Utilization
+	new_node->revenue = request[10];						// Revenue
+	new_node->pm = physical_machine;						// PM allocated
+	new_node->SLA = request[11];							// SLA
+	new_node->next = NULL; 									// pointer to next node
 
 	// First insert
 	if((*vm_tend_list)->vm_index == -1){
@@ -585,7 +589,9 @@ void print_VM_list(VM_tend* list) {
 		list = list->next;
 		printf("(VM: %d, ", tmp_pointer->vm_index);
 		printf("PM: %d, ", tmp_pointer->pm);
-		printf("Ttend: %d)\t", tmp_pointer->tend);
+		printf("Tend: %d, ", tmp_pointer->tend);
+		printf("SLA: %g, ", tmp_pointer->SLA);
+		printf("R: %g)\t", tmp_pointer->revenue);
 		printf("->");
 	}
 	printf("NULL\n");
@@ -610,3 +616,32 @@ void print_PM_list(PM_weight_pair_node* list) {
 	printf("NULL\n");
 }
 
+/**
+ * economical_revenue: Calculates the total revenue per VM allocated.
+ *
+ * parameter: VM_tend_list  List of VMs allocated
+ * parameter: total_revenue Revenue 
+ * parameter: total_qos     Quality of Service
+ * return: nothing, it's a void function
+ */
+void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *total_qos ) {
+	
+	*total_revenue = 0;
+	*total_qos = 0;
+	printf(" Antes: %g", *total_qos);
+
+	VM_tend* parent = *vm_tend_list;
+	VM_tend* actual = parent->next;
+
+	while(actual != NULL) {	
+
+		*total_revenue = *total_revenue + parent->revenue;
+		*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
+		
+		parent = actual;
+		actual = actual->next;
+	}
+	// Plus the last node
+	*total_revenue = *total_revenue + parent->revenue;
+	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
+}

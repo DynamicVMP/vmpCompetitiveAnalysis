@@ -12,7 +12,7 @@
 
 /* definitions */
 #define RESOURCES 3
-#define VM_FEATURES 9
+#define VM_FEATURES 11
 
 #define MAX_SLA 4
 
@@ -24,20 +24,21 @@ int main (int argc, char *argv[]) {
     
     // Iterators 
     int iterator_row;
-	int iterator_column;
 	int iterator_physical;
-	int iterator_service;
-	int iterator_datacenter;
-	int iterator_pm;
 
 	// Variables
 	int request_rejected = 0;
 	int request_update = 0;
 	int heuristic = 0;
 	int tiempo = 0;
+	float total_revenue = 0;
+	float total_qos = 0; 
+
 
 	// File pointers
 	FILE *power_consumption_file;
+	FILE *economical_revenue_file;
+	FILE *quality_service_file;
 	FILE *cpu_utilization;
 	FILE *ram_utilization;
 	FILE *net_utilization;
@@ -50,7 +51,13 @@ int main (int argc, char *argv[]) {
 
 	// Files
 	execution_time_file = fopen("results/time","a");
+
+	// Objective functions files
 	power_consumption_file = fopen("results/power_consumption","a");
+	economical_revenue_file = fopen("results/economical_revenue","a");
+	quality_service_file = fopen("results/quality_service","a");
+	
+	// Resources files
 	cpu_utilization = fopen("results/cpu_utilization", "a");
 	ram_utilization = fopen("results/ram_utilization", "a");
 	net_utilization = fopen("results/net_utilization", "a");
@@ -134,6 +141,11 @@ int main (int argc, char *argv[]) {
 				remove_VM_from_placement(&VM_list, placement, utilization, tiempo, h_size);
  				// Save FILE
 				fprintf(power_consumption_file, "%g\n", power_consumption(utilization, H, h_size));
+				economical_revenue(&VM_list, &total_revenue, &total_qos);
+				
+				fprintf(economical_revenue_file, "%g\n", total_revenue);
+				fprintf(quality_service_file, "%g\n", total_qos);
+
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 
@@ -167,14 +179,20 @@ int main (int argc, char *argv[]) {
 				}
 			}
 		}
-
+		// Remove all VM
 		remove_VM_from_placement(&VM_list, placement, utilization, tiempo, h_size);
-		float power = power_consumption(utilization, H, h_size);		
+		
+		// Calculates objective functions
+		float power = power_consumption(utilization, H, h_size);
+		economical_revenue(&VM_list, &total_revenue, &total_qos);	
+		
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
 
 		// Save to FILE
 		fprintf(power_consumption_file, "%g\n", power);
+		fprintf(economical_revenue_file, "%g\n", total_revenue);
+		fprintf(quality_service_file, "%g\n", total_qos);
 		print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 		print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 		fprintf(execution_time_file, "%d:%d\n", msec/1000, msec%1000);
@@ -195,6 +213,8 @@ int main (int argc, char *argv[]) {
 		printf("\n************************RESULTS*************************\n");
 		printf("Simulated time: %d time units.\n", tiempo);
 		printf("Power Consumption: %g\n", power);
+		printf("Economical Revenue: %g\n", total_revenue);
+		printf("Quality of Service: %g\n", total_qos);
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", tiempo);
 		printf("Number of update requests succesful: %d\n" , request_update);
