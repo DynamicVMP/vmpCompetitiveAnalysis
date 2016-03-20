@@ -69,3 +69,5 @@ void free_VM_list(VM_tend* list_to_free);
 void free_list(PM_weight_pair_node* list_to_free);
 
 void economical_revenue (VM_tend** VM_tend_list, float *revenue, float *qos);
+
+float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size);

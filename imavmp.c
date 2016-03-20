@@ -33,12 +33,14 @@ int main (int argc, char *argv[]) {
 	int tiempo = 0;
 	float total_revenue = 0;
 	float total_qos = 0; 
+	float wasted_resources_ratio = 0.0;
 
 
 	// File pointers
 	FILE *power_consumption_file;
 	FILE *economical_revenue_file;
 	FILE *quality_service_file;
+	FILE *wasted_resources_file;
 	FILE *cpu_utilization;
 	FILE *ram_utilization;
 	FILE *net_utilization;
@@ -56,7 +58,8 @@ int main (int argc, char *argv[]) {
 	power_consumption_file = fopen("results/power_consumption","a");
 	economical_revenue_file = fopen("results/economical_revenue","a");
 	quality_service_file = fopen("results/quality_service","a");
-	
+	wasted_resources_file = fopen("results/wasted_resources","a");
+
 	// Resources files
 	cpu_utilization = fopen("results/cpu_utilization", "a");
 	ram_utilization = fopen("results/ram_utilization", "a");
@@ -146,6 +149,9 @@ int main (int argc, char *argv[]) {
 				fprintf(economical_revenue_file, "%g\n", total_revenue);
 				fprintf(quality_service_file, "%g\n", total_qos);
 
+				wasted_resources_ratio = wasted_resources(utilization, resources_requested, H, h_size);
+				fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio);
+
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 
@@ -192,6 +198,10 @@ int main (int argc, char *argv[]) {
 		// Save to FILE
 		fprintf(power_consumption_file, "%g\n", power);
 		fprintf(economical_revenue_file, "%g\n", total_revenue);
+
+		wasted_resources_ratio = wasted_resources(utilization, resources_requested, H, h_size);
+		fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio);
+
 		fprintf(quality_service_file, "%g\n", total_qos);
 		print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 		print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
@@ -215,6 +225,7 @@ int main (int argc, char *argv[]) {
 		printf("Power Consumption: %g\n", power);
 		printf("Economical Revenue: %g\n", total_revenue);
 		printf("Quality of Service: %g\n", total_qos);
+		printf("Wasted Resources: %g\n", wasted_resources_ratio);
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", tiempo);
 		printf("Number of update requests succesful: %d\n" , request_update);
