@@ -20,10 +20,13 @@
 #include "scenario.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_INDIVIDUALS 100
-#define NUMBER_OF_GENERATIONS 100
+#define NUMBER_OF_INDIVIDUALS 10000
+#define NUMBER_OF_GENERATIONS 1
 
 #define MAX_SLA 4
+
+
+void save_objective_functions(float** objectives_functions_values_aux,int number_of_individuals);
 
 /* main: Interactive Memetic Algorithm for Virtual Machine Placement(IMAVMP)
  * parameter: path to the datacenter infrastructure file
@@ -124,7 +127,7 @@ int main (int argc, char *argv[]) {
         /* Additional task: calculate the cost of each objective function for each solution */
         weighted_sums_P = load_weighted_sums(objectives_functions_values_aux, weighted_sums_P, P, utilization_P, H, V,
                                              NUMBER_OF_INDIVIDUALS, h_size, v_size);
-
+        //save_objective_functions(objectives_functions_values_aux,NUMBER_OF_INDIVIDUALS);
         /* While (stopping criterion is not met), do */
         while (generation < NUMBER_OF_GENERATIONS)
         {
@@ -182,6 +185,8 @@ int main (int argc, char *argv[]) {
         printf("\nRESULTS\n");
         printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 
+        print_int_matrix(utilization_P[0],h_size,3);
+        save_objective_functions(objectives_functions_values_aux,NUMBER_OF_INDIVIDUALS);
 
         /*cleans the memory allocated for the structures*/
         free_int_matrix(P,NUMBER_OF_INDIVIDUALS);
@@ -200,6 +205,29 @@ int main (int argc, char *argv[]) {
     }
 }
 
+
+void save_objective_functions(float ** objectives_functions_values_aux,int number_of_individuals){
+
+    FILE *objectives_functions_file;
+
+    int iterator,iterator2;
+    objectives_functions_file = fopen("results/objective_functions","w");
+
+    //fprintf(solutions_t,"Final placement obtained for t=%d\n",t);
+
+    for(iterator=0;iterator<number_of_individuals;iterator++){
+
+        for(iterator2=0;iterator2<4;iterator2++) {
+            fprintf(objectives_functions_file,"%.4f\t", objectives_functions_values_aux[iterator][iterator2]);
+        }
+        fprintf(objectives_functions_file,"\n");
+    }
+
+}
+
 int check_instance(){
     return 0;
 }
+
+
+

@@ -268,10 +268,10 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
     int working_pms;
 
     /*set the weights for objective functions*/
-    pw_weight = 0.6;
-    economical_rev_weight = 0.8;
-    qos_weigth = 0.7;
-    wr_weight= 0.5;
+    pw_weight = 0.25;
+    economical_rev_weight = 0.25;
+    qos_weigth = 0.25;
+    wr_weight= 0.25;
 
 	/* value solution holds the weighted sum of each solution */
 	/* iterate on individuals */
@@ -282,7 +282,7 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
         /* iterate on physical machines */
         working_pms=0,wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0,power_consumption = 0.0;
         for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
-            if (utilization[iterator_individual][iterator_physical][0] > 0) {
+            if (utilization[iterator_individual][iterator_physical][0] > 0 || utilization[iterator_individual][iterator_physical][1] || utilization[iterator_individual][iterator_physical][2]) {
 
                 /* calculates utility of a physical machine */
                 utilidad = (float) utilization[iterator_individual][iterator_physical][0] / H[iterator_physical][0];

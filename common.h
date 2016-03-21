@@ -16,7 +16,7 @@
 #include "scenario.h"
 #define H_HEADER "PHYSICAL MACHINES"
 #define TAM_BUFFER BUFSIZ
-#define CONSTANT 10
+#define CONSTANT 10000
 
 
 /* get the number of physical and virtual machines */
