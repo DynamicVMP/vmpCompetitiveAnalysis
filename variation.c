@@ -1,4 +1,4 @@
-/* 
+/*
  * variation.c: Virtual Machine Placement Problem - Genetic Operators Functions
  * Date: 17-11-2014
  * Author: Fabio Lopez Pires (flopezpires@gmail.com)
@@ -7,278 +7,115 @@
 
 /* include libraries */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <math.h>
 #include <time.h>
-/* include arai headers */
+/* include headers*/
 #include "variation.h"
-#include "common.h"
 
-/* non_dominated_sorting: calculate fitness according to NSGA-II
- * parameter: solutions matrix
- * parameter: number of individuals
- * returns: array with the Pareto front
- */
-int* non_dominated_sorting(float ** solutions, int number_of_individuals)
-{
-	/* iterators */
-	int iterator_solution = 0;
-	int iterator_comparision = 0;
-	/* Pareto front identificator initializated to 1 */
-	int actual_pareto_front = 1;
-	/* number of allocated solutions */
-	int solutions_allocated = 0;
-	/* Pareto fronts array */
-	int *pareto_fronts = (int *) malloc (number_of_individuals *sizeof (int));
-	/* Pareto fronts initializated to 0 */
-	for (iterator_solution=0; iterator_solution < number_of_individuals; iterator_solution++)
-	{
-		pareto_fronts[iterator_solution] = 0;
-	}
-	/* auxiliar integers */
-	int dominance;
-	int dont_add;
-	int allocated_solutions=0;
-	/* while all the solutions have been evaluated */
-	while (allocated_solutions < number_of_individuals)
-	{
-		/* iterate on solutions */
-		for (iterator_solution=0; iterator_solution < number_of_individuals; iterator_solution++)
-		{
-			/* flag for a solution to be added */
-			dont_add = 0;
-			/* compare with the actual Pareto front */
-			if (pareto_fronts[iterator_solution]==0)
-			{
-				for (iterator_comparision=0; iterator_comparision < number_of_individuals; iterator_comparision++)
-				{
-					/* if the solution is not itself, it is not been evaluated or is in the actual Pareto front */
-					if (iterator_solution != iterator_comparision && pareto_fronts[iterator_comparision]==0 || pareto_fronts[iterator_comparision]==actual_pareto_front)
-					{
-						/* verificate the dominance between both*/
-						dominance = is_dominated(solutions,iterator_solution,iterator_comparision);
-						/* is dominated by a solution that is in the Pareto front, so this solution is not added*/
-						if (dominance == -1)
-						{
-							dont_add = 1;
-							break;
-						}
-					}
-				}	
-				/* if the solution is not dominated by any other, let's add it to the actual Pareto front */
-				if (dont_add == 0)
-				{
-					pareto_fronts[iterator_solution] = actual_pareto_front;
-					allocated_solutions++;
-				}
-			}
-		}
-		actual_pareto_front++;
-	}
-	return pareto_fronts;
-}
-
-/* is_dominated: usual non-domination checking
- * parameter: solutions matrix
- * parameter: identificator of the individual a
- * parameter: identificator of the individual b
- * returns: 1 if a dominates b, -1 if b dominates a, 0 if both a and b are non-dominated 
- */
-int is_dominated(float ** solutions, int a, int b)
-{
-	/* if a dominates b */
-	/* a better in all objectives */
-	if(solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] || 
-	/* a better or equal in one objective and better in the others */
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	/* a better or equal in two objectives and better in the others */
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	/* a better or equal in three objectives and better in the others */
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] > solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] > solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	/* a better or equal in four objectives and better in the others */
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] < solutions[b][4] ||
-	solutions[a][0] <= solutions[b][0] && solutions[a][1] < solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4] ||
-	solutions[a][0] < solutions[b][0] && solutions[a][1] <= solutions[b][1] && solutions[a][2] >= solutions[b][2] && solutions[a][3] >= solutions[b][3] 
-	&& solutions[a][4] <= solutions[b][4])
-	{
-		return 1;
-	}
-
-	/* if b dominates a */
-	/* a better in all objectives */
-	if(solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] || 
-	/* a better or equal in one objective and better in the others */
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	/* a better or equal in two objectives and better in the others */
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	/* a better or equal in three objectives and better in the others */
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] > solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] > solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	/* a better or equal in four objectives and better in the others */
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] < solutions[a][4] ||
-	solutions[b][0] <= solutions[a][0] && solutions[b][1] < solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4] ||
-	solutions[b][0] < solutions[a][0] && solutions[b][1] <= solutions[a][1] && solutions[b][2] >= solutions[a][2] && solutions[b][3] >= solutions[a][3] 
-	&& solutions[b][4] <= solutions[a][4])
-	{
-		return -1;
-	}
-	/* if comes here, both are non-dominated */
-	return 0;
-}
-
-/* selection: selection of the parents for the crossover
- * parameter: array of the Pareto front
- * parameter: number of individuals
- * parameter: number of selection percent
+/* selection: selection of the parents for the crossover using binary tournament
+ * parameter: array of the evaluation of each individual solution
+ * parameter: number or individuals
  * returns: the parent for the crossover
  */
-int selection(int *fronts, int number_of_individuals, float percent)
+int selection(float *objective_function, int number_of_individuals)
 {
-	/* iterator */
-	int iterator_solution;
-	int actual_parent;
-	int posible_parent;
-	/* generate randomically a parent candidate */
-	actual_parent = rand() % (number_of_individuals);
-	/* iterate on positions of an individual and select the parents for the crossover */
-    for (iterator_solution=0; iterator_solution < (number_of_individuals * percent); iterator_solution++)
+    /* iterator */
+    int iterator_solution;
+    int actual_parent;
+    int posible_parent;
+    /* generate randomically a parent candidate */
+    actual_parent = rand() % (number_of_individuals);
+    /* iterate on positions of an individual and select the parents for the crossover */
+    for (iterator_solution=0; iterator_solution < TOURNAMENT_SIZE - 1; iterator_solution++)
     {
-		posible_parent = rand() % (number_of_individuals);
-		if (fronts[actual_parent] > fronts[posible_parent])
-		{
-			actual_parent = posible_parent;
-		}
+        posible_parent = rand() % (number_of_individuals);
+
+        if (objective_function[actual_parent] < objective_function[posible_parent])
+        {
+            actual_parent = posible_parent;
+        }
     }
-	return actual_parent;
+    return actual_parent;
 }
 
-/* crossover: performs the crossover operation
+
+/* selection_and_crossover: select individuals from P to performs the crossover operation and insert them in the population Q
+ * parameter: population matrix Q
+ * parameter: population matrix P
+ * parameter: the weighted sums
+ * parameter: the number of individuals
+ * parameter: number of virtual machines
+ * returns: the population after apply the crossover
+ */
+int** selection_and_crossover(int **populationQ, int **populationP, float *weighted_sums_P, int number_of_individuals,
+                             int v_size){
+
+    int iterator,father,mother;
+
+    /*  selection of solutions from P */
+    for(iterator=0;iterator<number_of_individuals/2;iterator++){
+        father = selection(weighted_sums_P, number_of_individuals);
+        mother = selection(weighted_sums_P, number_of_individuals);
+        //printf("\nfather %d\n",father);
+        // printf("\nmother %d\n",mother);
+        /* Q = crossover solutions */
+        populationQ = crossover_individuals(populationQ,populationP,father, mother, v_size);
+        //print_int_matrix(Q,number_of_individuals,v_size);
+    }
+
+    return populationQ;
+
+}
+
+/* crossover: performs the crossover operation of individuals
  * parameter: population matrix
  * parameter: the mother for the crossover
  * parameter: the father for the crossover
  * parameter: number of virtual machines
- * returns: the crossovered population
+ * returns: the population after apply the crossover
  */
-int** crossover(int **population, int position_parent1, int position_parent2, int v_size)
+int** crossover_individuals(int **populationQ, int **populationP, int position_parent1, int position_parent2, int v_size)
 {
-  	/* iterators */
-	int iterator_virtual;
-	/* auxiliary parameter */
-	int aux;
-	/* iterate on virtual machines and performs the crossing */
-	for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
-	{
-		/* if pair, makes the crossing in the middle, otherwise it is half + 1 */
-		if (v_size % 2 == 0)
-		{
-			if (iterator_virtual < v_size / 2)
-			{
-				population[position_parent1][iterator_virtual] = population[position_parent1][iterator_virtual];
-				population[position_parent2][iterator_virtual] = population[position_parent2][iterator_virtual];
-			}
-			else
-			{
-				aux = population[position_parent2][iterator_virtual];
-				population[position_parent2][iterator_virtual] = population[position_parent1][iterator_virtual];
-				population[position_parent1][iterator_virtual] = aux;
-			}
-		} 
-		else
-		{
-			if (iterator_virtual < (v_size / 2) + 1)
-			{
-				population[position_parent1][iterator_virtual] = population[position_parent1][iterator_virtual];
-				population[position_parent2][iterator_virtual] = population[position_parent2][iterator_virtual];
-			}
-			else
-			{
-				aux = population[position_parent2][iterator_virtual];
-				population[position_parent2][iterator_virtual] = population[position_parent1][iterator_virtual];
-				population[position_parent1][iterator_virtual] = aux;
-			}
-		}
-	}
-	return population;
+    /* iterators */
+    int iterator_virtual;
+    /* auxiliary parameter */
+    int aux;
+
+    /* iterate on virtual machines and performs the crossing */
+    for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
+    {
+        /* if pair, makes the crossing in the middle, otherwise it is half + 1 */
+        if (v_size % 2 == 0)
+        {
+            if (iterator_virtual < v_size / 2)
+            {
+                populationQ[position_parent1][iterator_virtual] = populationP[position_parent1][iterator_virtual];
+                populationQ[position_parent2][iterator_virtual] = populationP[position_parent2][iterator_virtual];
+            }
+            else
+            {
+                aux = populationP[position_parent2][iterator_virtual];
+                populationQ[position_parent2][iterator_virtual] = populationP[position_parent1][iterator_virtual];
+                populationQ[position_parent1][iterator_virtual] = aux;
+            }
+        }
+        else
+        {
+            if (iterator_virtual < (v_size / 2) + 1)
+            {
+                populationQ[position_parent1][iterator_virtual] = populationP[position_parent1][iterator_virtual];
+                populationQ[position_parent2][iterator_virtual] = populationP[position_parent2][iterator_virtual];
+            }
+            else
+            {
+                aux = populationP[position_parent2][iterator_virtual];
+                populationQ[position_parent2][iterator_virtual] = populationP[position_parent1][iterator_virtual];
+                populationQ[position_parent1][iterator_virtual] = aux;
+            }
+        }
+    }
+
+    return populationQ;
 }
 
 /* mutation: performs the mutation operation
@@ -288,146 +125,221 @@ int** crossover(int **population, int position_parent1, int position_parent2, in
  * parameter: number of virtual machines
  * returns: the mutation population
  */
-int** mutation(int **population, int **V, int number_of_individuals, int h_size, int v_size)
+int** mutation(int **population, float **V, int number_of_individuals, int h_size, int v_size, int max_SLA)
 {
-   	/* iterators */
-	int iterator_virtual;
-	int physical_position;
-	int iterator_individual;
-	/* auxiliary parameter */
-	int aux;
-	float probability;
-	srand48(time(NULL));
-	h_size + 1;
-	/* iterate on individuals */
-	for (iterator_individual = 0 ; iterator_individual < number_of_individuals ; iterator_individual++)
-	{
-		/* iterate on virtual machines */
-		for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
-		{
-			probability = drand48() *1.0;
-			/* if the probablidad is less than 1/v_size, performs the mutation */
-			if (probability < (float)1/v_size)
-			{
-				/* get the position of the physical machine the random */
-				if (V[iterator_virtual][3] == 1)
-				{
-					physical_position = rand() % h_size + 1;
-				}
-				else 
-				{
-					physical_position = rand() % h_size;
-				}
-				/* performs the mutation operation */
-				if (physical_position != population[iterator_individual][iterator_virtual])
-					population[iterator_individual][iterator_virtual] = physical_position;
-				else
-				{
-					aux = population[iterator_individual][iterator_virtual];
-					while (physical_position == aux)
-					{
-						/* individual with SLA = 1 */
-						if (V[iterator_virtual][3] == 1)
-						{
-							physical_position = rand() % h_size + 1;
-						}
-						/* individual with SLA = 0 */
-						else 
-						{
-							physical_position = rand() % h_size;
-						}
-						if (physical_position != population[iterator_individual][iterator_virtual]) 
-							population[iterator_individual][iterator_virtual] = physical_position;
-					}
-				}
-			}
-		}
-	}
-	return population;
+    /* iterators */
+    int iterator_virtual;
+    int physical_position;
+    int iterator_individual;
+    /* auxiliary parameter */
+    int aux;
+    float probability;
+    srand48(time(NULL));
+
+    /* iterate on individuals */
+    for (iterator_individual = 0 ; iterator_individual < number_of_individuals ; iterator_individual++)
+    {
+        /* iterate on virtual machines */
+        for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
+        {
+            probability = drand48() *1.0;
+
+            /* if the vm is not marked as off (when CPU > 0), we do nothing */
+            if(V[iterator_virtual][0]>0) {
+                /* if the probablidad is less than 1/v_size, performs the mutation */
+                if (probability < (float) 1 / v_size) {
+                    /* get the position of the physical machine the random*/
+                    if (V[iterator_virtual][3] == max_SLA)
+                    {
+                        physical_position = rand() % h_size + 1;
+                    }
+                    else
+                    {
+                        physical_position = rand() % h_size;
+                    }
+
+
+                    /* performs the mutation operation */
+                    if (physical_position != population[iterator_individual][iterator_virtual])
+                        population[iterator_individual][iterator_virtual] = physical_position;
+                    else {
+                        aux = population[iterator_individual][iterator_virtual];
+                        while (physical_position == aux && h_size > 1) {
+                            /*
+                             * individual with SLA = max_SLA*/
+                            if (V[iterator_virtual][3] == max_SLA)
+                            {
+                                physical_position = rand() % h_size + 1;
+                            }
+                            else
+                            {
+                                physical_position = rand() % h_size;
+                            }
+                            if (physical_position != population[iterator_individual][iterator_virtual])
+                                population[iterator_individual][iterator_virtual] = physical_position;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return population;
 }
 
-/* population_evolution: update the pareto front in the population
- * parameter: population matrix
- * parameter: evolutionated population matrix
- * parameter: the cost of each objetives the population matrix
- * parameter: the cost of each objetives evolutionated population matrix
- * parameter: front pareto array
- * parameter: number of individuals
+/* population_evolution: update the population P
+ * parameter: population matrix P
+ * parameter: evolved population matrix Q
+ * parameter: the cost of the objective function of the population matrix P
+ * parameter: the cost of the objective function of population matrix Q
+ * parameter: number of individual
  * parameter: number of virtual machines
- * returns: population matrix
+ * returns: population matrix P
  */
-int** population_evolution(int **P, int **Q, float **objectives_functions_P, float **objectives_functions_Q, int *fronts_P, int number_of_individuals, int v_size)
+int** population_evolution(int **P, int **Q, float *weighted_sums_P, float *weighted_sums_Q, int number_of_individuals, int v_size)
 {
-	/* P union Q population matrix */
-	int **PQ = (int **) malloc (2 * number_of_individuals *sizeof (int *));
-	/* P union Q objectives functions values */
-	float **objectives_functions_PQ = (float **) malloc (2 * number_of_individuals *sizeof (float *));
-	/* iterators */
-	int iterator_individual_P = 0;
-	int iterator_individual_Q = 0;
-	int iterator_individual_position = 0;
-	/* iterate on positions of an individual and copy the P individual and objective function */
-	for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
-	{
-		PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
-		objectives_functions_PQ[iterator_individual_P] = (float *) malloc (3 *sizeof (float));
-		for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
-		{
-			PQ[iterator_individual_P][iterator_individual_position] = P[iterator_individual_P][iterator_individual_position];
-		}
-		objectives_functions_PQ[iterator_individual_P][0] = objectives_functions_P[iterator_individual_P][0];
-		objectives_functions_PQ[iterator_individual_P][1] = objectives_functions_P[iterator_individual_P][1];
-		objectives_functions_PQ[iterator_individual_P][2] = objectives_functions_P[iterator_individual_P][2];
-	}
-	/* iterate on positions of an individual and copy the Q individual and objective function */
-	for (iterator_individual_P=number_of_individuals; iterator_individual_P < 2 * number_of_individuals; iterator_individual_P++)
-	{
-		PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
-		objectives_functions_PQ[iterator_individual_P] = (float *) malloc (3 *sizeof (float));
-		for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
-		{
-			PQ[iterator_individual_P][iterator_individual_position] = Q[iterator_individual_Q][iterator_individual_position];
-		}
-		objectives_functions_PQ[iterator_individual_P][0] = objectives_functions_Q[iterator_individual_Q][0];
-		objectives_functions_PQ[iterator_individual_P][1] = objectives_functions_Q[iterator_individual_Q][1];
-		objectives_functions_PQ[iterator_individual_P][2] = objectives_functions_Q[iterator_individual_Q][2];
-		iterator_individual_Q++;
-	}
 
-	/* calculate fitness according to NSGA-II */
-	int *fronts_PQ = non_dominated_sorting(objectives_functions_PQ, number_of_individuals*2);
-	int *population_aux = (int *) malloc (v_size *sizeof (int));
-	/* generate Pt+1 according to NSGA-II */
-	int iterator;
-	int iterator_virtual;
-	int iterator_P = 0;
-	int actual_pareto = 0;
-	int i,j;
-	int iterator_solution;
-	/* generate Pt+1 according to NSGA-II */
-	while (iterator_P < number_of_individuals)
-	{
-		actual_pareto++;
-		for (iterator = 0; iterator < number_of_individuals*2 ; iterator++)
-		{
-			if (fronts_PQ[iterator] == actual_pareto && iterator_P < number_of_individuals)
-			{
-				if (objectives_functions_PQ[iterator][0] != 0 || objectives_functions_PQ[iterator][1] != 0 ||
-			objectives_functions_PQ[iterator][2] !=0)
-				{
-					objectives_functions_P[iterator_P][0] = objectives_functions_PQ[iterator][0];
-					objectives_functions_P[iterator_P][1] = objectives_functions_PQ[iterator][1];
-					objectives_functions_P[iterator_P][2] = objectives_functions_PQ[iterator][2];
-					fronts_P[iterator_P] = fronts_PQ[iterator];
-								
-					for (iterator_virtual = 0; iterator_virtual<v_size ; iterator_virtual++)
-					{
-						P[iterator_P][iterator_virtual] = PQ[iterator][iterator_virtual];
-					}
-					iterator_P++;
-				}
-			}
-		}
-	}
-	return P;
+    /* P union Q population matrix */
+    int **PQ = (int **) malloc (2 * number_of_individuals *sizeof (int *));
+    /* P union Q objectives functions values */
+    float *objective_function_PQ = (float *) malloc (2 * number_of_individuals *sizeof (float));
+
+    /* iterators */
+    int iterator_individual_P = 0;
+    int iterator_individual_Q = 0;
+    int iterator_individual_position = 0;
+
+    /* iterate on positions of an individual and copy the P individual and objective function */
+    for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
+    {
+        PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
+        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
+        {
+            PQ[iterator_individual_P][iterator_individual_position] = P[iterator_individual_P][iterator_individual_position];
+        }
+        objective_function_PQ[iterator_individual_P] = weighted_sums_P[iterator_individual_P];
+    }
+
+    /* iterate on positions of an individual and copy the Q individual and objective function */
+    for (iterator_individual_P=number_of_individuals; iterator_individual_P < 2 * number_of_individuals; iterator_individual_P++)
+    {
+        PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
+        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
+        {
+            PQ[iterator_individual_P][iterator_individual_position] = Q[iterator_individual_Q][iterator_individual_position];
+        }
+        objective_function_PQ[iterator_individual_P] = weighted_sums_Q[iterator_individual_Q];
+        iterator_individual_Q++;
+    }
+
+    //print_float_array(objective_function_PQ,number_of_individuals*2);
+   // print_int_matrix(PQ,number_of_individuals*2,v_size);
+    //printf("\n\n");
+    /*sort the union of the population P and Q by the value of the objective function*/
+    quicksort_decreasing_sort(objective_function_PQ,PQ,0,number_of_individuals*2 - 1);
+
+   // print_float_array(objective_function_PQ,number_of_individuals*2);
+    //print_int_matrix(PQ,number_of_individuals*2,v_size);
+   // printf("\n\n");
+
+    /*The n_individuals with the best values ​​of objective function are selected for the next generation of the population P*/
+    for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
+    {
+        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
+        {
+            P[iterator_individual_P][iterator_individual_position]=PQ[iterator_individual_P][iterator_individual_position];
+        }
+    }
+
+    //printf("\n New Population P\n");
+    //print_int_matrix(P,number_of_individuals,v_size);
+
+    /*free the memory allocated for the auxiliary structures*/
+    free_int_matrix(PQ,number_of_individuals);
+    free(objective_function_PQ);
+
+    return P;
+}
+
+
+/**
+ * quicksort_decreasing_sort: Sort the population with quicksort in-place based on the weight sums of the solutions
+ * parameter weighted_sums: the values to use to sort the population
+ * parameter population: population to sort
+ * parameter first_index: index of the first element in population
+ * parameter last_index: index of the last element in population
+ *
+ * returns: nothing, it's a void function.
+ */
+void quicksort_decreasing_sort(float *weighted_sums,int ** population, int first_index, int last_index){
+
+    int pivot_index = 0;
+
+    if(first_index < last_index) {
+        pivot_index = quicksort_partition(weighted_sums,population,first_index, last_index);
+        quicksort_decreasing_sort(weighted_sums,population, first_index, (pivot_index - 1));
+        quicksort_decreasing_sort(weighted_sums,population, (pivot_index + 1), last_index);
+    }
+
+}
+
+
+/**
+ * quicksort_partition: partition of the quicksort algorithm
+ * parameter weighted_sums: the values to use to sort the population
+ * parameter population: the population to sort
+ * parameter first_index: index of the first element in weighted sums
+ * parameter last_index: index of the last element in weighted sums
+ *
+ * returns: the position of the pivot to use.
+ */
+int quicksort_partition(float *weighted_sums,int ** population, int first_index, int last_index){
+
+    int up_index, down_index;
+    bool first_iteration = true;
+    float pivot, temp;
+    int* temp_indv;
+    int* pivot_indv;
+
+    pivot =  weighted_sums[first_index];
+    pivot_indv = population[first_index];
+    up_index = first_index;
+    down_index = last_index;
+
+    do {
+        // If is not the first iteration, to avoid the use of goto statements
+        if(!first_iteration) {
+            temp =  weighted_sums[up_index];
+            weighted_sums[up_index]= weighted_sums[down_index];
+            weighted_sums[down_index] = temp;
+
+            temp_indv = population[up_index];
+            population[up_index] = population[down_index];
+            population[down_index] = temp_indv;
+
+        }
+        first_iteration = false;
+
+        // While the up element is better or equal than the selected pivot
+        while (weighted_sums[up_index]>= pivot && up_index < last_index) {
+            up_index++;
+        }
+
+        // While the down element is worst than the selected pivot
+        while (weighted_sums[down_index] < pivot   && down_index > first_index ) {
+            down_index--;
+        }
+
+    } while (down_index > up_index);
+
+    if(weighted_sums[first_index] < weighted_sums[down_index]) {
+        weighted_sums[first_index]= weighted_sums[down_index];
+        weighted_sums[down_index] = pivot;
+
+        population[first_index] = population[down_index];
+        population[down_index] = pivot_indv;
+    }
+
+
+    return down_index;
+
 }
