@@ -646,25 +646,41 @@ void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *to
 	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
 }
 
+
+/**
+ * wasted_resources: Calculates the ratio of the wasted resources of all the working PMs
+ *
+ * parameter: utilization			Utilization matrix
+ * parameter: resources_requested 	resource request matrix
+ * parameter: H     				Array of PMs
+ * parameter: h_size				Number of PMs
+ * return: wasted_resources_ratio
+ */
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size) {
 
 	float wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0;
 	float wasted_cpu_resources_ratio = 0.0 , wasted_ram_resources_ratio = 0.0 , wasted_net_resources_ratio = 0.0;
 	float alpha = 1.0, beta = 1.0, gamma = 1.0, wasted_resources_ratio = 0.0;
 	int working_pms = 0, pm_index;
+
+	// for all the PMs do
 	for (pm_index = 0; pm_index < h_size; ++pm_index) {
+		// if the PM has at least one VM allocated, it's considered a working PM
 		if(resources_requested[pm_index][0] != 0 || resources_requested[pm_index][1] != 0 || resources_requested[pm_index][2] != 0){
 			working_pms++;
+			// sum of all the wasted resources of all the PMs
 			wasted_cpu_resources += 1 - utilization[pm_index][0] / H[pm_index][0];
 			wasted_ram_resources += 1 - utilization[pm_index][1] / H[pm_index][1];
 			wasted_net_resources += 1 - utilization[pm_index][2] / H[pm_index][2];
 		}
 	}
 
+	// total wasted resources of all PMs / num of working PMs
 	wasted_cpu_resources_ratio = wasted_cpu_resources / working_pms;
 	wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
 	wasted_net_resources_ratio = wasted_net_resources / working_pms;
 
+	// sum the wasted resources ratio and divide with the number of resources cosidered (3 in this case)
 	wasted_resources_ratio = ( wasted_cpu_resources_ratio * alpha + wasted_ram_resources_ratio * beta + wasted_net_resources_ratio * gamma ) / 3;
 
 	return  wasted_resources_ratio;
