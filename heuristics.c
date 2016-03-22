@@ -46,11 +46,28 @@ void allocate_VM_to_PM(int **placement, float **utilization, float **resources_r
  * parameter: request of VM
  * parameter: array utilization
  */
-bool check_resources(float *request, float *utilization, float *resources_requested, int *H) {
+bool check_resources(float *request, float **utilization, float **resources_requested, int **H, VM_tend** vm_list, int physical_machine) {
 
-	return (resources_requested[0] + request[4] <= H[0]
-			&& resources_requested[1] + request[5]<= H[1]
-			&& resources_requested[2] + request[6]<= H[2]);
+	bool flag = (resources_requested[physical_machine][0] + request[4] <= H[physical_machine][0]
+				 && resources_requested[physical_machine][1] + request[5]<= H[physical_machine][1]
+				 && resources_requested[physical_machine][2] + request[6]<= H[physical_machine][2]);
+	if(!flag) {
+		return flag;
+	} else {
+		VM_tend* parent = *vm_list;
+		VM_tend* actual = parent->next;	
+		while(actual != NULL) {
+			if(parent->service == (int) request[1] && parent->pm == physical_machine) {
+				return false;
+			}
+			parent = actual;
+			actual = actual->next;			
+		}
+		if(parent->service == (int) request[1] && parent->pm == physical_machine) {
+			return false;
+		}
+	}
+	return flag;
 
 	// For overbooking
 	/*return (utilization[0] + (request[4]*request[7]/100) <= H[0]
@@ -74,7 +91,7 @@ int first_fit(float *request, float **utilization, float **resources_requested, 
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
-		if (check_resources(request, utilization[iterator_physical], resources_requested[iterator_physical], H[iterator_physical])) {		
+		if (check_resources(request, utilization, resources_requested, H, vm_tend_list, iterator_physical)) {		
 			// Allocate la VM to VM		
 			allocate_VM_to_PM(placement, utilization, resources_requested, request, iterator_physical);
 			insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
@@ -123,7 +140,8 @@ int best_or_worst_fit(bool is_best,float *request, float **utilization, float **
 	// for each PM do
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
 		// check if the current PM of the sorted list can allocate the requested resources of the VM
-		if (check_resources(request, utilization[PM_ordered_list->h_index], resources_requested[PM_ordered_list->h_index], H[PM_ordered_list->h_index])) {
+		if (check_resources(request, utilization, resources_requested, H, vm_tend_list, PM_ordered_list->h_index)) {
+
 			// allocate the VM into the PM
 			allocate_VM_to_PM(placement, utilization, resources_requested, request, PM_ordered_list->h_index);
 			insert_VM_to_tend_list(vm_tend_list, request, PM_ordered_list->h_index);
@@ -199,6 +217,7 @@ void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical
 
 	// New Node to add
 	new_node->vm_index = request[3];						// VM id
+	new_node->service = request[1];							// Service
 	new_node->tend = request[13];							// t end
 	new_node->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
 	new_node->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
@@ -448,9 +467,9 @@ int compare_requests(float* request_A, float* request_B) {
 }
 
 /**
- * time_comparator
- * parameter: time_A [description]
- * parameter: time_B [description]
+ * time_comparator: Compares two times
+ * parameter: time_A 
+ * parameter: time_B 
  * return:  True, is time A is less than time B.
  * 			False, other case.
  */
@@ -520,7 +539,7 @@ bool update_VM_resources(int **placement, float **utilization, float **resources
 	}
 
 	// Verify if the PM can hold the VM's new resources.
-	if(check_resources(temp_request, utilization[physical_machine], resources_requested[physical_machine],  H[physical_machine])) {
+	if(check_resources(temp_request, utilization, resources_requested,  H, vm_list, physical_machine)) {
 		free(temp_request);
 		utilization[physical_machine][0] -= placement[3][(int) request[3]]*placement[6][(int) request[3]]/100;
 		utilization[physical_machine][1] -= placement[4][(int) request[3]]*placement[7][(int) request[3]]/100;
@@ -589,6 +608,7 @@ void print_VM_list(VM_tend* list) {
 		list = list->next;
 		printf("(VM: %d, ", tmp_pointer->vm_index);
 		printf("PM: %d, ", tmp_pointer->pm);
+		printf("Sb: %d, ", tmp_pointer->service);
 		printf("Tend: %d, ", tmp_pointer->tend);
 		printf("SLA: %g, ", tmp_pointer->SLA);
 		printf("R: %g)\t", tmp_pointer->revenue);
@@ -617,7 +637,7 @@ void print_PM_list(PM_weight_pair_node* list) {
 }
 
 /**
- * economical_revenue: Calculates the total revenue per VM allocated.
+ * economical_revenue: Calculates the total revenue and Quality of Service per VM allocated.
  *
  * parameter: VM_tend_list  List of VMs allocated
  * parameter: total_revenue Revenue 
@@ -628,7 +648,6 @@ void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *to
 	
 	*total_revenue = 0;
 	*total_qos = 0;
-	printf(" Antes: %g", *total_qos);
 
 	VM_tend* parent = *vm_tend_list;
 	VM_tend* actual = parent->next;
@@ -646,6 +665,16 @@ void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *to
 	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
 }
 
+/**
+ * wasted_resources:  
+ *
+ * parameter: utilization         
+ * parameter: resources_requested 
+ * parameter: H                   
+ * parameter: h_size              
+ *
+ * return 
+ */
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size) {
 
 	float wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0;
@@ -661,6 +690,11 @@ float wasted_resources (float **utilization, float **resources_requested, int **
 		}
 	}
 
+	// If no pms working return -1
+	if ( working_pms == 0 ) {
+		return -1;
+	}  
+
 	wasted_cpu_resources_ratio = wasted_cpu_resources / working_pms;
 	wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
 	wasted_net_resources_ratio = wasted_net_resources / working_pms;
@@ -668,4 +702,51 @@ float wasted_resources (float **utilization, float **resources_requested, int **
 	wasted_resources_ratio = ( wasted_cpu_resources_ratio * alpha + wasted_ram_resources_ratio * beta + wasted_net_resources_ratio * gamma ) / 3;
 
 	return  wasted_resources_ratio;
+}
+
+/**
+ * power_consumption: returns the power comsumption
+ * parameter: utilization matrix
+ * parameter: H matrix
+ * parameter: number of physical machines
+ * returns: power comsumption
+ */
+float power_consumption (float **utilization, int **H, int h_size) {
+	/* iterate on physical machines */
+	int iterator_physical;
+	float utilidad = 0;
+	float power_consumption = 0;
+
+	for (iterator_physical = 0 ; iterator_physical < h_size ; iterator_physical++) {
+		if (utilization[iterator_physical][0] > 0) {
+			
+			/* calculates utility of a physical machine */
+			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
+			/* calculates energy consumption of a physical machine */
+			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				 
+								   + (float)H[iterator_physical][3]*0.6;
+		}
+	}
+	return power_consumption;
+}
+
+/**
+ * calculates_weighted_sum: Calculates Weighted Sum of the Objetive Functions 
+ *
+ * parameter: power                  OF.1 Power Comsuption
+ * parameter: total_revenue          OF.2 Economical Revenue	
+ * parameter: wasted_resources_ratio OF.3 Wasted Resources Ratio
+ * parameter: total_qos              OF.4 Quality of Service
+ *
+ * return 
+ */
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos) {
+
+	float power_normalized = power + SIGMA_POWER;
+	float revenue_normalized = total_revenue + SIGMA_REVENUE;
+	float wasted_resources_normalized = wasted_resources_ratio + SIGMA_RESOURCES;
+	float qos_normalized = total_qos + SIGMA_QOS;
+
+	return ( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4; 
+
 }

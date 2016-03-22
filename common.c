@@ -102,32 +102,6 @@ int** load_H(int h_size, char path_to_file[]) {
 }
 
 /**
- * power_consumption: returns the power comsumption
- * parameter: utilization matrix
- * parameter: H matrix
- * parameter: number of physical machines
- * returns: power comsumption
- */
-float power_consumption (float **utilization, int **H, int h_size) {
-	/* iterate on physical machines */
-	int iterator_physical;
-	float utilidad = 0;
-	float power_consumption = 0;
-
-	for (iterator_physical = 0 ; iterator_physical < h_size ; iterator_physical++) {
-		if (utilization[iterator_physical][0] > 0) {
-			
-			/* calculates utility of a physical machine */
-			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
-			/* calculates energy consumption of a physical machine */
-			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				 
-								   + (float)H[iterator_physical][3]*0.6;
-		}
-	}
-	return power_consumption;
-}
-
-/**
  * number_unique_vm: return the number of unique VM 
  * parameter: S matrix
  * return: number of unique VM
