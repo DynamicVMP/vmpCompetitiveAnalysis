@@ -16,8 +16,11 @@
 #include "scenario.h"
 #define H_HEADER "PHYSICAL MACHINES"
 #define TAM_BUFFER BUFSIZ
-#define CONSTANT 10000
-
+#define CONSTANT 10
+#define SIGMA_POWER 0.25
+#define SIGMA_REVENUE 0.25
+#define SIGMA_RESOURCES 0.25
+#define SIGMA_QOS 0.25
 
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
@@ -35,7 +38,8 @@ int** load_H(int h_size, char path_to_file[]);
 /* load utilization of physical resources and costs of the considered objective functions */
 int*** load_utilization(int*** utilization,int **population, int **H, float **V, int number_of_individuals, int h_size, int v_size);
 float*load_weighted_sums(float **objective_functions_values_aux, float *weighted_sums, int **population,
-                         int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size);
+                         int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size, int *OF_calc_count);
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos);
 /* counts the quantity virtual machines requests*/
 int get_v_size_per_t(float** matrix_s,int t,int max_row);
 /* loads virtual machines requests*/
