@@ -6,7 +6,7 @@
 #include <time.h>
 
 /* definitions */
-#define S_HEADER "SCENARIOS"
+#define S_HEADER "SCENARIO"
 #define TAM_BUFFER BUFSIZ
 
 

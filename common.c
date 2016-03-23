@@ -113,9 +113,9 @@ int get_v_size_per_t(float** matrix_s, int t, int max_row){
     int iterator = 0;
 
     while(iterator<max_row && matrix_s[iterator][0]<=t){
-		/* - This condition is used to consider only new vm request
+        /* - This condition is used to consider only new vm request
            - if a virtual machine has the init time(matrix_s[iterator][12]) equal
-           	to the t_actual(matrix_s[iterator][0]) where t_actual<=t */
+               to the t_actual(matrix_s[iterator][0]) where t_actual<=t */
         if(matrix_s[iterator][12]==matrix_s[iterator][0]){
             v_size++;
         }
@@ -137,14 +137,14 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
     int iterator;
     float **matrix_v = (float**)malloc(v_size*sizeof(float*));
     for(iterator=0;iterator<v_size;iterator++){
-        matrix_v[iterator] = (float *) malloc(7 * sizeof(float));
+        matrix_v[iterator] = (float *) malloc(10 * sizeof(float));
     }
 
     int iterator_v= 0;
     iterator = 0;
     while(iterator<s_size && matrix_s[iterator][0]<=t){
 
-		/* - This condition is used to consider only new vm request
+        /* - This condition is used to consider only new vm request
           - if a virtual machine has the init time(matrix_s[iterator][12]) equal
               to the t_actual(matrix_s[iterator][0]) where t_actual<=t */
         if(matrix_s[iterator][12]==matrix_s[iterator][0]){
@@ -156,14 +156,24 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
                 matrix_v[iterator_v][2] = 0;
                 matrix_v[iterator_v][3] = 0;
                 matrix_v[iterator_v][4] = 0;
+                matrix_v[iterator_v][5] = 0;
+                matrix_v[iterator_v][6] = 0;
+                matrix_v[iterator_v][7] = 0;
+                matrix_v[iterator_v][8] = 0;
+                matrix_v[iterator_v][9] = 0;
+
             }else {
-                matrix_v[iterator_v][0] = matrix_s[iterator][4];
-                matrix_v[iterator_v][1] = matrix_s[iterator][5];
-                matrix_v[iterator_v][2] = matrix_s[iterator][6];
-                matrix_v[iterator_v][3] = matrix_s[iterator][11];
-                matrix_v[iterator_v][4] = matrix_s[iterator][10];
-				matrix_v[iterator_v][5] = matrix_s[iterator][12];
-                matrix_v[iterator_v][6] = matrix_s[iterator][13];
+                matrix_v[iterator_v][0] = matrix_s[iterator][4]; //cpu
+                matrix_v[iterator_v][1] = matrix_s[iterator][5]; //ram
+                matrix_v[iterator_v][2] = matrix_s[iterator][6]; //net
+                matrix_v[iterator_v][3] = matrix_s[iterator][11]; //SLA
+                matrix_v[iterator_v][4] = matrix_s[iterator][10]; //revenue
+                matrix_v[iterator_v][5] = matrix_s[iterator][12]; //t_init
+                matrix_v[iterator_v][6] = matrix_s[iterator][13]; //t_end
+                matrix_v[iterator_v][7] = matrix_s[iterator][1]; //Sb
+                matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
+                matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
+
             }
             iterator_v++;
         }
@@ -186,52 +196,52 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
  */
 int*** load_utilization(int*** utilization, int **population, int **H, float **V, int number_of_individuals, int h_size, int v_size)
 {
-	/* iterators */
-	int iterator_individual;
-	int iterator_virtual;
-	int iterator_physical;
+    /* iterators */
+    int iterator_individual;
+    int iterator_virtual;
+    int iterator_physical;
 
-	/* utilization holds the physical machines utilization of Processor, Memory and Storage of every individual */
-	/* iterate on individuals */
-	for (iterator_individual=0; iterator_individual < number_of_individuals; iterator_individual++)
-	{
-		/* requirements matrix, holds the sum of virtual machines requirements for each physical machine */
-		int **requirements = (int **) malloc (h_size *sizeof (int *));
-		for (iterator_physical=0; iterator_physical < h_size; iterator_physical++)
-		{
-			/* virtual machine requirements in Processor, Memory and Storage. Initialized to 0 */
-			requirements[iterator_physical] = (int *) malloc (3 *sizeof (int));
- 			requirements[iterator_physical][0] = requirements[iterator_physical][1] = requirements[iterator_physical][2] = 0;
-			/* physical machine utilization of Processor, Memory and Storage. Initialized to 0 */
-			utilization[iterator_individual][iterator_physical][0] = utilization[iterator_individual][iterator_physical][1] =
-			utilization[iterator_individual][iterator_physical][2] = 0;
-		}
-		/* iterate on positions of an individual */
-		for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
-		{
-			/* if the virtual machine has a placement assigned */
-			if (population[iterator_individual][iterator_virtual] != 0)
-			{
-				/* increment the requirements of the assigned physical machine with the virtual machine requirements
-				of Processor, Memory and Storage */
-				requirements[population[iterator_individual][iterator_virtual]-1][0] += V[iterator_virtual][0];
-				requirements[population[iterator_individual][iterator_virtual]-1][1] += V[iterator_virtual][1];
-				requirements[population[iterator_individual][iterator_virtual]-1][2] += V[iterator_virtual][2];
-			}
-		}
+    /* utilization holds the physical machines utilization of Processor, Memory and Storage of every individual */
+    /* iterate on individuals */
+    for (iterator_individual=0; iterator_individual < number_of_individuals; iterator_individual++)
+    {
+        /* requirements matrix, holds the sum of virtual machines requirements for each physical machine */
+        int **requirements = (int **) malloc (h_size *sizeof (int *));
+        for (iterator_physical=0; iterator_physical < h_size; iterator_physical++)
+        {
+            /* virtual machine requirements in Processor, Memory and Storage. Initialized to 0 */
+            requirements[iterator_physical] = (int *) malloc (3 *sizeof (int));
+            requirements[iterator_physical][0] = requirements[iterator_physical][1] = requirements[iterator_physical][2] = 0;
+            /* physical machine utilization of Processor, Memory and Storage. Initialized to 0 */
+            utilization[iterator_individual][iterator_physical][0] = utilization[iterator_individual][iterator_physical][1] =
+            utilization[iterator_individual][iterator_physical][2] = 0;
+        }
+        /* iterate on positions of an individual */
+        for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
+        {
+            /* if the virtual machine has a placement assigned */
+            if (population[iterator_individual][iterator_virtual] != 0)
+            {
+                /* increment the requirements of the assigned physical machine with the virtual machine requirements
+                of Processor, Memory and Storage */
+                requirements[population[iterator_individual][iterator_virtual]-1][0] += V[iterator_virtual][0];
+                requirements[population[iterator_individual][iterator_virtual]-1][1] += V[iterator_virtual][1];
+                requirements[population[iterator_individual][iterator_virtual]-1][2] += V[iterator_virtual][2];
+            }
+        }
 
-		/* iterate on positions of an individual */
-		for (iterator_physical=0; iterator_physical < h_size; iterator_physical++)
-		{
-			/* virtual machine requirements in Processor, Memory and Storage. Initialized to 0 */
-			utilization[iterator_individual][iterator_physical][0] = requirements[iterator_physical][0];
-			utilization[iterator_individual][iterator_physical][1] = requirements[iterator_physical][1];
-			utilization[iterator_individual][iterator_physical][2] = requirements[iterator_physical][2];
-		}
+        /* iterate on positions of an individual */
+        for (iterator_physical=0; iterator_physical < h_size; iterator_physical++)
+        {
+            /* virtual machine requirements in Processor, Memory and Storage. Initialized to 0 */
+            utilization[iterator_individual][iterator_physical][0] = requirements[iterator_physical][0];
+            utilization[iterator_individual][iterator_physical][1] = requirements[iterator_physical][1];
+            utilization[iterator_individual][iterator_physical][2] = requirements[iterator_physical][2];
+        }
         free_int_matrix(requirements,h_size);
-	}
+    }
 
-	return utilization;
+    return utilization;
 }
 
 
@@ -248,41 +258,36 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
  * returns: an array with the values of the objective function of each solution
  */
 float* load_weighted_sums(float **objective_functions_values_aux, float *weighted_sums, int **population,
-                         int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size)
+                          int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size,int* OF_calc_count)
 {
-	/* iterators */
-	int iterator_individual,iterator_physical,iterator_virtual,physical_position;
-	/* utility of a physical machine */
-	float utilidad;
+    /* iterators */
+    int iterator_individual,iterator_physical,iterator_virtual,physical_position;
+    /* utility of a physical machine */
+    float utilidad;
     /**/
     float power_consumption,economical_revenue, quality_of_service, wasted_resources_ratio;
-    /*weights for he objective functions: power consumption, economical revenue, quality of service and waste of resources*/
-    float pw_weight,economical_rev_weight,qos_weigth, wr_weight;
-
     /**/
     float wasted_cpu_resources, wasted_ram_resources , wasted_net_resources;
     float wasted_cpu_resources_ratio, wasted_ram_resources_ratio, wasted_net_resources_ratio;
     float alpha = 1.0, beta = 1.0, gamma = 1.0;
-
     /**/
     int working_pms;
 
-    /*set the weights for objective functions*/
-    pw_weight = 0.6;
-    economical_rev_weight = 0.8;
-    qos_weigth = 0.7;
-    wr_weight= 0.5;
 
-	/* value solution holds the weighted sum of each solution */
-	/* iterate on individuals */
-	for (iterator_individual = 0; iterator_individual < number_of_individuals; iterator_individual++) {
+    /* value solution holds the weighted sum of each solution */
+    /* iterate on individuals */
+    for (iterator_individual = 0; iterator_individual < number_of_individuals; iterator_individual++) {
+
+        /*counts the times that the FO are calculated*/
+        *OF_calc_count+=1;
 
         /* (OF2) calculate energy consumption of each solution*/
         /* (OF4) calculate the wasted of resources of each solution */
         /* iterate on physical machines */
-        working_pms=0,wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0,power_consumption = 0.0;
+        working_pms=0,wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0,power_consumption = 0.0,
+        wasted_cpu_resources_ratio=0.0, wasted_ram_resources_ratio=0.0, wasted_net_resources_ratio=0.0;
         for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
-            if (utilization[iterator_individual][iterator_physical][0] > 0) {
+            if (utilization[iterator_individual][iterator_physical][0] > 0 || utilization[iterator_individual][iterator_physical][1] > 0 || utilization[iterator_individual][iterator_physical][2] > 0) {
 
                 /* calculates utility of a physical machine */
                 utilidad = (float) utilization[iterator_individual][iterator_physical][0] / H[iterator_physical][0];
@@ -300,9 +305,11 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
         }
 
         /*calculate the ratio of wasted resources */
-        wasted_cpu_resources_ratio = wasted_cpu_resources / working_pms;
-        wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
-        wasted_net_resources_ratio = wasted_net_resources / working_pms;
+        if(working_pms>0) {
+            wasted_cpu_resources_ratio = wasted_cpu_resources / working_pms;
+            wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
+            wasted_net_resources_ratio = wasted_net_resources / working_pms;
+        }
         wasted_resources_ratio = ( wasted_cpu_resources_ratio * alpha + wasted_ram_resources_ratio * beta + wasted_net_resources_ratio * gamma ) / 3;
 
         economical_revenue = 0.0;
@@ -323,8 +330,7 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
         }
 
         /*compute the weighted sum based on the values of objective functions obtained and the weights configured*/
-        weighted_sums[iterator_individual] = pw_weight * power_consumption + economical_rev_weight * economical_revenue
-                                             + qos_weigth * quality_of_service + wr_weight*wasted_resources_ratio;
+        weighted_sums[iterator_individual] = calculates_weighted_sum(power_consumption,economical_revenue,wasted_cpu_resources_ratio,quality_of_service);
         //printf("\t%.2f %.2f %.2f",power_consumption,economical_revenue,quality_of_service);
 
         objective_functions_values_aux[iterator_individual][0] = economical_revenue;
@@ -333,8 +339,31 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
         objective_functions_values_aux[iterator_individual][3] = wasted_resources_ratio;
 
     }
-	return weighted_sums;
+    return weighted_sums;
 }
+
+/**
+ * calculates_weighted_sum: Calculates Weighted Sum of the Objetive Functions
+ *
+ * parameter: power                  OF.2 Power Comsuption
+ * parameter: total_revenue          OF.1 Economical Revenue
+ * parameter: wasted_resources_ratio OF.4 Wasted Resources Ratio
+ * parameter: total_qos              OF.3 Quality of Service
+ *
+ * return
+ */
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos){
+
+    float power_normalized = power * (float)SIGMA_POWER;
+    float revenue_normalized = total_revenue * (float)SIGMA_REVENUE;
+    float wasted_resources_normalized = wasted_resources_ratio * (float)SIGMA_RESOURCES;
+    float qos_normalized = total_qos * (float)SIGMA_QOS;
+
+    return ( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4;
+
+}
+
+
 
 /* get_best_solution_index: gets the index of the solution with the best value for the objective function
  * parameter: the array that contains the  weighted sums of individuals
@@ -383,7 +412,7 @@ void report_solution(int *best_solution, int** utilization, float weighted_sum, 
 
     for(iterator=0;iterator<v_size;iterator++){
 
-		fprintf(solutions_t, "%d\t", best_solution[iterator]);
+        fprintf(solutions_t, "%d\t", best_solution[iterator]);
     }
 
     //fprintf(solutions_t, "\n\nObjective Function Value for t=%d\n%.3f\n\n", t, weighted_sum);
@@ -424,7 +453,7 @@ void report_solution(int *best_solution, int** utilization, float weighted_sum, 
 void free_utilization_matrix(int ***utilization,int individuals,int h_size){
 
     int iterator_individual,iterator_physical;
-    for(iterator_individual;iterator_individual<individuals;iterator_individual++){
+    for(iterator_individual=0;iterator_individual<individuals;iterator_individual++){
         for(iterator_physical=0;iterator_physical<h_size;iterator_physical++){
             free(utilization[iterator_individual][iterator_physical]);
         }
@@ -472,13 +501,13 @@ void free_int_matrix(int** matrix, int rows){
  */
 void copy_int_matrix(int**matrix_A, int** matrix_B,int rows, int columns){
 
-	int iterator_row,iterator_column;
+    int iterator_row,iterator_column;
 
-	for (iterator_row = 0; iterator_row < rows; ++iterator_row) {
-		for (iterator_column = 0; iterator_column < columns ; ++iterator_column) {
-			matrix_A[iterator_row][iterator_column] = matrix_B[iterator_row][iterator_column];
-		}
-	}
+    for (iterator_row = 0; iterator_row < rows; ++iterator_row) {
+        for (iterator_column = 0; iterator_column < columns ; ++iterator_column) {
+            matrix_A[iterator_row][iterator_column] = matrix_B[iterator_row][iterator_column];
+        }
+    }
 
 }
 
