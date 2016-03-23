@@ -20,7 +20,7 @@
 #include "scenario.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_INDIVIDUALS 10000
+#define NUMBER_OF_INDIVIDUALS 1000
 #define NUMBER_OF_GENERATIONS 1
 
 #define MAX_SLA 4
@@ -202,6 +202,8 @@ int main (int argc, char *argv[]) {
             printf("\nRESULTS for T=%d\n",t);
             printf("Time taken %d seconds %d milliseconds\n", msec / 1000, msec % 1000);
 
+            save_objective_functions(objectives_functions_values_aux,NUMBER_OF_INDIVIDUALS);
+
             /*cleaning*/
             free_int_matrix(P, NUMBER_OF_INDIVIDUALS);
             free_float_matrix(V, v_size);
@@ -245,6 +247,7 @@ void save_objective_functions(float ** objectives_functions_values_aux,int numbe
         fprintf(objectives_functions_file,"\n");
     }
 
+    fclose(objectives_functions_file);
 }
 
 int check_instance(){
