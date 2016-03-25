@@ -23,6 +23,7 @@ typedef struct PM_weight_pair_node{
 typedef struct VM_tend{
     int vm_index;
     int service;
+    int datacenter;
     int tend;
     int pm;
     float ram_utilization;

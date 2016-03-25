@@ -218,6 +218,7 @@ void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical
 	// New Node to add
 	new_node->vm_index = request[3];						// VM id
 	new_node->service = request[1];							// Service
+	new_node->datacenter = request[2];						// Datacenter
 	new_node->tend = request[13];							// t end
 	new_node->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
 	new_node->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
