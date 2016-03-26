@@ -68,12 +68,19 @@ void repair_population(int ** population, int *** utilization, int ** H, float *
  */
 void repair_individual(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size, int max_SLA, int individual)
 {
+    /*iterators*/
     int iterator_virtual = 0;
     int iterator_virtual_2 = 0;
     int iterator_physical = 0;
+
+    /*auxiliary sums*/
     int aux_cpu_sum = 0;
     int aux_mem_sum = 0;
     int aux_net_sum = 0;
+    /*id of a service*/
+    int service;
+    /*id of a physical machine*/
+    int physical_position;
 
     /* id of a candidate physical machine for migration */
     int candidate = 0;
@@ -90,13 +97,11 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
             if (is_overloaded(H, utilization, individual, (population[individual][iterator_virtual]-1)))
             {
                 /* we search for a correct candidate for VM "migration" (it is not really a migration, only a physical machine change) */
-                candidate = rand() % h_size;
+                candidate = (rand() % h_size) + 1; //1 >= candidate <= h_size
                 for (iterator_physical=0; iterator_physical < h_size; iterator_physical++)
                 {
                     /* if the candidate can assume the resource requested */
-                    if (utilization[individual][candidate][0] + V[iterator_virtual][0] <= H[candidate][0] &&
-                        utilization[individual][candidate][1] + V[iterator_virtual][1] <= H[candidate][1] &&
-                        utilization[individual][candidate][2] + V[iterator_virtual][2] <= H[candidate][2])
+                    if (check_pm_capacity(utilization,individual,candidate,V,iterator_virtual,H))
                     {
                         /* delete requirements from physical machine migration source */
                         utilization[individual][population[individual][iterator_virtual]-1][0] -= V[iterator_virtual][0];
@@ -104,24 +109,24 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
                         utilization[individual][population[individual][iterator_virtual]-1][2] -= V[iterator_virtual][2];
 
                         /* add requirements from physical machine migration destination */
-                        utilization[individual][candidate][0] += V[iterator_virtual][0];
-                        utilization[individual][candidate][1] += V[iterator_virtual][1];
-                        utilization[individual][candidate][2] += V[iterator_virtual][2];
+                        utilization[individual][candidate-1][0] += V[iterator_virtual][0];
+                        utilization[individual][candidate-1][1] += V[iterator_virtual][1];
+                        utilization[individual][candidate-1][2] += V[iterator_virtual][2];
                         /* refresh the population */
-                        population[individual][iterator_virtual] = candidate + 1;
+                        population[individual][iterator_virtual] = candidate;
 
                         /* virtual machine correctly "migrated" */
                         migration = 1;
                         break;
                     }
 
-                    if (candidate < (h_size - 1))
+                    if (candidate < h_size)
                     {
                         candidate++;
                     }
                     else
                     {
-                        candidate = 0;
+                        candidate = 1;
                     }
                 }
 
@@ -221,7 +226,101 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
         }
     }
 
+    /* after repair the SLA placement priority, repair the solution to complain the fault tolerance constraint if is necessary*/
+    /*iterate on virtual machines*/
+    for (iterator_virtual = 0; iterator_virtual < v_size - 1; iterator_virtual++) {
+        service = (int)V[iterator_virtual][7];
+        physical_position = population[individual][iterator_virtual];
+        /*if the virtual machine is placed*/
+        if(physical_position>0){
+            /*search for other virtual machines that belongs to the same service and is in the same physical machine*/
+            for (iterator_virtual_2 = iterator_virtual+1; iterator_virtual_2 <v_size ; iterator_virtual_2++) {
+                /*if the virtual machines belongs to the same service and is in the same physical machine, then the solution is
+                 * not feasible*/
+                if(service==V[iterator_virtual_2][7] && physical_position==population[individual][iterator_virtual_2]){
+                    population[individual][iterator_virtual_2] = generate_unique_candidate(service, iterator_virtual_2, population, individual, utilization, V, v_size, H, h_size);
+                }
+            }
+        }
+
+    }
+
 }
+
+/* generate_unique_candidate: obtains a identifier of physical machine to place a virtual machine in order to satisfy
+ * the fault tolerance constraint
+ * parameter: the identifier of the service
+ * parameter: the identifier of the virtual machine
+ * parameter: the population
+ * parameter: identifier of the individual
+ * parameter: utilization of the physical machines matrix
+ * parameter: virtual machines matrix
+ * parameter: number of virtual machines
+ * parameter: physical machine resources matrix
+ * parameter: number of physical machines
+ * returns: identifier of a physical machine
+ */
+int generate_unique_candidate(int service, int vm_index, int **population, int individual, int ***utilization, float **V, int v_size, int **H, int h_size){
+
+    int iterator_virtual, iterator_physical,count;
+    int candidate = (rand()%h_size) + 1;//1 >= candidate <= h_size
+
+    for (iterator_physical = 1; iterator_physical <h_size; iterator_physical++) {
+        count = 0;
+        /*iterate on virutal machines to verify if candidate physical machine is unique to the service*/
+        for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++) {
+            if(service==V[iterator_virtual][7] && candidate==population[individual][iterator_virtual]){
+                count++;
+                break;
+            }
+        }
+        /*if the candidate can assume the resource requested  and the candidate is unique*/
+        if(count==0 && check_pm_capacity(utilization,individual,candidate,V,vm_index,H) ){
+
+            /* delete requirements from  physical machine */
+            utilization[individual][population[individual][vm_index] - 1][0] -= V[vm_index][0];
+            utilization[individual][population[individual][vm_index] - 1][1] -= V[vm_index][1];
+            utilization[individual][population[individual][vm_index] - 1][2] -= V[vm_index][2];
+
+            /* add requirements of VM*/
+            utilization[individual][candidate - 1][0] += V[vm_index][0];
+            utilization[individual][candidate - 1][1] += V[vm_index][1];
+            utilization[individual][candidate - 1][2] += V[vm_index][2];
+            return candidate;
+        }
+
+        if(candidate<h_size){
+            candidate++;
+        }else{
+            candidate=1;
+        }
+    }
+
+    return 0;
+}
+
+/* check_pm_capacity: verifies if a physical machine can assume the resources requested
+ * parameter: the utilization matrix
+ * parameter: a individual of the population
+ * parameter: the candidate physical machine
+ * parameter: the virtual machines matrix
+ * parameter: the virtual machine
+ * parameter: the physical machines matrix
+ * returns: 1 if yes, 0 if no
+ */
+int check_pm_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int **H){
+
+    /*if the candidate can assume the resource requested*/
+    if(utilization[individual][candidate-1][0] + V[virtual_machine][0] <= H[candidate-1][0] &&
+       utilization[individual][candidate-1][1] + V[virtual_machine][1] <= H[candidate-1][1] &&
+       utilization[individual][candidate-1][2] + V[virtual_machine][2] <= H[candidate-1][2]){
+
+        return 1;
+    }
+
+    return 0;
+}
+
 
 /* is_overloaded: verifies if a physical machine is overloaded
  * parameter: physical machine resources matrix
@@ -255,24 +354,27 @@ int is_overloaded(int ** H, int *** utilization, int individual, int physical)
  */
 int check_feasibility(int** population,int *** utilization,int iterator_individual,int ** H, float ** V,int h_size,int v_size,int max_SLA){
 
-
+    /* every individual is feasible until it's probed other thing */
     int feasibility = 1;
-    int iterator_virtual;
-    int iterator_physical;
-    int count_vm_sla_0_on=0, count_vm_sla_1_off =0;
-    /* for now is not considered the SLA
+    /*iterators*/
+    int iterator_virtual,iterator_virtual_2, iterator_physical;
+    int physical_position, service;
+    /*vms with sla != max_SLA on*/
+    int count_vm_sla_0_on=0;
+    /*vms with sla == max_SLA off*/
+    int count_vm_sla_1_off=0;
     /* constraint 2: Service Level Agreement (SLA) provision. Virtual machines with SLA = max_SLA have to be placed mandatorily */
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
         if (V[iterator_virtual][3] == max_SLA && population[iterator_individual][iterator_virtual] == 0)
         {
             feasibility = 0;
-            break;
+            return feasibility;
         }
         /* A vm marked as off (when CPU = 0) must not be placed */
         if ((V[iterator_virtual][0] == 0) && (population[iterator_individual][iterator_virtual] > 0)) {
             feasibility = 0;
-            break;
+            return feasibility;
         }
 
         /* Count VMs with SLA = max_SLA not market off and not placed */
@@ -290,6 +392,7 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
     /* If there are placed VMs with not max_SLA  while VMs with SLA max_SLA were not placed, repair */
     if ((count_vm_sla_1_off > 0) && (count_vm_sla_0_on > 0)) {
         feasibility = 0;
+        return feasibility;
     }
 
     /* constraints 3-5: Resource capacity of physical machines. Iterate on physical machines */
@@ -299,10 +402,29 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
         if (is_overloaded(H, utilization, iterator_individual, iterator_physical))
         {
             feasibility = 0;
-            break;
+            return feasibility;
         }
     }
 
-    return feasibility;
+    /* constraint: fault  tolerance */
+    /*iterate on virtual machines*/
+    for (iterator_virtual = 0; iterator_virtual < v_size - 1; iterator_virtual++) {
+        service = (int)V[iterator_virtual][7];
+        physical_position = population[iterator_individual][iterator_virtual];
+        /*if the virtual machine is placed*/
+        if(physical_position>0){
+            /*search for other virtual machines that belongs to the same service and is in the same physical machine*/
+            for (iterator_virtual_2 = iterator_virtual+1; iterator_virtual_2 <v_size ; iterator_virtual_2++) {
+                /*if the virtual machines belongs to the same service and is in the same physical machine, then the solution is
+                 * not feasible*/
+                if(service==V[iterator_virtual_2][7] && physical_position==population[iterator_individual][iterator_virtual_2]){
+                    feasibility=0;
+                    return feasibility;
+                }
+            }
+        }
 
+    }
+
+    return feasibility;
 }
