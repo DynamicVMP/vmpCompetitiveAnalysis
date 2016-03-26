@@ -17,7 +17,6 @@
 #include "reparation.h"
 #include "local_search.h"
 #include "variation.h"
-#include "scenario.h"
 
 /* definitions (this could be parameters) */
 #define NUMBER_OF_INDIVIDUALS 100
@@ -55,8 +54,9 @@ int main (int argc, char *argv[]) {
         int **H = load_H(h_size, argv[1]);
         float **S = load_S(s_size, argv[1]);
 
-
+        /*number of virtual machines*/
         int v_size;
+        /*matrix of virtual machines*/
         float **V;
 
         /*printf("\nH\n\n");
@@ -71,13 +71,14 @@ int main (int argc, char *argv[]) {
         srand48(time(NULL));
 
         /* Interactive Memetic Algorithm starts here */
-        /* 01: Check if the problem has a solution */
+        /* Check if the problem has a solution */
         if (check_instance() != 0)
         {
             /* no solution was found */
             printf("\nThe problem has no solution, call Amazon EC2\n");
             return 1;
         }
+        /* the problem instance have at least one solution, so we can continue */
 
         /*timer*/
         clock_t start;
@@ -89,22 +90,27 @@ int main (int argc, char *argv[]) {
         /*the best solution for the problem instance*/
         int* best_solution;
 
+        /*matrix that holds the objective functions values of each individual*/
         float** objectives_functions_values_aux;
 
-        /* Additional task: structures for Q and P  */
+        /*structures for Q and P  */
         int **Q;
         int ***utilization_Q;
         float *weighted_sums_Q;
         int **P;
         int ***utilization_P;
         float *weighted_sums_P;
+
+        /*counters*/
         int t=1;
         int OF_calc_count=0;
 
-        /* While t is less or equal to t_max of the scenario, execute the memetic algorithm for the time t */
+        /* While t is less or equal to t_max of the scenario, run the memetic algorithm for the time t */
         while(t<=t_max) {
 
+            /*load the number of virtual machines in time t*/
             v_size = get_v_size_per_t(S,t,s_size);
+            /* load the virtual machines for time t*/
             V = load_v_per_t(S,s_size,v_size,t);
 
             //printf("\nV\n\n");
@@ -117,7 +123,6 @@ int main (int argc, char *argv[]) {
             // Set Timer
             start = clock();
 
-            /* the problem instance have at least one solution, so we can continue */
             /* Initialize population P_0 */
             P = initialization(P, NUMBER_OF_INDIVIDUALS, h_size, v_size, V, MAX_SLA);
             //print_int_matrix(P,NUMBER_OF_INDIVIDUALS,v_size);
@@ -163,33 +168,26 @@ int main (int argc, char *argv[]) {
                 //print_int_matrix(Q,NUMBER_OF_INDIVIDUALS,v_size);
 
                 /* Additional task: calculate the cost of each objective function for each solution */
-                weighted_sums_Q = load_weighted_sums(objectives_functions_values_aux, weighted_sums_Q, Q, utilization_Q,
-                                                     H,
-                                                     V, NUMBER_OF_INDIVIDUALS, h_size, v_size,&OF_calc_count);
+                weighted_sums_Q = load_weighted_sums(objectives_functions_values_aux, weighted_sums_Q, Q, utilization_Q,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,&OF_calc_count);
                 //print_float_array(objective_function_Q,NUMBER_OF_INDIVIDUALS);
 
-                /**/
                 P = population_evolution(P, Q, weighted_sums_P, weighted_sums_Q, NUMBER_OF_INDIVIDUALS, v_size);
 
                 /*Reload the utilization of P and the evaluation of each individual of P*/
                 utilization_P = load_utilization(utilization_P, P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
-                weighted_sums_P = load_weighted_sums(objectives_functions_values_aux, weighted_sums_P, P, utilization_P,
-                                                     H,
-                                                     V, NUMBER_OF_INDIVIDUALS, h_size, v_size,&OF_calc_count);
+                weighted_sums_P = load_weighted_sums(objectives_functions_values_aux, weighted_sums_P, P, utilization_P,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,&OF_calc_count);
 
             }
 
             index_best_solution = get_best_solution_index(weighted_sums_P, NUMBER_OF_INDIVIDUALS);
             best_solution = P[index_best_solution];
 
-
             /*calculates the time taken*/
             diff = clock() - start;
             msec = diff * 1000 / CLOCKS_PER_SEC;
             total_time+=msec;
 
-            report_solution(best_solution, utilization_P[index_best_solution], weighted_sums_P[index_best_solution],
-                            h_size, v_size, t);
+            report_solution(best_solution, utilization_P[index_best_solution], weighted_sums_P[index_best_solution],  h_size, v_size, t);
 
             // RESULTS
             printf("\nFINAL - PLACEMENT for time T=%d\n", t);

@@ -101,7 +101,7 @@ int** load_H(int h_size, char path_to_file[]) {
 }
 
 
-/* load_v_per_t: counts the number virtual machines requests
+/* get_v_per_t: counts the number virtual machines requests
  * parameter: the scenario matrix
  * parameter: the time t considered
  * parameter: the size of the scenario
@@ -247,7 +247,7 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
 
 /* load_weighted_sums: calculate the Weighted Sum of each solution
  * parameter: matrix that keep each objective function(power consumption,economical revenue,quality of service, resource wastage) value of individuals
- * parameter: array of objective function values
+ * parameter: array of weighted sums values
  * parameter: population matrix
  * parameter: the utilization matrix
  * parameter: physical machines matrix
@@ -255,6 +255,7 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
  * parameter: number of individuals
  * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: counter of the times the objective functions are calculated
  * returns: an array with the values of the objective function of each solution
  */
 float* load_weighted_sums(float **objective_functions_values_aux, float *weighted_sums, int **population,
@@ -344,13 +345,12 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
 
 /**
  * calculates_weighted_sum: Calculates Weighted Sum of the Objetive Functions
- *
  * parameter: power                  OF.2 Power Comsuption
  * parameter: total_revenue          OF.1 Economical Revenue
  * parameter: wasted_resources_ratio OF.4 Wasted Resources Ratio
  * parameter: total_qos              OF.3 Quality of Service
  *
- * return
+ * return: the weighted sum
  */
 float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos){
 

@@ -74,7 +74,7 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
 
                             if (physical_position2 > 0)
                             {
-                                if (physical_position != physical_position2)
+                                if (physical_position != physical_position2 && V[iterator_virtual][7]!=V[iterator_virtual2][7])
                                 {
                                     /* If the use of the VM not exceeds the capacity of the physical machine performs the migration */
                                     if (utilization[iterator_individual][physical_position-1][0] + V[iterator_virtual2][0] < H[physical_position-1][0]
@@ -119,7 +119,7 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
                             /* get the position of the physical machine */
                             physical_position2 = population[iterator_individual][iterator_virtual2];
 
-                            if (physical_position2 > 0)
+                            if (physical_position2 > 0 && V[iterator_virtual][7]!=V[iterator_virtual2][7])
                             {
                                 /* If the use of the VM not exceeds the capacity of the physical machine performs the migration */
                                 if (utilization[iterator_individual][physical_position2-1][0] + V[iterator_virtual][0] < H[physical_position2-1][0]

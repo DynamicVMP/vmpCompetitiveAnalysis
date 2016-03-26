@@ -18,3 +18,5 @@ void repair_population(int ** population, int *** utilization, int ** H, float *
 void repair_individual(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size, int max_SLA, int individual);
 int is_overloaded(int **H, int ***utilization, int individual, int physical);
 int check_feasibility(int** population,int *** utilization,int iterator_individual,int ** H, float ** V,int h_size,int v_size,int max_SLA);
+int check_pm_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int **H);
+int generate_unique_candidate(int service, int vm_index, int **population, int individual, int ***utilization, float **V, int v_size, int **H, int h_size);
