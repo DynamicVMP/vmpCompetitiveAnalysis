@@ -747,10 +747,10 @@ float power_consumption (float **utilization, int **H, int h_size) {
  */
 float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos) {
 
-	float power_normalized = power + SIGMA_POWER;
-	float revenue_normalized = total_revenue + SIGMA_REVENUE;
-	float wasted_resources_normalized = wasted_resources_ratio + SIGMA_RESOURCES;
-	float qos_normalized = total_qos + SIGMA_QOS;
+	float power_normalized = power * SIGMA_POWER;
+	float revenue_normalized = total_revenue * SIGMA_REVENUE;
+	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
+	float qos_normalized = total_qos * SIGMA_QOS;
 
 	return ( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4; 
 
