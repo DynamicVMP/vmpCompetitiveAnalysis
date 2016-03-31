@@ -69,6 +69,6 @@ void free_list(PM_weight_pair_node* list_to_free);
 
 /* objective functions */
 float power_consumption (float **utilization, int **H, int h_size);
-void economical_revenue (VM_tend** vm_list, float *revenue, float *qos);
+void economical_revenue (VM_tend** vm_list, float *revenue, double *qos);
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size);
-float calculatesWeightedSum(float power, float total_revenue, float wasted_resources_ratio, float total_qos);
+double calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, double total_qos);

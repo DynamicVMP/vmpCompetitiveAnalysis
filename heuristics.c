@@ -720,7 +720,7 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *total_qos ) {
+void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, double *total_qos ) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
@@ -731,14 +731,14 @@ void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, float *to
 	while(actual != NULL) {	
 
 		*total_revenue = *total_revenue + parent->revenue;
-		*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
+		*total_qos = *total_qos + ((double) pow(CONSTANT,parent->SLA) * parent->SLA);
 		
 		parent = actual;
 		actual = actual->next;
 	}
 	// Plus the last node
 	*total_revenue = *total_revenue + parent->revenue;
-	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
+	*total_qos = *total_qos + ((double) pow(CONSTANT,parent->SLA) * parent->SLA);
 }
 
 /**
@@ -769,9 +769,9 @@ float wasted_resources (float **utilization, float **resources_requested, int **
 		}
 	}
 
-	// If no pms working return -1
+	// If no pms working return 0
 	if ( working_pms == 0 ) {
-		return -1;
+		return 0;
 	}  
 
 	// total wasted resources of all PMs / num of working PMs
@@ -820,13 +820,13 @@ float power_consumption (float **utilization, int **H, int h_size) {
  *
  * return 
  */
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos) {
+double calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, double total_qos) {
 
 	float power_normalized = power * SIGMA_POWER;
 	float revenue_normalized = total_revenue * SIGMA_REVENUE;
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
-	float qos_normalized = total_qos * SIGMA_QOS;
+	double qos_normalized = total_qos * SIGMA_QOS;
 
-	return ( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4; 
+	return (double)( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4;
 
 }

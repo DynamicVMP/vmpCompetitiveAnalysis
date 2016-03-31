@@ -32,8 +32,8 @@ int main (int argc, char *argv[]) {
 	int heuristic = 0;
 	int time_unit = 0;
 	float total_revenue = 0;
-	float total_qos = 0; 
-	float wasted_resources_ratio = 0.0;
+	double total_qos = 0;
+	float wasted_resources_ratio = 0;
 	float total_power = 0.0;
 
 	// File pointers
@@ -155,8 +155,7 @@ int main (int argc, char *argv[]) {
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio);
 				fprintf(economical_revenue_file, "%.4g\n", total_revenue);
 				fprintf(quality_service_file, "%.4g\n", total_qos);
-
-				fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(total_power, total_revenue, total_qos, wasted_resources_ratio));
+				fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(total_power, total_revenue, wasted_resources_ratio, total_qos ));
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 
@@ -207,8 +206,8 @@ int main (int argc, char *argv[]) {
 		float power = power_consumption(utilization, H, h_size);
 		economical_revenue(&VM_list, &total_revenue, &total_qos);
 		wasted_resources_ratio = wasted_resources(utilization, resources_requested, H, h_size);
-		
-		float weighted_sum = calculates_weighted_sum(power, total_revenue, total_qos, wasted_resources_ratio);
+
+		double weighted_sum = calculates_weighted_sum(power, total_revenue, wasted_resources_ratio, total_qos);
 
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
