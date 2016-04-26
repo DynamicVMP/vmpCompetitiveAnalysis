@@ -67,7 +67,7 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
                     if (physical_position > 0)
                     {
                         /* iterate on virtual machines */
-                        for (iterator_virtual2 = 0 ; iterator_virtual2 < v_size ; iterator_virtual2++)
+                        for (iterator_virtual2 = iterator_virtual+1 ; iterator_virtual2 < v_size ; iterator_virtual2++)
                         {
                             /* get the position of the physical machine */
                             physical_position2 = population[iterator_individual][iterator_virtual2];

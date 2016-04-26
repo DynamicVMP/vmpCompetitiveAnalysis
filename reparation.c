@@ -143,7 +143,6 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
                         population[individual][iterator_virtual] = 0;
                         /* virtual machine correctly "deleted" */
                         migration = 1;
-                        break;
                     }
                 }
                 if(!migration)

@@ -198,64 +198,12 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
 int** population_evolution(int **P, int **Q, float *weighted_sums_P, float *weighted_sums_Q, int number_of_individuals, int v_size)
 {
 
-    /* P union Q population matrix */
-    int **PQ = (int **) malloc (2 * number_of_individuals *sizeof (int *));
-    /* P union Q objectives functions values */
-    float *objective_function_PQ = (float *) malloc (2 * number_of_individuals *sizeof (float));
+    int index_best_solution_P = get_best_solution_index(weighted_sums_P,number_of_individuals);
+    int index_worst_solution_Q = get_worst_solution_index(weighted_sums_Q,number_of_individuals);
 
-    /* iterators */
-    int iterator_individual_P = 0;
-    int iterator_individual_Q = 0;
-    int iterator_individual_position = 0;
+    copy_int_array(Q[index_worst_solution_Q],P[index_best_solution_P],v_size);
 
-    /* iterate on positions of an individual and copy the P individual and objective function */
-    for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
-    {
-        PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
-        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
-        {
-            PQ[iterator_individual_P][iterator_individual_position] = P[iterator_individual_P][iterator_individual_position];
-        }
-        objective_function_PQ[iterator_individual_P] = weighted_sums_P[iterator_individual_P];
-    }
-
-    /* iterate on positions of an individual and copy the Q individual and objective function */
-    for (iterator_individual_P=number_of_individuals; iterator_individual_P < 2 * number_of_individuals; iterator_individual_P++)
-    {
-        PQ[iterator_individual_P] = (int *) malloc (v_size *sizeof (int));
-        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
-        {
-            PQ[iterator_individual_P][iterator_individual_position] = Q[iterator_individual_Q][iterator_individual_position];
-        }
-        objective_function_PQ[iterator_individual_P] = weighted_sums_Q[iterator_individual_Q];
-        iterator_individual_Q++;
-    }
-
-    //print_float_array(objective_function_PQ,number_of_individuals*2);
-   // print_int_matrix(PQ,number_of_individuals*2,v_size);
-    //printf("\n\n");
-    /*sort the union of the population P and Q by the value of the objective function*/
-    quicksort_decreasing_sort(objective_function_PQ,PQ,0,number_of_individuals*2 - 1);
-
-   // print_float_array(objective_function_PQ,number_of_individuals*2);
-    //print_int_matrix(PQ,number_of_individuals*2,v_size);
-   // printf("\n\n");
-
-    /*The n_individuals with the best values ​​of objective function are selected for the next generation of the population P*/
-    for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
-    {
-        for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
-        {
-            P[iterator_individual_P][iterator_individual_position]=PQ[iterator_individual_P][iterator_individual_position];
-        }
-    }
-
-    //printf("\n New Population P\n");
-    //print_int_matrix(P,number_of_individuals,v_size);
-
-    /*free the memory allocated for the auxiliary structures*/
-    free_int_matrix(PQ,number_of_individuals);
-    free(objective_function_PQ);
+    copy_int_matrix(P,Q,number_of_individuals,v_size);
 
     return P;
 }
@@ -270,14 +218,14 @@ int** population_evolution(int **P, int **Q, float *weighted_sums_P, float *weig
  *
  * returns: nothing, it's a void function.
  */
-void quicksort_decreasing_sort(float *weighted_sums,int ** population, int first_index, int last_index){
+void quicksort_sort(float *weighted_sums,int ** population, int first_index, int last_index){
 
     int pivot_index = 0;
 
     if(first_index < last_index) {
         pivot_index = quicksort_partition(weighted_sums,population,first_index, last_index);
-        quicksort_decreasing_sort(weighted_sums,population, first_index, (pivot_index - 1));
-        quicksort_decreasing_sort(weighted_sums,population, (pivot_index + 1), last_index);
+        quicksort_sort(weighted_sums,population, first_index, (pivot_index - 1));
+        quicksort_sort(weighted_sums,population, (pivot_index + 1), last_index);
     }
 
 }
@@ -320,18 +268,18 @@ int quicksort_partition(float *weighted_sums,int ** population, int first_index,
         first_iteration = false;
 
         // While the up element is better or equal than the selected pivot
-        while (weighted_sums[up_index]>= pivot && up_index < last_index) {
+        while (weighted_sums[up_index]<= pivot && up_index < last_index) {
             up_index++;
         }
 
         // While the down element is worst than the selected pivot
-        while (weighted_sums[down_index] < pivot   && down_index > first_index ) {
+        while (weighted_sums[down_index] > pivot   && down_index > first_index ) {
             down_index--;
         }
 
     } while (down_index > up_index);
 
-    if(weighted_sums[first_index] < weighted_sums[down_index]) {
+    if(weighted_sums[first_index] > weighted_sums[down_index]) {
         weighted_sums[first_index]= weighted_sums[down_index];
         weighted_sums[down_index] = pivot;
 

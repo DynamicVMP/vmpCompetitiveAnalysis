@@ -9,6 +9,80 @@
 #include "common.h"
 
 
+
+/**
+ * get_s_size: get the number of request
+ * parameter: path to file
+ * returns: number of request
+ */
+int get_s_size(char path_to_file[]) {
+
+    /* scenario file to read from */
+    FILE *scenario_file;
+    /* line readed from file */
+    char input_line[TAM_BUFFER];
+    /* number of scenario */
+    int s_size = 0;
+    /* 1 if is reading the scenario block in the file */
+    int reading_scenario = 0;
+    /* open the file for reading */
+    scenario_file = fopen(path_to_file,"r");
+
+    /* if it is opened ok, we continue */
+    if (scenario_file != NULL) {
+        /* read until the end */
+        while(!feof(scenario_file)) {
+            /* get line per line */
+            fgets(input_line, TAM_BUFFER, scenario_file);
+            /* if the line is equal to S_HEADER, we begin the scenario block in the file */
+            if (strstr(input_line,S_HEADER) != NULL) {
+                reading_scenario = 1;
+            }
+            /* if it is the correct block in the file, it is not the header and it is not a blank line or carriage return (ascii 13), we count */
+            if (reading_scenario == 1 && strstr(input_line,S_HEADER) == NULL && strcmp(input_line, "\n") != 0
+                && input_line[0] != 13) {
+                s_size++;
+            }
+        }
+    }
+    /* close the file */
+    fclose(scenario_file);
+    /* return the value */
+    return s_size;
+}
+
+/**
+ * load_S: load the scenario
+ * parameter: s_size: nummber of request
+ * parameter: path to file
+ * return: request matrix
+ */
+float** load_S(int s_size, char path_to_file[]) {
+
+    FILE *scenario_file;
+    char input_line[10000];
+    int iterator = 0;
+    int reading_scenario = 0;
+    float **S = (float **) malloc (s_size *sizeof (float *));
+    scenario_file = fopen(path_to_file,"r");
+
+    if (scenario_file != NULL) {
+        while(!feof(scenario_file)) {
+            fgets(input_line, TAM_BUFFER, scenario_file);
+            if (strstr(input_line,S_HEADER) != NULL) {
+                reading_scenario = 1;
+            }
+            if (reading_scenario == 1 && strstr(input_line,S_HEADER) == NULL && strcmp(input_line, "\n") != 0 && input_line[0] != 13) {
+                S[iterator] = (float *) malloc (14 *sizeof (float));
+                sscanf(input_line,"%f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",&S[iterator][0],&S[iterator][1],&S[iterator][2],&S[iterator][3],&S[iterator][4],&S[iterator][5],&S[iterator][6],&S[iterator][7],&S[iterator][8],&S[iterator][9],&S[iterator][10],&S[iterator][11],&S[iterator][12],&S[iterator][13]);
+                iterator++;
+            }
+        }
+    }
+    fclose(scenario_file);
+    return S;
+}
+
 /* get_h_size: returns the number of physical machines
  * parameter: path to the datacenter file
  * returns: number of physical machines
@@ -132,7 +206,7 @@ int get_v_size_per_t(float** matrix_s, int t, int max_row){
  * parameter: the time t considered
  * returns: the matrix V of virtual machines
  */
-float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
+float ** load_v_per_t(float ** matrix_s,int s_size,int v_size,float *qos_a_priori, float *revenue_a_priori, int t){
 
     int iterator;
     float **matrix_v = (float**)malloc(v_size*sizeof(float*));
@@ -142,6 +216,8 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
 
     int iterator_v= 0;
     iterator = 0;
+    *revenue_a_priori=0.0;
+    *qos_a_priori=0.0;
     while(iterator<s_size && matrix_s[iterator][0]<=t){
 
         /* - This condition is used to consider only new vm request
@@ -174,6 +250,9 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size, int t){
                 matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
 
+
+                *qos_a_priori += ((float) pow(CONSTANT,matrix_v[iterator_v][3]) * matrix_v[iterator_v][3]);
+                *revenue_a_priori += matrix_v[iterator_v][4];
             }
             iterator_v++;
         }
@@ -259,7 +338,7 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
  * returns: an array with the values of the objective function of each solution
  */
 float* load_weighted_sums(float **objective_functions_values_aux, float *weighted_sums, int **population,
-                          int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size,int* OF_calc_count)
+                          int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size,float qos_a_priori, float revenue_a_priori,int* OF_calc_count)
 {
     /* iterators */
     int iterator_individual,iterator_physical,iterator_virtual,physical_position;
@@ -327,11 +406,14 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
                 economical_revenue += V[iterator_virtual][4];
                 /* calculate  the QoS */
                 quality_of_service += (float)pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
+            }else{
+                /* calculate the economical revenue */
+                economical_revenue += 0.9*V[iterator_virtual][4];
             }
         }
 
         /*compute the weighted sum based on the values of objective functions obtained and the weights configured*/
-        weighted_sums[iterator_individual] = calculates_weighted_sum(power_consumption,economical_revenue,wasted_cpu_resources_ratio,quality_of_service);
+        weighted_sums[iterator_individual] = calculates_weighted_sum(power_consumption,economical_revenue,wasted_cpu_resources_ratio,quality_of_service,qos_a_priori,revenue_a_priori);
         //printf("\t%.2f %.2f %.2f",power_consumption,economical_revenue,quality_of_service);
 
         objective_functions_values_aux[iterator_individual][0] = economical_revenue;
@@ -352,14 +434,14 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
  *
  * return: the weighted sum
  */
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos){
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos, float qos_a_priori, float revenue_a_priori){
 
     float power_normalized = power * (float)SIGMA_POWER;
-    float revenue_normalized = total_revenue * (float)SIGMA_REVENUE;
+    float revenue_normalized = (revenue_a_priori - total_revenue) * (float)SIGMA_REVENUE;
     float wasted_resources_normalized = wasted_resources_ratio * (float)SIGMA_RESOURCES;
-    float qos_normalized = total_qos * (float)SIGMA_QOS;
+    float qos_normalized = (qos_a_priori - total_qos) * (float)SIGMA_QOS;
 
-    return ( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4;
+    return power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized ;
 
 }
 
@@ -374,15 +456,30 @@ int get_best_solution_index(float* weighted_sums, int number_of_individuals){
 
     int iterator;
     int index_best_solution=0;
-    float max_value = weighted_sums[0];
+    float min_value = weighted_sums[0];
     for(iterator=1;iterator<number_of_individuals;iterator++){
-        if(weighted_sums[iterator]>max_value){
+        if(weighted_sums[iterator]<min_value){
             index_best_solution = iterator;
-            max_value = weighted_sums[iterator];
+            min_value = weighted_sums[iterator];
         }
     }
 
     return index_best_solution;
+}
+
+int get_worst_solution_index(float* weighted_sums, int number_of_individuals){
+
+    int iterator;
+    int index_worst_solution=0;
+    float max_value = weighted_sums[0];
+    for(iterator=1;iterator<number_of_individuals;iterator++){
+        if(weighted_sums[iterator]>max_value){
+            index_worst_solution = iterator;
+            max_value = weighted_sums[iterator];
+        }
+    }
+
+    return index_worst_solution;
 }
 
 
@@ -511,6 +608,15 @@ void copy_int_matrix(int**matrix_A, int** matrix_B,int rows, int columns){
 
 }
 
+void copy_int_array(int* array_A, int* array_B,int array_size){
+
+    int iterator;
+    for(iterator=0;iterator<array_size;iterator++){
+        array_A[iterator] = array_B[iterator];
+    }
+
+}
+
 /* print_int_matrix: prints on screen a integer matrix
  * parameter: matrix to print
  * parameter: number of individuals
@@ -553,7 +659,7 @@ void print_float_matrix(float **matrix, int rows, int columns)
         /* iterate on columns */
         for (iterator_column = 0; iterator_column < columns; iterator_column++)
         {
-            printf("%g\t",matrix[iterator_row][iterator_column]);
+            printf("%f\t",matrix[iterator_row][iterator_column]);
         }
         printf("\n");
     }
@@ -587,6 +693,6 @@ void print_float_array(float *array, int columns)
     /* iterate on columns */
     for (iterator_column = 0; iterator_column < columns; iterator_column++)
     {
-        printf("[DEBUG] [%d]: %g\n",iterator_column,array[iterator_column]);
+        printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);
     }
 }
