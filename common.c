@@ -696,3 +696,24 @@ void print_float_array(float *array, int columns)
         printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);
     }
 }
+
+
+void save_objective_functions(float ** objectives_functions_values_aux,int number_of_individuals){
+
+    FILE *objectives_functions_file;
+
+    int iterator,iterator2;
+    objectives_functions_file = fopen("results/objective_functions","w");
+
+    //fprintf(solutions_t,"Final placement obtained for t=%d\n",t);
+
+    for(iterator=0;iterator<number_of_individuals;iterator++){
+
+        for(iterator2=0;iterator2<4;iterator2++) {
+            fprintf(objectives_functions_file,"%.4f\t", objectives_functions_values_aux[iterator][iterator2]);
+        }
+        fprintf(objectives_functions_file,"\n");
+    }
+
+    fclose(objectives_functions_file);
+}
