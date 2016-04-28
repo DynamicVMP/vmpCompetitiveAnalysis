@@ -70,12 +70,12 @@ int main (int argc, char *argv[]) {
 	net_utilization = fopen("results/net_utilization", "a");
 
 	// Heuristic
-	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
+	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_linked_list** VM_list);
 
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
-	VM_tend* VM_list = (VM_tend*)calloc(1,sizeof(VM_tend));
+	VM_linked_list* VM_list = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 	VM_list->vm_index = -1;
 	VM_list->tend = -1;
 	VM_list->pm = -1;
@@ -146,7 +146,7 @@ int main (int argc, char *argv[]) {
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			
  			if(S[iterator_row][0] != time_unit ) {
-				 // check_VM_tend_list and update the VM placement and utilization matrix
+				 // check_VM_linked_list and update the VM placement and utilization matrix
 				remove_VM_by_time(&VM_list, placement, utilization, time_unit, h_size);
  				
  				// Calculates Objective Functions
