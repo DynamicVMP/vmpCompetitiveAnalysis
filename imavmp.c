@@ -27,6 +27,8 @@ int main (int argc, char *argv[]) {
 
 	// Variables
 	int request_rejected = 0;
+	float revenue_a_priori = 0;
+	float qos_a_priori = 0;
 	int vm_migrated = 0;
 	int request_update = 0;
 	int heuristic = 0;
@@ -99,11 +101,13 @@ int main (int argc, char *argv[]) {
 		int s_size = get_s_size(argv[1]);					// Number of requests
 		int **H = load_H(h_size, argv[1]); 					// Load Physical Machines
 		float **S = load_S(s_size, argv[1]);				// Load Scenario
-		int unique_vms = number_unique_vm (S,s_size);		// Number of Unique VM 
+		int unique_vms = number_unique_vm (S,s_size, &revenue_a_priori, &qos_a_priori);		// Number of Unique VM 
 		
 		printf("Total Physical Machines: %d\n", h_size); 
 		printf("Total request: %d\n", s_size);
 		printf("Unique VM: %d\n", unique_vms);
+		printf("Economical Revenue a priori: %.6g\n", revenue_a_priori);
+		printf("Quality of Service a priori: %.6g\n", qos_a_priori);
 
 		// Initial Placement matrix 
 		int **placement = placement_initialization(VM_FEATURES, unique_vms);
@@ -230,8 +234,6 @@ int main (int argc, char *argv[]) {
 			fprintf(net_utilization,"%.4g\t",utilization[iterator_physical][2]);
 		}
 
-		//float weightedSum = calculatesWeightedSum(power, total_revenue, wasted_resources_ratio, total_qos);
-
 		// RESULTS
 		/*printf("\nFINAL - PLACEMENT\n");
 		print_int_matrix(placement, VM_FEATURES, unique_vms);
@@ -248,8 +250,6 @@ int main (int argc, char *argv[]) {
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", time_unit);
 		printf("Number of update requests succesful: %d\n" , request_update);
-		printf("Number of rejected requests: %d\n" , request_rejected);
-		printf("Number of VM migrated: %d\n" , vm_migrated);
 		printf("********************************************************\n");
 
 		/* CLEANING */

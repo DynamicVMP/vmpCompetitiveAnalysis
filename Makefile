@@ -12,6 +12,11 @@ init:
 run_mini_input:
 	./imavmp inputs/mini_input.vmp
 
-run:
-	./imavmp inputs/4x8.vmp
+run_1:
+	./imavmp inputs/100.1\ -\ Normal
 
+run_2:
+	./imavmp inputs/100.1\ -\ Poisson
+
+run_3:
+	./imavmp inputs/100.1\ -\ Uniforme
