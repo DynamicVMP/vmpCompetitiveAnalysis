@@ -788,7 +788,7 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, double *total_qos ) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, float *total_qos ) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
@@ -905,13 +905,24 @@ float power_consumption (float **utilization, int **H, int h_size) {
  *
  * return 
  */
-double calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, double total_qos) {
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos) {
 
 	float power_normalized = power * SIGMA_POWER;
 	float revenue_normalized = total_revenue * SIGMA_REVENUE;
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
-	double qos_normalized = total_qos * SIGMA_QOS;
+	float qos_normalized = total_qos * SIGMA_QOS;
 
-	return (double)( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized );
+	return power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized;
 
+}
+
+float calculate_average_from_array(float * array, int size) {
+	int index;
+	float sum = 0;
+
+	for (index = 0; index < size; ++index) {
+		sum += array[index];
+	}
+
+	return sum / size;
 }

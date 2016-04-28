@@ -67,12 +67,15 @@ void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 void print_VM_list(VM_linked_list* list_to_free);
 void print_PM_list(PM_weight_pair_node* list_to_free);
 
+/* Auxiliar functions for calculations */
+float calculate_average_from_array(float * array, int size);
+
 /* Free memory functions definitions */
 void free_VM_list(VM_linked_list* list_to_free);
 void free_list(PM_weight_pair_node* list_to_free);
 
 /* objective functions */
 float power_consumption (float **utilization, int **H, int h_size);
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *revenue, double *qos);
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *revenue, float *qos);
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size);
-double calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, double total_qos);
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos);
