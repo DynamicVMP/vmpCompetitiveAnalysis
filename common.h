@@ -30,6 +30,6 @@ int get_h_size(char path_to_file[]);
 int** load_H(int h_size, char path_to_file[]);
 
 /* return the number of unique VM */
-int number_unique_vm (float **S, int s_size);
+int number_unique_vm (float **S, int s_size, float * revenue_a_priori, float * qos_a_priori);
 
 

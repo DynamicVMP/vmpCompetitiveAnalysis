@@ -26,9 +26,12 @@ int main (int argc, char *argv[]) {
 	int iterator_physical;
 
 	// Variables
-	int request_rejected = 0;
-	int vm_migrated = 0;
+	int request_serviced = 0;
 	int request_update = 0;
+	int request_rejected = 0;
+	float revenue_a_priori = 0;
+	float qos_a_priori = 0;
+	int vm_migrated = 0;
 	int heuristic = 0;
 	int time_unit = 0;
 	float total_revenue = 0;
@@ -68,16 +71,36 @@ int main (int argc, char *argv[]) {
 	net_utilization = fopen("results/net_utilization", "a");
 
 	// Heuristic
-	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** VM_list);
+	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** VM_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived);
 
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
-	VM_tend* VM_list = (VM_tend*)calloc(1,sizeof(VM_tend));
+	// VM linked list wich contains all VM currently hosted by local DC
+	VM_linked_list* VM_list = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 	VM_list->vm_index = -1;
 	VM_list->tend = -1;
 	VM_list->pm = -1;
 	VM_list->next = NULL;
+
+	VM_linked_list* VM_list_derived = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
+	VM_list_derived->vm_index = -1;
+	VM_list_derived->tend = -1;
+	VM_list_derived->pm = -1;
+	VM_list_derived->next = NULL;
+
+	VM_linked_list* VM_list_serviced = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
+	VM_list_serviced->vm_index = -1;
+	VM_list_serviced->tend = -1;
+	VM_list_serviced->pm = -1;
+	VM_list_serviced->next = NULL;
+
+	VM_linked_list* VM_list_serviced_derived = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
+	VM_list_serviced_derived->vm_index = -1;
+	VM_list_serviced_derived->tend = -1;
+	VM_list_serviced_derived->pm = -1;
+	VM_list_serviced_derived->next = NULL;
+
 
 	heuristics_array[0] = first_fit;
 	heuristics_array[1] = best_fit;
@@ -99,11 +122,13 @@ int main (int argc, char *argv[]) {
 		int s_size = get_s_size(argv[1]);					// Number of requests
 		int **H = load_H(h_size, argv[1]); 					// Load Physical Machines
 		float **S = load_S(s_size, argv[1]);				// Load Scenario
-		int unique_vms = number_unique_vm (S,s_size);		// Number of Unique VM 
+		int unique_vms = number_unique_vm (S,s_size, &revenue_a_priori, &qos_a_priori);		// Number of Unique VM 
 		
 		printf("Total Physical Machines: %d\n", h_size); 
 		printf("Total request: %d\n", s_size);
 		printf("Unique VM: %d\n", unique_vms);
+		printf("Economical Revenue a priori: %.6g\n", revenue_a_priori);
+		printf("Quality of Service a priori: %.6g\n", qos_a_priori);
 
 		// Initial Placement matrix 
 		int **placement = placement_initialization(VM_FEATURES, unique_vms);
@@ -142,13 +167,13 @@ int main (int argc, char *argv[]) {
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			
  			if(S[iterator_row][0] != time_unit ) {
-				 // check_VM_tend_list and update the VM placement and utilization matrix
-				remove_VM_by_time(&VM_list, placement, utilization, time_unit, h_size);
+				 // check_VM_linked_list and update the VM placement and utilization matrix
+				remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
  				
  				// Calculates Objective Functions
 				total_power = power_consumption(utilization, H, h_size);
  				wasted_resources_ratio = wasted_resources(utilization, resources_requested, H, h_size);
- 				economical_revenue(&VM_list, &total_revenue, &total_qos);
+ 				economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
 
  				// Save to FILE 
  				fprintf(power_consumption_file, "%.4g\n", total_power );
@@ -175,7 +200,11 @@ int main (int argc, char *argv[]) {
 			// If current_time is equal to VM tinit, allocated VM  
 			if(S[iterator_row][0] <= S[iterator_row][12]) {
 				// printf("\nRequest: %g %g %g %g %g", S[iterator_row][0], S[iterator_row][1], S[iterator_row][2], S[iterator_row][3], S[iterator_row][13] );
-				(*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &request_rejected, &VM_list);
+				if( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &VM_list_derived, &VM_list, &VM_list_serviced, &VM_list_serviced_derived) ) {
+					request_serviced++;
+				} else {
+					request_rejected++;
+				}
 			} else {
 				// Update VM resources
 				// printf("\nRequest: %g %g %g %g %g", S[iterator_row][0], S[iterator_row][1], S[iterator_row][2], S[iterator_row][3], S[iterator_row][13] );
@@ -187,24 +216,15 @@ int main (int argc, char *argv[]) {
 				} else {
 					// printf("\nCan not update the VM. Request rejected\n");
 					request_rejected++;
-					
-					// For migration
-					/*if ( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &request_rejected, &VM_list) ) {
-						vm_migrated++;
-						printf("\nVM migration successful\n");
-
-					} else {
-						printf("\nCan not migrate the VM. Request rejected\n");
-					}*/
 				}
 			}
 		}
 		// Remove all VM
-		remove_VM_by_time(&VM_list, placement, utilization, time_unit, h_size);
+		remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
 		
 		// Calculates objective functions
 		float power = power_consumption(utilization, H, h_size);
-		economical_revenue(&VM_list, &total_revenue, &total_qos);
+		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
 		wasted_resources_ratio = wasted_resources(utilization, resources_requested, H, h_size);
 
 		double weighted_sum = calculates_weighted_sum(power, total_revenue, wasted_resources_ratio, total_qos);
@@ -230,7 +250,7 @@ int main (int argc, char *argv[]) {
 			fprintf(net_utilization,"%.4g\t",utilization[iterator_physical][2]);
 		}
 
-		//float weightedSum = calculatesWeightedSum(power, total_revenue, wasted_resources_ratio, total_qos);
+		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue, &total_qos);
 
 		// RESULTS
 		/*printf("\nFINAL - PLACEMENT\n");
@@ -240,16 +260,16 @@ int main (int argc, char *argv[]) {
 		printf("\nEXPERIMENT COMPLETED\n");*/
 		printf("\n************************RESULTS*************************\n");
 		printf("Simulated time: %d time units.\n", time_unit);
-		printf("Power Consumption: %.4g\n", power);
-		printf("Economical Revenue: %.4g\n", total_revenue);
-		printf("Quality of Service: %.4g\n", total_qos);
-		printf("Wasted Resources: %.4g\n", wasted_resources_ratio);
+		printf("Power Consumption: %.6g\n", power);
+		printf("Economical Revenue: %.6g\n", total_revenue);
+		printf("Quality of Service: %.6g\n", total_qos);
+		printf("Wasted Resources: %.6g\n", wasted_resources_ratio);
 		printf("Weighted Sum: %.8g\n", weighted_sum);
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
 		printf("Number of times the objective function was assessed: %d\n", time_unit);
-		printf("Number of update requests succesful: %d\n" , request_update);
-		printf("Number of rejected requests: %d\n" , request_rejected);
-		printf("Number of VM migrated: %d\n" , vm_migrated);
+		printf("Number of updated requests succesful: %d\n" , request_update);
+		printf("Number of serviced requests succesful: %d\n" , request_serviced);
+		printf("Number of rejected requests succesful: %d\n" , request_rejected);
 		printf("********************************************************\n");
 
 		/* CLEANING */
@@ -259,6 +279,8 @@ int main (int argc, char *argv[]) {
 		free_float_matrix(S, s_size);
 		// print_VM_list(VM_list);
 		free_VM_list(VM_list);
+		free_VM_list(VM_list_derived);
+		free_VM_list(VM_list_serviced);
 
 		/* finish him */
 		return 0;

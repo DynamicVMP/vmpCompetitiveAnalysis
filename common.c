@@ -106,13 +106,32 @@ int** load_H(int h_size, char path_to_file[]) {
  * parameter: S matrix
  * return: number of unique VM
  */
-int number_unique_vm (float **S, int s_size) {	
+int number_unique_vm (float **S, int s_size, float * revenue_a_priori, float * qos_a_priori) {	
 	int number_unique_vm = 0;
 	int iterator_row;
+
+	*revenue_a_priori = 0;
+	*qos_a_priori = 0;
+
+	int total_cpu = 0;
+	int total_ram = 0;
+	int total_net = 0;
+
 	for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  		if(S[iterator_row][0] <= S[iterator_row][12]) {
 			number_unique_vm++;
+			*revenue_a_priori = *revenue_a_priori + S[iterator_row][10];
+			*qos_a_priori = *qos_a_priori + ((float) pow(CONSTANT,S[iterator_row][11]) * S[iterator_row][11]);
+
+			total_net = total_net + S[iterator_row][6];
+			total_ram = total_ram + S[iterator_row][5];
+			total_cpu = total_cpu + S[iterator_row][4];
 		}
  	}
+ 	
+ 	printf("Total CPU: %d\n", total_cpu );
+ 	printf("Total RAM: %d\n", total_ram );
+ 	printf("Total NET: %d\n", total_net );
+
  	return number_unique_vm;
 }

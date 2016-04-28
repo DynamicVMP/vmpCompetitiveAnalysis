@@ -39,9 +39,9 @@ void allocate_VM_to_PM(int **placement, float **utilization, float **resources_r
 	utilization[physical_machine][1] += request[5]*request[8]/100;
 	utilization[physical_machine][2] += request[6]*request[9]/100;
 
-	resources_requested[physical_machine][0] += request[4];
-	resources_requested[physical_machine][1] += request[5];
-	resources_requested[physical_machine][2] += request[6];
+	resources_requested[physical_machine][0] = resources_requested[physical_machine][0] + request[4];
+	resources_requested[physical_machine][1] = resources_requested[physical_machine][1] + request[5];
+	resources_requested[physical_machine][2] = resources_requested[physical_machine][2] + request[6];
 }
 
 /**
@@ -59,7 +59,7 @@ void allocate_VM_to_PM(int **placement, float **utilization, float **resources_r
  * return True, if the current PM can hold the VM.
  * 		  False, othre case
  */
-bool check_resources(float *request, float **utilization, float **resources_requested, int **H, VM_tend** vm_list, int physical_machine, bool update) {
+bool check_resources(float *request, float **utilization, float **resources_requested, int **H, VM_linked_list** vm_list, int physical_machine, bool update) {
 
 	bool flag = (resources_requested[physical_machine][0] + request[4] <= H[physical_machine][0]
 				 && resources_requested[physical_machine][1] + request[5]<= H[physical_machine][1]
@@ -70,8 +70,8 @@ bool check_resources(float *request, float **utilization, float **resources_requ
 	} 
 
 	if(!update) {
-		VM_tend* parent = *vm_list;
-		VM_tend* actual = parent->next;	
+		VM_linked_list* parent = *vm_list;
+		VM_linked_list* actual = parent->next;	
 		while(actual != NULL) {
 			if(parent->service == (int) request[1] && parent->pm == physical_machine) {
 				return false;
@@ -104,27 +104,29 @@ bool check_resources(float *request, float **utilization, float **resources_requ
  * parameter: H                   PMs matrix
  * parameter: h_size              Number of PMs
  * parameter: request_rejected    Number of request rejected
- * parameter: vm_tend_list        List of VM
+ * parameter: vm_list        List of VM
  * parameter: migration           True, if is a migration between PMs
  * 								 False, other case
  * 
  * return: 	True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-bool first_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+bool first_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** vm_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived) {
 
 	int iterator_physical;
 
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++) {
 		// If request is in time 0, we directle allocate VM
-		if (check_resources(request, utilization, resources_requested, H, vm_tend_list, iterator_physical, false )) {		
+		if (check_resources(request, utilization, resources_requested, H, vm_list, iterator_physical, false )) {		
 			// Allocate la VM to VM		
 			allocate_VM_to_PM(placement, utilization, resources_requested, request, iterator_physical);
-			insert_VM_to_tend_list(vm_tend_list, request, iterator_physical);
+			insert_VM_to_tend_list(vm_list, request, iterator_physical);
+			insert_VM_to_tend_list(VM_list_serviced, request, iterator_physical);
 			return true;
 		} 
 	}
-	*request_rejected = *request_rejected + 1;
+	insert_VM_to_tend_list(VM_list_serviced_derived, request, iterator_physical);
+	insert_VM_to_tend_list(VM_list_derived, request, iterator_physical);
 	return false;
 }
 
@@ -141,7 +143,7 @@ bool first_fit(float *request, float **utilization, float **resources_requested,
  */
 
 bool best_or_worst_fit(bool is_best,float *request, float **utilization, float **resources_requested, int **placement,
-					  int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
+					  int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** vm_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived) {
 
 	/* iterators */
 	int iterator_physical;
@@ -166,11 +168,12 @@ bool best_or_worst_fit(bool is_best,float *request, float **utilization, float *
 	// for each PM do
 	for (iterator_physical = 0; iterator_physical < h_size; iterator_physical++){
 		// check if the current PM of the sorted list can allocate the requested resources of the VM
-		if (check_resources(request, utilization, resources_requested, H, vm_tend_list, PM_ordered_list->h_index, false)) {
+		if (check_resources(request, utilization, resources_requested, H, vm_list, PM_ordered_list->h_index, false)) {
 
 			// allocate the VM into the PM
 			allocate_VM_to_PM(placement, utilization, resources_requested, request, PM_ordered_list->h_index);
-			insert_VM_to_tend_list(vm_tend_list, request, PM_ordered_list->h_index);
+			insert_VM_to_tend_list(vm_list, request, PM_ordered_list->h_index);
+			insert_VM_to_tend_list(VM_list_serviced, request, iterator_physical);
 			free_list(clean_list);
 			// VM allocated successfully
 			return true;
@@ -178,8 +181,8 @@ bool best_or_worst_fit(bool is_best,float *request, float **utilization, float *
 		// go to next node
 		PM_ordered_list = PM_ordered_list->next;
 	}
-	// the requested resources can't be allocated so they will be rejected
-	*request_rejected = *request_rejected + 1;
+	insert_VM_to_tend_list(VM_list_serviced_derived, request, iterator_physical);
+	insert_VM_to_tend_list(VM_list_derived, request, iterator_physical);
 	// free the allocated memory for the sorted list
 	free_list(clean_list);
 
@@ -197,8 +200,8 @@ bool best_or_worst_fit(bool is_best,float *request, float **utilization, float *
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-bool best_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
-	return best_or_worst_fit(true, request, utilization, resources_requested, placement, H, h_size, request_rejected, vm_tend_list);
+bool best_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** vm_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived) {
+	return best_or_worst_fit(true, request, utilization, resources_requested, placement, H, h_size, VM_list_derived, vm_list, VM_list_serviced, VM_list_serviced_derived);
 }
 
 /*
@@ -211,8 +214,8 @@ bool best_fit(float *request, float **utilization, float **resources_requested, 
  * returns: True (1), if the VM was correctly allocate.
  * 			False(0), other case.
  */
-bool worst_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, int *request_rejected, VM_tend** vm_tend_list) {
-	return best_or_worst_fit(false, request, utilization, resources_requested, placement, H, h_size, request_rejected, vm_tend_list);
+bool worst_fit(float *request, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** vm_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived) {
+	return best_or_worst_fit(false, request, utilization, resources_requested, placement, H, h_size, VM_list_derived, vm_list, VM_list_serviced, VM_list_serviced_derived);
 }
 
 /**
@@ -233,21 +236,24 @@ float calculate_weight(float **utilization, int *H, int h_index) {
 /**
  * insert_VM_to_VMtend_list: Insert VM to List of VM 
  * 
- * parameter vm_tend_list:     	List of nodes
+ * parameter vm_list:     	List of nodes
  * parameter request:         	Request 
  * parameter physical_machine: 	PM id
  */
-void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical_machine) {
+void insert_VM_to_tend_list(VM_linked_list** vm_list, float *request, int physical_machine) {
 
-	VM_tend* new_node = (VM_tend*)calloc(1,sizeof(VM_tend));
+	VM_linked_list* new_node = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 
 	// New Node to add
 	new_node->vm_index = request[3];						// VM id
 	new_node->service = request[1];							// Service
 	new_node->datacenter = request[2];						// Datacenter
 	new_node->tend = request[13];							// t end
-	new_node->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
-	new_node->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
+	new_node->cpu = request[4];
+	new_node->ram = request[5];
+	new_node->net = request[6];
+	new_node->cpu_utilization = request[4]*request[7]/100;	// CPU Utilization
+	new_node->ram_utilization = request[5]*request[8]/100;	// RAM Utilization
 	new_node->net_utilization = request[6]*request[9]/100;  // NET Utilization
 	new_node->revenue = request[10];						// Revenue
 	new_node->pm = physical_machine;						// PM allocated
@@ -255,20 +261,20 @@ void insert_VM_to_tend_list(VM_tend** vm_tend_list, float *request, int physical
 	new_node->next = NULL; 									// pointer to next node
 
 	// First insert
-	if((*vm_tend_list)->vm_index == -1){
-		*vm_tend_list = new_node;
+	if((*vm_list)->vm_index == -1){
+		*vm_list = new_node;
 		return;
 	}
 
 	// First element of the list
-	if(time_comparator(new_node->tend,(*vm_tend_list)->tend)) {
-		new_node->next = *vm_tend_list;
-		*vm_tend_list = new_node;
+	if(time_comparator(new_node->tend,(*vm_list)->tend)) {
+		new_node->next = *vm_list;
+		*vm_list = new_node;
 		return;
 	}
 
-	VM_tend* parent = *vm_tend_list;
-	VM_tend* actual = parent->next;
+	VM_linked_list* parent = *vm_list;
+	VM_linked_list* actual = parent->next;
 
 	// Iterate until find the place of the new node
 	while(actual != NULL) {
@@ -514,28 +520,54 @@ bool time_comparator(int time_A, int time_B) {
  * parameter h_size: Number of physical machines
  * return: nothing, it's a void function.
  */
-void remove_VM_by_time(VM_tend** vm_tend_list, int **placement, float **utilization, float **resources_requested, int current_time,
+void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int current_time,
 	int h_size) {
 
-	VM_tend* parent = *vm_tend_list;
-	while(parent->tend == current_time) {
-		// update the placement matrix and set -1 PM for the VM
-		placement[2][parent->vm_index] = -1;
-		// update the utilization matrix
-		utilization[parent->pm][0] -= placement[3][parent->vm_index]*placement[6][parent->vm_index]/100;
-		utilization[parent->pm][1] -= placement[4][parent->vm_index]*placement[7][parent->vm_index]/100;
-		utilization[parent->pm][2] -= placement[5][parent->vm_index]*placement[8][parent->vm_index]/100;
+	VM_linked_list* parent = *vm_list;
+	VM_linked_list* actual = parent->next;
 
-		resources_requested[parent->pm][0] -= placement[3][parent->vm_index];
-		resources_requested[parent->pm][1] -= placement[4][parent->vm_index];
-		resources_requested[parent->pm][2] -= placement[5][parent->vm_index];
+	while(actual != NULL) { 
+		if(parent->tend == current_time) {
+			// update the placement matrix and set -1 PM for the VM
+			placement[2][parent->vm_index] = -1;
+			// update the utilization matrix
+			utilization[parent->pm][0] -= parent->cpu_utilization;
+			utilization[parent->pm][1] -= parent->ram_utilization;
+			utilization[parent->pm][2] -= parent->net_utilization;
 
-		// Delete node from ordered list
-		VM_tend* temp = *vm_tend_list;
-		*vm_tend_list = (*vm_tend_list)->next;
-		parent = *vm_tend_list;
-		free(temp);
-    }
+			resources_requested[parent->pm][0] = resources_requested[parent->pm][0] - (float) parent->cpu;
+			resources_requested[parent->pm][1] = resources_requested[parent->pm][1] - (float) parent->ram;
+			resources_requested[parent->pm][2] = resources_requested[parent->pm][2] - (float) parent->net;
+
+			// Delete node from ordered list
+			VM_linked_list* temp = *vm_list;
+			*vm_list = (*vm_list)->next;
+			parent = *vm_list;
+			free(temp);
+			printf("REMOVE FROM LOCAL DATACENTER\n");
+
+	    }
+	    parent = actual;
+	    actual = actual->next;
+	}
+
+
+	VM_linked_list* parent_derived = *VM_list_derived;
+	VM_linked_list* actual_derived = parent_derived->next;
+
+	while(actual_derived != NULL) { 
+		if(parent_derived->tend == current_time) {
+			
+			VM_linked_list* temp = *VM_list_derived;
+			*VM_list_derived = (*VM_list_derived)->next;
+			parent_derived = *VM_list_derived;
+			free(temp);
+			printf("REMOVE FROM FEDERATE CLOUD\n");
+	    }
+	    parent_derived = actual_derived;
+	    actual_derived = actual_derived->next;
+	}
+
 }
 
 
@@ -548,10 +580,10 @@ void remove_VM_by_time(VM_tend** vm_tend_list, int **placement, float **utilizat
  * parameter h_size: Number of physical machines
  * return: nothing, it's a void function.
  */
-void update_VM_list(VM_tend** vm_tend_list, float *request, int physical_machine) {
+void update_VM_list(VM_linked_list** vm_list, float *request, int physical_machine) {
 
-	VM_tend* parent = *vm_tend_list;
-	VM_tend* actual = parent->next;
+	VM_linked_list* parent = *vm_list;
+	VM_linked_list* actual = parent->next;
 
 	while(actual != NULL )  {	
 		if( parent->service == request[1] && parent->datacenter == request[2] && parent->vm_index == request[3]) { 
@@ -559,12 +591,14 @@ void update_VM_list(VM_tend** vm_tend_list, float *request, int physical_machine
 			parent->service = request[1];							// Service
 			parent->datacenter = request[2];						// Datacenter
 			parent->tend = request[13];								// t end
-			parent->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
-			parent->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
+			parent->cpu = request[4];
+			parent->ram = request[5];
+			parent->net = request[6];
+			parent->cpu_utilization = request[4]*request[7]/100;	// CPU Utilization
+			parent->ram_utilization = request[5]*request[8]/100;	// RAM Utilization
 			parent->net_utilization = request[6]*request[9]/100;  	// NET Utilization
 			parent->revenue = request[10];							// Revenue
 			parent->SLA = request[11];								// SLA
-			parent->pm = physical_machine;							// Physical Machine
 		}
 		parent = actual;
 		actual = actual->next;	
@@ -575,13 +609,15 @@ void update_VM_list(VM_tend** vm_tend_list, float *request, int physical_machine
 		parent->service = request[1];							// Service
 		parent->datacenter = request[2];						// Datacenter
 		parent->vm_index = request[3];							// VM id
-		parent->ram_utilization = request[4]*request[7]/100;	// RAM Utilization
-		parent->cpu_utilization = request[5]*request[8]/100;	// CPU Utilization
+		parent->cpu = request[4];
+		parent->ram = request[5];
+		parent->net = request[6];
+		parent->cpu_utilization = request[4]*request[7]/100;	// CPU Utilization
+		parent->ram_utilization = request[5]*request[8]/100;	// RAM Utilization
 		parent->net_utilization = request[6]*request[9]/100;  	// NET Utilization
 		parent->revenue = request[10];							// Revenue
 		parent->SLA = request[11];								// SLA
 		parent->tend = request[13];								// t end
-		parent->pm = physical_machine;							// Physical Machine
 	}
 }
 
@@ -595,33 +631,60 @@ void update_VM_list(VM_tend** vm_tend_list, float *request, int physical_machine
  * return 	True, if the VM does not need a migration
  * 			False, other case
  */
-bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_tend** vm_list, int **H) {
+bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_linked_list** vm_list, int **H) {
 
-	int physical_machine = placement[2][(int) request[3]];
 	float *temp_request = (float *) malloc (14 *sizeof (float));
-	int iterator, aux;
-
+	int iterator;
 	memcpy(temp_request, request, 14 * sizeof(float));
-	// Create a temp_request to verify if the physical machine can hold  VM's new resources.
-	for (iterator = 4; iterator < 7; iterator++) {
-		aux	= iterator - 1;
-		if(request[iterator] > placement[aux][(int) request[3]] ) {
-			temp_request[iterator] = request[iterator] - placement[aux][(int) request[3]];
-		} else {
-			temp_request[iterator] = placement[aux][(int) request[3]] - request[iterator];
+
+	VM_linked_list* parent = *vm_list;
+	VM_linked_list* actual = parent->next;
+
+	int physical_machine = -1;
+
+	while(actual != NULL )  {	
+		if( parent->service == request[1] && parent->datacenter == request[2] && parent->vm_index == request[3]) { 
+			physical_machine = parent->pm;
+			break;
 		}
+		parent = actual;
+		actual = actual->next;	
+	}
+
+	if(request[4] > parent->cpu ) {
+		temp_request[4] = request[4] -parent->cpu;
+	} else {
+		temp_request[4] = parent->cpu - request[4];
+	}
+
+	if(request[5] > parent->ram ) {
+		temp_request[5] = request[5] -parent->ram;
+	} else {
+		temp_request[5] = parent->ram - request[5];
+	}
+
+	if(request[6] > parent->net ) {
+		temp_request[6] = request[6] -parent->net;
+	} else {
+		temp_request[6] = parent->net - request[6];
+	}
+	
+	if(physical_machine == -1) {
+		free(temp_request);
+		// printf("THE CURRENT VM IS NOT IN THE CURRENT DATACENTER\n");
+		return false;
 	}
 
 	//Verify if the PM can hold the VM's new resources.
 	if(check_resources(temp_request, utilization, resources_requested,  H, vm_list, physical_machine, true)) {
 		free(temp_request);
-		utilization[physical_machine][0] -= placement[3][(int) request[3]]*placement[6][(int) request[3]]/100;
-		utilization[physical_machine][1] -= placement[4][(int) request[3]]*placement[7][(int) request[3]]/100;
-		utilization[physical_machine][2] -= placement[5][(int) request[3]]*placement[8][(int) request[3]]/100;
+		utilization[physical_machine][0] -= parent->cpu_utilization;
+		utilization[physical_machine][1] -= parent->ram_utilization;
+		utilization[physical_machine][2] -= parent->net_utilization;
 
-		resources_requested[physical_machine][0] -= placement[3][(int) request[3]];
-		resources_requested[physical_machine][1] -= placement[4][(int) request[3]];
-		resources_requested[physical_machine][2] -= placement[5][(int) request[3]];
+		resources_requested[physical_machine][0] -= parent->cpu;
+		resources_requested[physical_machine][1] -= parent->ram;
+		resources_requested[physical_machine][2] -= parent->net;
 
 		// Update node from VM list 
 		update_VM_list(vm_list, request, physical_machine);
@@ -640,9 +703,9 @@ bool update_VM_resources(int **placement, float **utilization, float **resources
  * parameter: list of nodes
  * returns: nothing, it is a void function
  */
-void free_VM_list(VM_tend* list_to_free) {
+void free_VM_list(VM_linked_list* list_to_free) {
 
-	VM_tend* tmp_pointer;
+	VM_linked_list* tmp_pointer;
 	while(list_to_free != NULL){
 		tmp_pointer = list_to_free;
 		list_to_free = list_to_free->next;
@@ -672,9 +735,9 @@ void free_list(PM_weight_pair_node* list_to_free) {
  * parameter: List of nodes
  * returns: nothing, it's a void function.
  */
-void print_VM_list(VM_tend* list) {
+void print_VM_list(VM_linked_list* list) {
 
-	VM_tend* tmp_pointer;
+	VM_linked_list* tmp_pointer;
 	printf("\n");
 	while(list != NULL){
 		tmp_pointer = list;
@@ -686,9 +749,14 @@ void print_VM_list(VM_tend* list) {
 		printf("Tend: %d, ", tmp_pointer->tend);
 		printf("SLA: %g, ", tmp_pointer->SLA);
 		printf("R: %g, ", tmp_pointer->revenue);
-		printf("CPU: %g, ", tmp_pointer->cpu_utilization);
-		printf("RAM: %g, ", tmp_pointer->ram_utilization);
-		printf("NET: %g) ->\n ", tmp_pointer->net_utilization);
+
+		printf("CPU: %d, ", tmp_pointer->cpu);
+		printf("RAM: %d, ", tmp_pointer->ram);
+		printf("NET: %d, ", tmp_pointer->net);
+
+		printf("CPU_UTIL: %g, ", tmp_pointer->cpu_utilization);
+		printf("RAM_UTIL: %g, ", tmp_pointer->ram_utilization);
+		printf("NET_UTIL: %g) ->\n ", tmp_pointer->net_utilization);
 	}
 	printf("NULL\n");
 }
@@ -715,30 +783,47 @@ void print_PM_list(PM_weight_pair_node* list) {
 /**
  * economical_revenue: Calculates the total revenue and Quality of Service per VM allocated.
  *
- * parameter: VM_tend_list  List of VMs allocated
+ * parameter: VM_list  List of VMs allocated
  * parameter: total_revenue Revenue 
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_tend** vm_tend_list, float *total_revenue, double *total_qos ) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, double *total_qos ) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
 
-	VM_tend* parent = *vm_tend_list;
-	VM_tend* actual = parent->next;
+	VM_linked_list* parent = *vm_list;
+	VM_linked_list* actual = parent->next;
 
 	while(actual != NULL) {	
 
 		*total_revenue = *total_revenue + parent->revenue;
-		*total_qos = *total_qos + ((double) pow(CONSTANT,parent->SLA) * parent->SLA);
+		*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
 		
 		parent = actual;
 		actual = actual->next;
 	}
 	// Plus the last node
 	*total_revenue = *total_revenue + parent->revenue;
-	*total_qos = *total_qos + ((double) pow(CONSTANT,parent->SLA) * parent->SLA);
+	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
+
+
+	VM_linked_list* parent_derived = *VM_list_derived;
+	VM_linked_list* actual_derived = parent_derived->next;
+
+	while(actual_derived != NULL) {	
+
+		*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
+		*total_qos = *total_qos + ((float) pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+		
+		parent_derived = actual_derived;
+		actual_derived = actual_derived->next;
+	}
+	// Plus the last node
+	*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
+	*total_qos = *total_qos + ((float) pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+
 }
 
 /**
@@ -827,6 +912,6 @@ double calculates_weighted_sum(float power, float total_revenue, float wasted_re
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
 	double qos_normalized = total_qos * SIGMA_QOS;
 
-	return (double)( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized )/4;
+	return (double)( power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized );
 
 }
