@@ -17,7 +17,7 @@
 #define S_HEADER "SCENARIOS"
 
 #define TAM_BUFFER BUFSIZ
-#define CONSTANT 10000
+#define CONSTANT 1000
 #define BIG_COST 1000000
 
 
@@ -30,7 +30,7 @@ int get_h_size(char path_to_file[]);
 int** load_H(int h_size, char path_to_file[]);
 
 /* return the number of unique VM */
-int number_unique_vm (float **S, int s_size, float * revenue_a_priori, long * qos_a_priori);
+int number_unique_vm (float **S, int s_size, long * revenue_a_priori, long * qos_a_priori);
 
 long custom_pow(int value, int exponent);
 

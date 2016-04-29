@@ -544,7 +544,7 @@ void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 			*vm_list = (*vm_list)->next;
 			parent = *vm_list;
 			free(temp);
-			printf("REMOVE FROM LOCAL DATACENTER\n");
+//			printf("REMOVE FROM LOCAL DATACENTER\n");
 
 	    }
 	    parent = actual;
@@ -562,7 +562,7 @@ void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 			*VM_list_derived = (*VM_list_derived)->next;
 			parent_derived = *VM_list_derived;
 			free(temp);
-			printf("REMOVE FROM FEDERATE CLOUD\n");
+//			printf("REMOVE FROM FEDERATE CLOUD\n");
 	    }
 	    parent_derived = actual_derived;
 	    actual_derived = actual_derived->next;
@@ -748,7 +748,7 @@ void print_VM_list(VM_linked_list* list) {
 		printf("PM: %d, ", tmp_pointer->pm);
 		printf("Tend: %d, ", tmp_pointer->tend);
 		printf("SLA: %d, ", tmp_pointer->SLA);
-		printf("R: %g, ", tmp_pointer->revenue);
+		printf("R: %li, ", tmp_pointer->revenue);
 
 		printf("CPU: %d, ", tmp_pointer->cpu);
 		printf("RAM: %d, ", tmp_pointer->ram);
@@ -788,7 +788,7 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, long *total_qos ) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, long *total_revenue, long *total_qos ) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
@@ -796,7 +796,7 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	VM_linked_list* parent = *vm_list;
 	VM_linked_list* actual = parent->next;
 
-	while(actual != NULL) {	
+	while(actual != NULL) {
 
 		*total_revenue = *total_revenue + parent->revenue;
 		*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
@@ -902,10 +902,10 @@ float power_consumption (float **utilization, int **H, int h_size) {
  *
  * return 
  */
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, long total_qos) {
+float calculates_weighted_sum(float power, long total_revenue, float wasted_resources_ratio, long total_qos) {
 
 	float power_normalized = power * SIGMA_POWER;
-	float revenue_normalized = total_revenue * SIGMA_REVENUE;
+	long revenue_normalized = total_revenue * SIGMA_REVENUE;
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
 	long qos_normalized = total_qos * SIGMA_QOS;
 

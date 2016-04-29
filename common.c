@@ -106,7 +106,7 @@ int** load_H(int h_size, char path_to_file[]) {
  * parameter: S matrix
  * return: number of unique VM
  */
-int number_unique_vm (float **S, int s_size, float * revenue_a_priori, long * qos_a_priori) {
+int number_unique_vm (float **S, int s_size, long * revenue_a_priori, long * qos_a_priori) {
 	int number_unique_vm = 0;
 	int iterator_row;
 
@@ -120,7 +120,7 @@ int number_unique_vm (float **S, int s_size, float * revenue_a_priori, long * qo
 	for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  		if(S[iterator_row][0] <= S[iterator_row][12]) {
 			number_unique_vm++;
-			*revenue_a_priori = *revenue_a_priori + S[iterator_row][10];
+			*revenue_a_priori = *revenue_a_priori + (long)S[iterator_row][10];
 			*qos_a_priori = *qos_a_priori + (custom_pow(CONSTANT,(int) S[iterator_row][11]) * (int) S[iterator_row][11]);
 			total_net = total_net + S[iterator_row][6];
 			total_ram = total_ram + S[iterator_row][5];

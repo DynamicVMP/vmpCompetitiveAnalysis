@@ -30,12 +30,12 @@ int main (int argc, char *argv[]) {
 	int request_update = 0;
 	int request_rejected = 0;
 	int total_t = 0;
-	float revenue_a_priori = 0;
+	long revenue_a_priori = 0;
 	long qos_a_priori = 0;
 	int vm_migrated = 0;
 	int heuristic = 0;
 	int time_unit = 0;
-	float total_revenue = 0;
+	long total_revenue = 0;
 	long total_qos = 0;
 	float * wasted_resources_ratio_array;
 	float * power_consumption_array;
@@ -141,7 +141,7 @@ int main (int argc, char *argv[]) {
 		printf("Total Physical Machines: %d\n", h_size); 
 		printf("Total request: %d\n", s_size);
 		printf("Unique VM: %d\n", unique_vms);
-		printf("Economical Revenue a priori: %.6g\n", revenue_a_priori);
+		printf("Economical Revenue a priori: %li\n", revenue_a_priori);
 		printf("Quality of Service a priori: %li\n", qos_a_priori);
 
 		// Initial Placement matrix 
@@ -192,7 +192,7 @@ int main (int argc, char *argv[]) {
  				// Save to FILE 
  				fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit] );
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
-				fprintf(economical_revenue_file, "%.4g\n", total_revenue);
+				fprintf(economical_revenue_file, "%li\n", total_revenue);
 				fprintf(quality_service_file, "%li\n", total_qos);
 				fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue, wasted_resources_ratio_array[time_unit], total_qos ));
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
@@ -243,7 +243,7 @@ int main (int argc, char *argv[]) {
 
 		// Save to FILE
 		fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit]);
-		fprintf(economical_revenue_file, "%.4g\n", total_revenue);
+		fprintf(economical_revenue_file, "%li\n", total_revenue);
 		fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
 		fprintf(quality_service_file, "%li\n", total_qos);
 		fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue, wasted_resources_ratio_array[time_unit], total_qos ));
@@ -253,7 +253,7 @@ int main (int argc, char *argv[]) {
 
 		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue, &total_qos);
 
-		float delta_revenue = revenue_a_priori - total_revenue;
+		long delta_revenue = revenue_a_priori - total_revenue;
 		long delta_qos = qos_a_priori - total_qos;
 
 		float weighted_sum = calculates_weighted_sum(average_power_consumption, delta_revenue , average_wasted_resource_ratio, delta_qos);
@@ -282,9 +282,9 @@ int main (int argc, char *argv[]) {
 		printf("\n************************RESULTS*************************\n");
 		printf("Simulated time: %d time units.\n", time_unit);
 		printf("Power Consumption: %.6g\n", average_power_consumption);
-		printf("Economical Revenue a priori: %f\n", revenue_a_priori);
-		printf("Economical Revenue: %f\n", total_revenue);
-		printf("Delta - Economical Revenue: %f\n", delta_revenue);
+		printf("Economical Revenue a priori: %li\n", revenue_a_priori);
+		printf("Economical Revenue: %li\n", total_revenue);
+		printf("Delta - Economical Revenue: %li\n", delta_revenue);
 		printf("Quality of Service a priori: %li\n", qos_a_priori);
 		printf("Quality of Service: %li\n", total_qos);
 		printf("Delta - Quality of Service: %li\n", delta_qos);
