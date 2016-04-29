@@ -31,12 +31,12 @@ int main (int argc, char *argv[]) {
 	int request_rejected = 0;
 	int total_t = 0;
 	float revenue_a_priori = 0;
-	float qos_a_priori = 0;
+	long qos_a_priori = 0;
 	int vm_migrated = 0;
 	int heuristic = 0;
 	int time_unit = 0;
 	float total_revenue = 0;
-	float total_qos = 0;
+	long total_qos = 0;
 	float * wasted_resources_ratio_array;
 	float * power_consumption_array;
 
@@ -82,24 +82,32 @@ int main (int argc, char *argv[]) {
 	VM_list->vm_index = -1;
 	VM_list->tend = -1;
 	VM_list->pm = -1;
+	VM_list->SLA = 0;
+	VM_list->revenue = 0;
 	VM_list->next = NULL;
 
 	VM_linked_list* VM_list_derived = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 	VM_list_derived->vm_index = -1;
 	VM_list_derived->tend = -1;
 	VM_list_derived->pm = -1;
+	VM_list_derived->SLA = 0;
+	VM_list_derived->revenue = 0;
 	VM_list_derived->next = NULL;
 
 	VM_linked_list* VM_list_serviced = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 	VM_list_serviced->vm_index = -1;
 	VM_list_serviced->tend = -1;
 	VM_list_serviced->pm = -1;
+	VM_list_serviced->SLA = 0;
+	VM_list_serviced->revenue = 0;
 	VM_list_serviced->next = NULL;
 
 	VM_linked_list* VM_list_serviced_derived = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
 	VM_list_serviced_derived->vm_index = -1;
 	VM_list_serviced_derived->tend = -1;
 	VM_list_serviced_derived->pm = -1;
+	VM_list_serviced_derived->SLA = 0;
+	VM_list_serviced_derived->revenue = 0;
 	VM_list_serviced_derived->next = NULL;
 
 
@@ -134,7 +142,7 @@ int main (int argc, char *argv[]) {
 		printf("Total request: %d\n", s_size);
 		printf("Unique VM: %d\n", unique_vms);
 		printf("Economical Revenue a priori: %.6g\n", revenue_a_priori);
-		printf("Quality of Service a priori: %.6g\n", qos_a_priori);
+		printf("Quality of Service a priori: %li\n", qos_a_priori);
 
 		// Initial Placement matrix 
 		int **placement = placement_initialization(VM_FEATURES, unique_vms);
@@ -185,7 +193,7 @@ int main (int argc, char *argv[]) {
  				fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit] );
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
 				fprintf(economical_revenue_file, "%.4g\n", total_revenue);
-				fprintf(quality_service_file, "%.4g\n", total_qos);
+				fprintf(quality_service_file, "%li\n", total_qos);
 				fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue, wasted_resources_ratio_array[time_unit], total_qos ));
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
@@ -237,7 +245,7 @@ int main (int argc, char *argv[]) {
 		fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit]);
 		fprintf(economical_revenue_file, "%.4g\n", total_revenue);
 		fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
-		fprintf(quality_service_file, "%.4g\n", total_qos);
+		fprintf(quality_service_file, "%li\n", total_qos);
 		fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue, wasted_resources_ratio_array[time_unit], total_qos ));
 
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
@@ -246,7 +254,7 @@ int main (int argc, char *argv[]) {
 		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue, &total_qos);
 
 		float delta_revenue = revenue_a_priori - total_revenue;
-		float delta_qos = qos_a_priori - total_qos;
+		long delta_qos = qos_a_priori - total_qos;
 
 		float weighted_sum = calculates_weighted_sum(average_power_consumption, delta_revenue , average_wasted_resource_ratio, delta_qos);
 
@@ -277,9 +285,9 @@ int main (int argc, char *argv[]) {
 		printf("Economical Revenue a priori: %f\n", revenue_a_priori);
 		printf("Economical Revenue: %f\n", total_revenue);
 		printf("Delta - Economical Revenue: %f\n", delta_revenue);
-		printf("Quality of Service a priori: %f\n", qos_a_priori);
-		printf("Quality of Service: %f\n", total_qos);
-		printf("Delta - Quality of Service: %f\n", delta_qos);
+		printf("Quality of Service a priori: %li\n", qos_a_priori);
+		printf("Quality of Service: %li\n", total_qos);
+		printf("Delta - Quality of Service: %li\n", delta_qos);
 		printf("Wasted Resources: %.6g\n", average_wasted_resource_ratio);
 		printf("Weighted Sum: %.8g\n", weighted_sum);
 		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
@@ -294,7 +302,8 @@ int main (int argc, char *argv[]) {
 		free_int_matrix(placement, 9);
 		free_int_matrix(H, h_size);
 		free_float_matrix(S, s_size);
-		// print_VM_list(VM_list);
+//		print_VM_list(VM_list_serviced);
+//		print_VM_list(VM_list_serviced_derived);
 		free_VM_list(VM_list);
 		free_VM_list(VM_list_derived);
 		free_VM_list(VM_list_serviced);

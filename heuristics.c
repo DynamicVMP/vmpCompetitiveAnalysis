@@ -747,7 +747,7 @@ void print_VM_list(VM_linked_list* list) {
 		printf("VM: %d, ", tmp_pointer->vm_index);
 		printf("PM: %d, ", tmp_pointer->pm);
 		printf("Tend: %d, ", tmp_pointer->tend);
-		printf("SLA: %g, ", tmp_pointer->SLA);
+		printf("SLA: %d, ", tmp_pointer->SLA);
 		printf("R: %g, ", tmp_pointer->revenue);
 
 		printf("CPU: %d, ", tmp_pointer->cpu);
@@ -788,7 +788,7 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, float *total_qos ) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *total_revenue, long *total_qos ) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
@@ -799,15 +799,13 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	while(actual != NULL) {	
 
 		*total_revenue = *total_revenue + parent->revenue;
-		*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
-		
+		*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 		parent = actual;
 		actual = actual->next;
 	}
 	// Plus the last node
 	*total_revenue = *total_revenue + parent->revenue;
-	*total_qos = *total_qos + ((float) pow(CONSTANT,parent->SLA) * parent->SLA);
-
+	*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 
 	VM_linked_list* parent_derived = *VM_list_derived;
 	VM_linked_list* actual_derived = parent_derived->next;
@@ -815,15 +813,14 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	while(actual_derived != NULL) {	
 
 		*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
-		*total_qos = *total_qos + ((float) pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+		*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		
 		parent_derived = actual_derived;
 		actual_derived = actual_derived->next;
 	}
 	// Plus the last node
 	*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
-	*total_qos = *total_qos + ((float) pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
-
+	*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 }
 
 /**
@@ -905,12 +902,12 @@ float power_consumption (float **utilization, int **H, int h_size) {
  *
  * return 
  */
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos) {
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, long total_qos) {
 
 	float power_normalized = power * SIGMA_POWER;
 	float revenue_normalized = total_revenue * SIGMA_REVENUE;
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
-	float qos_normalized = total_qos * SIGMA_QOS;
+	long qos_normalized = total_qos * SIGMA_QOS;
 
 	return power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized;
 

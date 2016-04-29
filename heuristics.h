@@ -33,7 +33,7 @@ typedef struct VM_linked_list{
     float cpu_utilization;
     float net_utilization;
     float revenue;
-    float SLA;
+    int SLA;
     struct VM_linked_list* next;
 } VM_linked_list;
 
@@ -76,6 +76,6 @@ void free_list(PM_weight_pair_node* list_to_free);
 
 /* objective functions */
 float power_consumption (float **utilization, int **H, int h_size);
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *revenue, float *qos);
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, float *revenue, long *qos);
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size);
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos);
+float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, long total_qos);

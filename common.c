@@ -106,7 +106,7 @@ int** load_H(int h_size, char path_to_file[]) {
  * parameter: S matrix
  * return: number of unique VM
  */
-int number_unique_vm (float **S, int s_size, float * revenue_a_priori, float * qos_a_priori) {	
+int number_unique_vm (float **S, int s_size, float * revenue_a_priori, long * qos_a_priori) {
 	int number_unique_vm = 0;
 	int iterator_row;
 
@@ -121,8 +121,7 @@ int number_unique_vm (float **S, int s_size, float * revenue_a_priori, float * q
  		if(S[iterator_row][0] <= S[iterator_row][12]) {
 			number_unique_vm++;
 			*revenue_a_priori = *revenue_a_priori + S[iterator_row][10];
-			*qos_a_priori = *qos_a_priori + ((float) pow(CONSTANT,S[iterator_row][11]) * S[iterator_row][11]);
-
+			*qos_a_priori = *qos_a_priori + (custom_pow(CONSTANT,(int) S[iterator_row][11]) * (int) S[iterator_row][11]);
 			total_net = total_net + S[iterator_row][6];
 			total_ram = total_ram + S[iterator_row][5];
 			total_cpu = total_cpu + S[iterator_row][4];
@@ -134,4 +133,13 @@ int number_unique_vm (float **S, int s_size, float * revenue_a_priori, float * q
  	printf("Total NET: %d\n", total_net );
 
  	return number_unique_vm;
+}
+
+long custom_pow(int value, int exponent) {
+	long return_value = 1;
+	int index;
+	for (index = 0; index < exponent; ++index) {
+		return_value *= value;
+	}
+	return return_value;
 }
