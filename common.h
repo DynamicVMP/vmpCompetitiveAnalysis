@@ -66,4 +66,4 @@ void report_solution(int *best_solution,int** utilization,double weighted_sum,in
 void copy_int_matrix(int** matrix_A, int** matrix_B, int rows, int columns);
 void copy_int_array(int* array_A, int* array_B, int array_size);
 
-void save_objective_functions(float** objectives_functions_values_aux,int number_of_individuals);
+void save_objective_functions(double** objectives_functions_values_aux,int number_of_individuals);

@@ -758,7 +758,7 @@ void print_double_array(double *array, int columns)
 }
 
 
-void save_objective_functions(float ** objectives_functions_values_aux,int number_of_individuals){
+void save_objective_functions(double ** objectives_functions_values_aux,int number_of_individuals){
 
     FILE *objectives_functions_file;
 
