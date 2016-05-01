@@ -84,13 +84,13 @@ int generate_solution_position(int max_posible, int SLA)
  * parameter: number of physical machines
  * returns: nothing, it's void
  */
-void create_structures(int*** population_P, int*** population_Q, int**** utilization_P, int**** utilization_Q, float** weighted_sums_P,
-                       float** weighted_sums_Q, float***  objectives_functions_values_aux, int number_of_individuals, int v_size, int h_size){
+void create_structures(int*** population_P, int*** population_Q, int**** utilization_P, int**** utilization_Q, double** weighted_sums_P,
+                       double** weighted_sums_Q, double***  objectives_functions_values_aux, int number_of_individuals, int v_size, int h_size){
 
     int iterator_individual, iterator_physical;
 
     /*allocate memory for the matrix that  holds the value of each objective function for each individual */
-    *objectives_functions_values_aux = (float**)malloc(number_of_individuals*sizeof(float*));
+    *objectives_functions_values_aux = (double**)malloc(number_of_individuals*sizeof(double*));
 
     /*allocate memory for the populations*/
     *population_P = (int**)malloc(number_of_individuals*sizeof(int*));
@@ -101,7 +101,7 @@ void create_structures(int*** population_P, int*** population_Q, int**** utiliza
         (*population_Q)[iterator_individual] = (int*)malloc(v_size*sizeof(int));
 
         /*4 objective functions*/
-        (*objectives_functions_values_aux)[iterator_individual] = (float*)malloc(4*sizeof(float));
+        (*objectives_functions_values_aux)[iterator_individual] = (double*)malloc(4*sizeof(double));
 
     }
 
@@ -120,7 +120,7 @@ void create_structures(int*** population_P, int*** population_Q, int**** utiliza
     }
 
     /*allocate memory for the structure that holds the weighted sums each individual*/
-    *weighted_sums_P = (float*) malloc(number_of_individuals * sizeof(float));
-    *weighted_sums_Q = (float*) malloc(number_of_individuals * sizeof(float));
+    *weighted_sums_P = (double*) malloc(number_of_individuals * sizeof(double));
+    *weighted_sums_Q = (double*) malloc(number_of_individuals * sizeof(double));
 
 }

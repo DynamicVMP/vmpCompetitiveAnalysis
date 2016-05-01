@@ -17,7 +17,7 @@
  * parameter: number or individuals
  * returns: the parent for the crossover
  */
-int selection(float *objective_function, int number_of_individuals)
+int selection(double *objective_function, int number_of_individuals)
 {
     /* iterator */
     int iterator_solution;
@@ -47,7 +47,7 @@ int selection(float *objective_function, int number_of_individuals)
  * parameter: number of virtual machines
  * returns: the population after apply the crossover
  */
-int** selection_and_crossover(int **populationQ, int **populationP, float *weighted_sums_P, int number_of_individuals,
+int** selection_and_crossover(int **populationQ, int **populationP, double *weighted_sums_P, int number_of_individuals,
                              int v_size){
 
     int iterator,father,mother;
@@ -195,7 +195,7 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
  * parameter: number of virtual machines
  * returns: population matrix P
  */
-int** population_evolution(int **P, int **Q, float *weighted_sums_P, float *weighted_sums_Q, int number_of_individuals, int v_size)
+int** population_evolution(int **P, int **Q, double *weighted_sums_P, double *weighted_sums_Q, int number_of_individuals, int v_size)
 {
 
     int index_best_solution_P = get_best_solution_index(weighted_sums_P,number_of_individuals);
@@ -218,7 +218,7 @@ int** population_evolution(int **P, int **Q, float *weighted_sums_P, float *weig
  *
  * returns: nothing, it's a void function.
  */
-void quicksort_sort(float *weighted_sums,int ** population, int first_index, int last_index){
+void quicksort_sort(double *weighted_sums,int ** population, int first_index, int last_index){
 
     int pivot_index = 0;
 
@@ -240,11 +240,11 @@ void quicksort_sort(float *weighted_sums,int ** population, int first_index, int
  *
  * returns: the position of the pivot to use.
  */
-int quicksort_partition(float *weighted_sums,int ** population, int first_index, int last_index){
+int quicksort_partition(double *weighted_sums,int ** population, int first_index, int last_index){
 
     int up_index, down_index;
     bool first_iteration = true;
-    float pivot, temp;
+    double pivot, temp;
     int* temp_indv;
     int* pivot_indv;
 
