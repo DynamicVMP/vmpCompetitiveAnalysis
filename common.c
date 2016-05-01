@@ -206,7 +206,7 @@ int get_v_size_per_t(float** matrix_s, int t, int max_row){
  * parameter: the time t considered
  * returns: the matrix V of virtual machines
  */
-float ** load_v_per_t(float ** matrix_s,int s_size,int v_size,float *qos_a_priori, float *revenue_a_priori, int t){
+float ** load_v_per_t(float ** matrix_s,int s_size,int v_size,double *qos_a_priori, float *revenue_a_priori, int t){
 
     int iterator;
     float **matrix_v = (float**)malloc(v_size*sizeof(float*));
@@ -251,7 +251,7 @@ float ** load_v_per_t(float ** matrix_s,int s_size,int v_size,float *qos_a_prior
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
 
 
-                *qos_a_priori += ((float) pow(CONSTANT,matrix_v[iterator_v][3]) * matrix_v[iterator_v][3]);
+                *qos_a_priori += pow(CONSTANT,matrix_v[iterator_v][3]) * matrix_v[iterator_v][3];
                 *revenue_a_priori += matrix_v[iterator_v][4];
             }
             iterator_v++;
@@ -337,15 +337,16 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
  * parameter: counter of the times the objective functions are calculated
  * returns: an array with the values of the objective function of each solution
  */
-float* load_weighted_sums(float **objective_functions_values_aux, float *weighted_sums, int **population,
-                          int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size,float qos_a_priori, float revenue_a_priori,int* OF_calc_count)
+double* load_weighted_sums(double **objective_functions_values_aux, double *weighted_sums, int **population,
+                          int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size,double qos_a_priori, float revenue_a_priori,int* OF_calc_count)
 {
     /* iterators */
     int iterator_individual,iterator_physical,iterator_virtual,physical_position;
     /* utility of a physical machine */
     float utilidad;
     /**/
-    float power_consumption,economical_revenue, quality_of_service, wasted_resources_ratio;
+    float power_consumption,economical_revenue, wasted_resources_ratio;
+    double quality_of_service;
     /**/
     float wasted_cpu_resources, wasted_ram_resources , wasted_net_resources;
     float wasted_cpu_resources_ratio, wasted_ram_resources_ratio, wasted_net_resources_ratio;
@@ -405,7 +406,7 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
                 /* calculate the economical revenue */
                 economical_revenue += V[iterator_virtual][4];
                 /* calculate  the QoS */
-                quality_of_service += (float)pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
+                quality_of_service += pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
             }else{
                 /* calculate the economical revenue */
                 economical_revenue += 0.9*V[iterator_virtual][4];
@@ -434,12 +435,12 @@ float* load_weighted_sums(float **objective_functions_values_aux, float *weighte
  *
  * return: the weighted sum
  */
-float calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, float total_qos, float qos_a_priori, float revenue_a_priori){
+double calculates_weighted_sum(float power, float total_revenue, float wasted_resources_ratio, double total_qos, double qos_a_priori, float revenue_a_priori){
 
     float power_normalized = power * (float)SIGMA_POWER;
     float revenue_normalized = (revenue_a_priori - total_revenue) * (float)SIGMA_REVENUE;
     float wasted_resources_normalized = wasted_resources_ratio * (float)SIGMA_RESOURCES;
-    float qos_normalized = (qos_a_priori - total_qos) * (float)SIGMA_QOS;
+    double qos_normalized = (qos_a_priori - total_qos) * (double)SIGMA_QOS;
 
     return power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized ;
 
@@ -452,11 +453,11 @@ float calculates_weighted_sum(float power, float total_revenue, float wasted_res
  * parameter: the number of individuals
  * returns: the index of the individual that represents de the solution selected
  */
-int get_best_solution_index(float* weighted_sums, int number_of_individuals){
+int get_best_solution_index(double* weighted_sums, int number_of_individuals){
 
     int iterator;
     int index_best_solution=0;
-    float min_value = weighted_sums[0];
+    double min_value = weighted_sums[0];
     for(iterator=1;iterator<number_of_individuals;iterator++){
         if(weighted_sums[iterator]<min_value){
             index_best_solution = iterator;
@@ -467,11 +468,11 @@ int get_best_solution_index(float* weighted_sums, int number_of_individuals){
     return index_best_solution;
 }
 
-int get_worst_solution_index(float* weighted_sums, int number_of_individuals){
+int get_worst_solution_index(double* weighted_sums, int number_of_individuals){
 
     int iterator;
     int index_worst_solution=0;
-    float max_value = weighted_sums[0];
+    double max_value = weighted_sums[0];
     for(iterator=1;iterator<number_of_individuals;iterator++){
         if(weighted_sums[iterator]>max_value){
             index_worst_solution = iterator;
@@ -493,7 +494,7 @@ int get_worst_solution_index(float* weighted_sums, int number_of_individuals){
  * parameter: time t
  * returns: nothing, it's void
  */
-void report_solution(int *best_solution, int** utilization, float weighted_sum, int h_size, int v_size, int t){
+void report_solution(int *best_solution, int** utilization, double weighted_sum, int h_size, int v_size, int t){
 
     FILE *solutions_t;
     FILE *cpu_utilization_t;
@@ -572,6 +573,22 @@ void free_float_matrix(float** matrix, int rows){
     }
     free(matrix);
 }
+
+
+/* free_double_matrix: free memory allocated for a double matrix
+ * parameter: double matrix
+ * parameter: number of rows
+ * returns: nothing, it's void
+ */
+void free_double_matrix(double** matrix, int rows){
+
+    int iterator;
+    for(iterator=0;iterator<rows;iterator++){
+        free(matrix[iterator]);
+    }
+    free(matrix);
+}
+
 
 
 /* free_int_matrix: free memory allocated for a int  matrix
@@ -665,6 +682,33 @@ void print_float_matrix(float **matrix, int rows, int columns)
     }
 }
 
+
+/* print_double_matrix: prints on screen a double matrix
+ * parameter: matrix to print
+ * parameter: number of individuals
+ * parameter: number of virtual machines
+ * returns: nothing, it's void
+ */
+void print_double_matrix(double **matrix, int rows, int columns)
+{
+    /* iterators */
+    int iterator_row;
+    int iterator_column;
+    /* iterate on rows */
+    for (iterator_row=0; iterator_row < rows; iterator_row++)
+    {
+        printf("[DEBUG] ROW %d:\t",iterator_row);
+        /* iterate on columns */
+        for (iterator_column = 0; iterator_column < columns; iterator_column++)
+        {
+            printf("%f\t",matrix[iterator_row][iterator_column]);
+        }
+        printf("\n");
+    }
+}
+
+
+
 /* print_int_array: prints on screen a int array
  * parameter: array to print
  * parameter: number of virtual machines
@@ -687,6 +731,22 @@ void print_int_array(int *array, int columns)
  * returns: nothing, it's void
  */
 void print_float_array(float *array, int columns)
+{
+    /* iterators */
+    int iterator_column;
+    /* iterate on columns */
+    for (iterator_column = 0; iterator_column < columns; iterator_column++)
+    {
+        printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);
+    }
+}
+
+/* print_double_array: prints on screen a double array
+ * parameter: array to print
+ * parameter: number of columns
+ * returns: nothing, it's void
+ */
+void print_double_array(double *array, int columns)
 {
     /* iterators */
     int iterator_column;

@@ -60,7 +60,7 @@ int main (int argc, char *argv[]) {
         /*matrix of virtual machines*/
         float **V;
         /*Max QoS*/
-        float qos_a_priori;
+        double qos_a_priori;
         /*Max Economical Revenue*/
         float revenue_a_priori;
 
@@ -96,15 +96,15 @@ int main (int argc, char *argv[]) {
         int* best_solution;
 
         /*matrix that holds the objective functions values of each individual*/
-        float** objectives_functions_values;
+        double** objectives_functions_values;
 
         /*structures for Q and P  */
         int **Q;
         int ***utilization_Q;
-        float *weighted_sums_Q;
+        double *weighted_sums_Q;
         int **P;
         int ***utilization_P;
-        float *weighted_sums_P;
+        double *weighted_sums_P;
 
         /*counters*/
         int t=1;
@@ -208,8 +208,8 @@ int main (int argc, char *argv[]) {
             printf("\nRESULTS for T=%d\n",t);
             printf("Time taken %d seconds %d milliseconds\n", msec / 1000, msec % 1000);
 
-            print_float_matrix(objectives_functions_values,NUMBER_OF_INDIVIDUALS,4);
-            print_float_array(weighted_sums_P,NUMBER_OF_INDIVIDUALS);
+            print_double_matrix(objectives_functions_values,NUMBER_OF_INDIVIDUALS,4);
+            print_double_array(weighted_sums_P,NUMBER_OF_INDIVIDUALS);
 
             save_objective_functions(objectives_functions_values,NUMBER_OF_INDIVIDUALS);
 
@@ -219,7 +219,7 @@ int main (int argc, char *argv[]) {
             free_int_matrix(Q, NUMBER_OF_INDIVIDUALS);
             free(weighted_sums_P);
             free(weighted_sums_Q);
-            free_float_matrix(objectives_functions_values, NUMBER_OF_INDIVIDUALS);
+            free_double_matrix(objectives_functions_values, NUMBER_OF_INDIVIDUALS);
             free_utilization_matrix(utilization_P, NUMBER_OF_INDIVIDUALS, h_size);
             free_utilization_matrix(utilization_Q, NUMBER_OF_INDIVIDUALS, h_size);
 
