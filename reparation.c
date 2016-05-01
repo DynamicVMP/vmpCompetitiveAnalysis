@@ -132,22 +132,15 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
 
                 if (!migration)
                 {
-                    if (V[iterator_virtual][3]!=max_SLA)
-                    {
-                        /* delete requirements from physical machine migration source */
-                        utilization[individual][population[individual][iterator_virtual]-1][0] -= V[iterator_virtual][0];
-                        utilization[individual][population[individual][iterator_virtual]-1][1] -= V[iterator_virtual][1];
-                        utilization[individual][population[individual][iterator_virtual]-1][2] -= V[iterator_virtual][2];
+                    /* delete requirements from physical machine migration source */
+                    utilization[individual][population[individual][iterator_virtual]-1][0] -= V[iterator_virtual][0];
+                    utilization[individual][population[individual][iterator_virtual]-1][1] -= V[iterator_virtual][1];
+                    utilization[individual][population[individual][iterator_virtual]-1][2] -= V[iterator_virtual][2];
 
-                        /* refresh the population */
-                        population[individual][iterator_virtual] = 0;
-                        /* virtual machine correctly "deleted" */
-                        migration = 1;
-                    }
-                }
-                if(!migration)
-                {
-                    break;
+                    /* refresh the population */
+                    population[individual][iterator_virtual] = 0;
+                    /* virtual machine correctly "deleted" */
+                    migration = 1;
                 }
             }
         }
@@ -176,7 +169,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
                 }
 
                 /* if enough VMs with SLA!=maxSLA can be shutdown on PM(candidate) to accomodate the SLA(maxSLA) VM */
-                if ((aux_cpu_sum >= V[iterator_virtual][0]) && (aux_mem_sum >= V[iterator_virtual][1]) && (aux_net_sum >= V[iterator_virtual][2])) {
+                if (check_candidate_capacity(utilization,individual,candidate,V,iterator_virtual,H,aux_cpu_sum,aux_mem_sum,aux_net_sum)) {
                     /* iterate on virtual machines to put SLA(maxSLA) VM on PM(candidate) */
                     aux_cpu_sum, aux_net_sum, aux_mem_sum = 0;
                     for (iterator_virtual_2 = 0; iterator_virtual_2 < v_size; iterator_virtual_2++)
@@ -318,6 +311,18 @@ int check_pm_capacity(int ***utilization, int individual, int candidate, float *
     }
 
     return 0;
+}
+
+
+int check_candidate_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int**H, int aux_cpu_sum, int aux_ram_sum, int aux_net_sum){
+
+    if((utilization[individual][candidate-1][0] - aux_cpu_sum + V[virtual_machine][0] <= H[candidate-1][0])
+            && (utilization[individual][candidate-1][1]- aux_ram_sum + V[virtual_machine][1] <= H[candidate-1][1])
+            && (utilization[individual][candidate-1][2]- aux_net_sum + V[virtual_machine][2] <= H[candidate-1][2])){
+        return 1;
+    }
+    return 0;
+
 }
 
 

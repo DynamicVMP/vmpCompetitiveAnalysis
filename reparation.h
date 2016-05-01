@@ -20,3 +20,4 @@ int is_overloaded(int **H, int ***utilization, int individual, int physical);
 int check_feasibility(int** population,int *** utilization,int iterator_individual,int ** H, float ** V,int h_size,int v_size,int max_SLA);
 int check_pm_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int **H);
 int generate_unique_candidate(int service, int vm_index, int **population, int individual, int ***utilization, float **V, int v_size, int **H, int h_size);
+int check_candidate_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int**H, int aux_cpu_sum, int aux_ram_sum, int aux_net_sum);
