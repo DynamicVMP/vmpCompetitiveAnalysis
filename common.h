@@ -17,10 +17,10 @@
 #define S_HEADER "SCENARIO"
 #define TAM_BUFFER BUFSIZ
 #define CONSTANT 10000
-#define SIGMA_POWER 0.25
-#define SIGMA_REVENUE 0.25
-#define SIGMA_RESOURCES 0.25
-#define SIGMA_QOS 0.25
+#define SIGMA_POWER 1
+#define SIGMA_REVENUE 1
+#define SIGMA_RESOURCES 1
+#define SIGMA_QOS 1
 
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
