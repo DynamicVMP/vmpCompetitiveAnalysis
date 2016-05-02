@@ -40,6 +40,13 @@ int main (int argc, char *argv[]) {
 	float * wasted_resources_ratio_array;
 	float * power_consumption_array;
 
+	bool first_time = true;
+
+	long max_revenue, min_revenue;
+	long max_qos, min_qos;
+	float max_wasted_resources, min_wasted_resources;
+	float max_power, min_power;
+
 	// File pointers
 	FILE *power_consumption_file;
 	FILE *economical_revenue_file;
@@ -191,6 +198,44 @@ int main (int argc, char *argv[]) {
 				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
  				economical_revenue(&VM_list, &VM_list_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
 
+				// Calculates the max and min of each objective function
+				if( first_time ) {
+					min_power = power_consumption_array[time_unit];
+					max_power = power_consumption_array[time_unit];
+					min_qos = total_qos_array[time_unit];
+					max_qos = total_qos_array[time_unit];
+					min_revenue = total_revenue_array[time_unit];
+					max_revenue = total_revenue_array[time_unit];
+					min_wasted_resources = wasted_resources_ratio_array[time_unit];
+					max_wasted_resources = wasted_resources_ratio_array[time_unit];
+					first_time = false;
+				} else {
+
+					if ( power_consumption_array[time_unit] < min_power ) {
+						min_power = power_consumption_array[time_unit];
+					} else if ( power_consumption_array[time_unit] > max_power ) {
+						max_power = power_consumption_array[time_unit];
+					}
+
+					if ( total_qos_array[time_unit] < min_qos ) {
+						min_qos = total_qos_array[time_unit];
+					} else if ( total_qos_array[time_unit] > max_qos ) {
+						max_qos = total_qos_array[time_unit];
+					}
+
+					if ( total_revenue_array[time_unit] < min_revenue ) {
+						min_revenue = total_revenue_array[time_unit];
+					} else if ( total_revenue_array[time_unit] > max_revenue ) {
+						max_revenue = total_revenue_array[time_unit];
+					}
+
+					if ( wasted_resources_ratio_array[time_unit] < min_wasted_resources ) {
+						min_wasted_resources = wasted_resources_ratio_array[time_unit];
+					} else if ( wasted_resources_ratio_array[time_unit] > max_wasted_resources ) {
+						max_wasted_resources = wasted_resources_ratio_array[time_unit];
+					}
+
+				}
  				// Save to FILE 
  				fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit] );
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
@@ -243,6 +288,31 @@ int main (int argc, char *argv[]) {
 		economical_revenue(&VM_list, &VM_list_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
 		wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
 
+		// Calculates the max and min of each objective function
+		if ( power_consumption_array[time_unit] < min_power ) {
+			min_power = power_consumption_array[time_unit];
+		} else if ( power_consumption_array[time_unit] > max_power ) {
+			max_power = power_consumption_array[time_unit];
+		}
+
+		if ( total_qos_array[time_unit] < min_qos ) {
+			min_qos = total_qos_array[time_unit];
+		} else if ( total_qos_array[time_unit] > max_qos ) {
+			max_qos = total_qos_array[time_unit];
+		}
+
+		if ( total_revenue_array[time_unit] < min_revenue ) {
+			min_revenue = total_revenue_array[time_unit];
+		} else if ( total_revenue_array[time_unit] > max_revenue ) {
+			max_revenue = total_revenue_array[time_unit];
+		}
+
+		if ( wasted_resources_ratio_array[time_unit] < min_wasted_resources ) {
+			min_wasted_resources = wasted_resources_ratio_array[time_unit];
+		} else if ( wasted_resources_ratio_array[time_unit] > max_wasted_resources ) {
+			max_wasted_resources = wasted_resources_ratio_array[time_unit];
+		}
+
 		// Save to FILE
 		fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit]);
 		fprintf(economical_revenue_file, "%li\n", total_revenue_array[time_unit]);
@@ -253,12 +323,15 @@ int main (int argc, char *argv[]) {
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
 		float average_power_consumption = calculate_average_from_array( power_consumption_array, total_t + 1 );
 
+		float normalized_wasted_resources_ratio = (average_wasted_resource_ratio - max_wasted_resources) / (min_wasted_resources - max_wasted_resources);
+		float normalized_power_consumption = (average_power_consumption - max_power) / (min_power - max_power);
+
 		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
 
 		long delta_revenue = revenue_a_priori - total_revenue_array[time_unit];
 		long delta_qos = qos_a_priori - total_qos_array[time_unit];
 
-		float weighted_sum = calculates_weighted_sum(average_power_consumption, delta_revenue , average_wasted_resource_ratio, delta_qos);
+		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, delta_revenue , normalized_wasted_resources_ratio, delta_qos);
 
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
