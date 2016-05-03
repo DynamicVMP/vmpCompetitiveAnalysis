@@ -61,7 +61,7 @@ void insert_VM_to_tend_list(VM_linked_list** vm_list, float * request, int h_ind
 bool time_comparator(int time_A, int time_B);
 bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_linked_list** vm_list, int **H);
 void update_VM_list(VM_linked_list** vm_tend_list, float *request, int physical_machine);
-void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int currnt_time, int h_size);
+long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int currnt_time, int h_size);
 
 /* Print functions definitions */
 void print_VM_list(VM_linked_list* list_to_free);

@@ -35,15 +35,20 @@ int main (int argc, char *argv[]) {
 	int vm_migrated = 0;
 	int heuristic = 0;
 	int time_unit = 0;
-	long * total_revenue_array;
+	double * total_revenue_array;
 	long * total_qos_array;
 	float * wasted_resources_ratio_array;
 	float * power_consumption_array;
+	long revenue_a_priori_t = 0;
+	long total_revenue = 0;
+	long total_qos = 0;
 
 	bool first_time = true;
 
-	long max_revenue, min_revenue;
-	long max_qos, min_qos;
+	double max_revenue = 0;
+	double min_revenue; 
+	long max_qos = 0; 
+	long min_qos;
 	float max_wasted_resources, min_wasted_resources;
 	float max_power, min_power;
 
@@ -117,7 +122,6 @@ int main (int argc, char *argv[]) {
 	VM_list_serviced_derived->revenue = 0;
 	VM_list_serviced_derived->next = NULL;
 
-
 	heuristics_array[0] = first_fit;
 	heuristics_array[1] = best_fit;
 	heuristics_array[2] = worst_fit;
@@ -142,7 +146,7 @@ int main (int argc, char *argv[]) {
 
 		total_t = S[s_size - 1][0];
 
-		total_revenue_array = (long *) calloc (total_t + 1, sizeof(long *));
+		total_revenue_array = (double *) calloc (total_t + 1, sizeof(double *));
 		total_qos_array = (long *) calloc (total_t + 1, sizeof(long *));
 		wasted_resources_ratio_array = (float *) calloc (total_t + 1, sizeof(float *));
 		power_consumption_array = (float *) calloc (total_t + 1, sizeof(float *));
@@ -187,16 +191,20 @@ int main (int argc, char *argv[]) {
 			heuristic -= 3;
 		}
 
+		long removeRevenue;
+
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			
  			if(S[iterator_row][0] != time_unit ) {
-				 // check_VM_linked_list and update the VM placement and utilization matrix
-				remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
- 				
+				
  				// Calculates Objective Functions
+ 				removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
+				economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
 				power_consumption_array[time_unit] = power_consumption(utilization, H, h_size);
 				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
- 				economical_revenue(&VM_list, &VM_list_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
+ 				
+ 				total_revenue_array[time_unit] = revenue_a_priori_t - total_revenue;
+				revenue_a_priori_t = revenue_a_priori_t - removeRevenue;
 
 				// Calculates the max and min of each objective function
 				if( first_time ) {
@@ -260,7 +268,7 @@ int main (int argc, char *argv[]) {
 
 			// If current_time is equal to VM tinit, allocated VM  
 			if(S[iterator_row][0] <= S[iterator_row][12]) {
-				// printf("\nRequest: %g %g %g %g %g", S[iterator_row][0], S[iterator_row][1], S[iterator_row][2], S[iterator_row][3], S[iterator_row][13] );
+				revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
 				if( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &VM_list_derived, &VM_list, &VM_list_serviced, &VM_list_serviced_derived) ) {
 					request_serviced++;
 				} else {
@@ -268,8 +276,6 @@ int main (int argc, char *argv[]) {
 				}
 			} else {
 				// Update VM resources
-				// printf("\nRequest: %g %g %g %g %g", S[iterator_row][0], S[iterator_row][1], S[iterator_row][2], S[iterator_row][3], S[iterator_row][13] );
-				//  If current_time is less than VM tend
 				if(S[iterator_row][0] <= S[iterator_row][13] 
 					&& update_VM_resources(placement, utilization, resources_requested, S[iterator_row], &VM_list, H)) {
 					// printf("\nVM Update successful!\n");
@@ -281,12 +287,20 @@ int main (int argc, char *argv[]) {
 			}
 		}
 		// Remove all VM
-		remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
 		
 		// Calculates objective functions
+		printf("T: %d", time_unit);
 		power_consumption_array[time_unit] = power_consumption(utilization, H, h_size);
-		economical_revenue(&VM_list, &VM_list_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
+		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
 		wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
+		
+		total_revenue_array[time_unit] =  revenue_a_priori_t - total_revenue;
+		removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
+
+		power_consumption_array[time_unit + 1] = power_consumption(utilization, H, h_size);
+		wasted_resources_ratio_array[time_unit + 1] = wasted_resources(utilization, resources_requested, H, h_size);
+		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
+		total_revenue_array[time_unit + 1] =  revenue_a_priori_t - total_revenue;
 
 		// Calculates the max and min of each objective function
 		if ( power_consumption_array[time_unit] < min_power ) {
@@ -326,12 +340,39 @@ int main (int argc, char *argv[]) {
 		float normalized_wasted_resources_ratio = (average_wasted_resource_ratio - max_wasted_resources) / (min_wasted_resources - max_wasted_resources);
 		float normalized_power_consumption = (average_power_consumption - max_power) / (min_power - max_power);
 
-		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue_array[time_unit], &total_qos_array[time_unit]);
+		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue, &total_qos);
 
-		long delta_revenue = revenue_a_priori - total_revenue_array[time_unit];
-		long delta_qos = qos_a_priori - total_qos_array[time_unit];
+		// Normalized Revenue
+		double normalized_revenue = 0;
+		long delta_revenue = revenue_a_priori - total_revenue;
+		double revenue_to_normalized = (double) delta_revenue;
+		
+		if(delta_revenue > 0) {
+			normalized_revenue =  (revenue_to_normalized - max_revenue) / (min_revenue - max_revenue);
+		}
 
-		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, delta_revenue , normalized_wasted_resources_ratio, delta_qos);
+		printf("\nRevenue");
+		printf("\nToNormalized: %f \n", revenue_to_normalized);
+		printf("MIN: %f\n", min_revenue);
+		printf("MAX: %f\n", max_revenue);
+		printf("Normalized Revenue: %f \n", normalized_revenue);
+
+		// Normalized QoS
+		double normalized_qos = 0;
+		long delta_qos = qos_a_priori - total_qos;
+		double qos_to_normalized = (double) delta_qos;
+
+		if(delta_qos > 0) {
+			normalized_qos = (qos_to_normalized - max_qos) / (min_qos - max_qos);
+		}
+
+		printf("\nQoS");
+		printf("\nToNormalized: %f \n", qos_to_normalized);
+		printf("MIN: %f\n", min_qos);
+		printf("MAX: %f\n", max_qos);
+		printf("Normalized QoS: %f \n", normalized_qos);
+
+		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos);
 
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
@@ -358,10 +399,10 @@ int main (int argc, char *argv[]) {
 		printf("Simulated time: %d time units.\n", time_unit);
 		printf("Power Consumption: %.6g\n", average_power_consumption);
 		printf("Economical Revenue a priori: %li\n", revenue_a_priori);
-		printf("Economical Revenue: %li\n", total_revenue_array[time_unit]);
+		printf("Economical Revenue: %li\n", total_revenue);
 		printf("Delta - Economical Revenue: %li\n", delta_revenue);
 		printf("Quality of Service a priori: %li\n", qos_a_priori);
-		printf("Quality of Service: %li\n", total_qos_array[time_unit]);
+		printf("Quality of Service: %li\n", total_qos);
 		printf("Delta - Quality of Service: %li\n", delta_qos);
 		printf("Wasted Resources: %.6g\n", average_wasted_resource_ratio);
 		printf("Weighted Sum: %.8g\n", weighted_sum);
@@ -377,12 +418,13 @@ int main (int argc, char *argv[]) {
 		free_int_matrix(placement, 9);
 		free_int_matrix(H, h_size);
 		free_float_matrix(S, s_size);
-//		print_VM_list(VM_list_serviced);
-//		print_VM_list(VM_list_serviced_derived);
+		// print_VM_list(VM_list_serviced);
+		// print_VM_list(VM_list_serviced_derived);
+		// print_double_array(total_revenue_array, 95);
 		free_VM_list(VM_list);
 		free_VM_list(VM_list_derived);
 		free_VM_list(VM_list_serviced);
-
+		free_VM_list(VM_list_serviced_derived);
 		/* finish him */
 		return 0;
 	}

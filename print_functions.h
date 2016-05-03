@@ -18,6 +18,7 @@ void print_int_matrix(int ** matrix, int rows, int columns);
 void print_float_matrix(float ** matrix, int rows, int columns);
 void print_int_array(int * array, int columns);
 void print_float_array(float * array, int columns);
+void print_double_array(double *array, int columns);
 
 /* Print to FILE */
 void print_placement_to_file(char * file, int ** matrix, int rows, int columns);

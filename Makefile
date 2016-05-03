@@ -12,11 +12,48 @@ init:
 run_mini_input:
 	./imavmp inputs/mini_input.vmp
 
-run_1:
+run_normal_1:
 	./imavmp inputs/100.1\ -\ Normal
 
-run_2:
+run_normal_2:
+	./imavmp inputs/100.2\ -\ Normal
+
+run_normal_3:
+	./imavmp inputs/100.3\ -\ Normal
+
+run_normal_4:
+	./imavmp inputs/100.4\ -\ Normal
+
+run_normal_5:
+	./imavmp inputs/100.5\ -\ Normal
+
+run_poisson_1:
 	./imavmp inputs/100.1\ -\ Poisson
 
-run_3:
+run_poisson_2:
+	./imavmp inputs/100.2\ -\ Poisson
+
+run_poisson_3:
+	./imavmp inputs/100.3\ -\ Poisson
+
+run_poisson_4:
+	./imavmp inputs/100.4\ -\ Poisson
+
+run_poisson_5:
+	./imavmp inputs/100.5\ -\ Poisson
+
+run_uniform_1:
 	./imavmp inputs/100.1\ -\ Uniforme
+
+run_uniform_2:
+	./imavmp inputs/100.2\ -\ Uniforme
+
+run_uniform_3:
+	./imavmp inputs/100.3\ -\ Uniforme
+
+run_uniform_4:
+	./imavmp inputs/100.4\ -\ Uniforme
+
+run_uniform_5:
+	./imavmp inputs/100.5\ -\ Uniforme
+
