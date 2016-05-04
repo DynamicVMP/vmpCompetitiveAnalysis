@@ -75,7 +75,16 @@ void print_float_array(float *array, int columns) {
 	int iterator_column;
 	/* iterate on columns */
 	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
-		printf("[DEBUG] [%d]: %g\n",iterator_column,array[iterator_column]);	
+		printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);	
+	}
+}
+
+void print_double_array(double *array, int columns) {
+	/* iterators */
+	int iterator_column;
+	/* iterate on columns */
+	for (iterator_column = 0; iterator_column < columns; iterator_column++) {
+		printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);	
 	}
 }
 

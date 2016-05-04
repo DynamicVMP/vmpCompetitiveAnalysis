@@ -520,8 +520,10 @@ bool time_comparator(int time_A, int time_B) {
  * parameter h_size: Number of physical machines
  * return: nothing, it's a void function.
  */
-void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int current_time,
+long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int current_time,
 	int h_size) {
+
+	long lost_revenue = 0;
 
 	VM_linked_list* parent = *vm_list;
 	VM_linked_list* actual = parent->next;
@@ -539,34 +541,68 @@ void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 			resources_requested[parent->pm][1] = resources_requested[parent->pm][1] - (float) parent->ram;
 			resources_requested[parent->pm][2] = resources_requested[parent->pm][2] - (float) parent->net;
 
-			// Delete node from ordered list
+			lost_revenue = lost_revenue + parent->revenue;
+
 			VM_linked_list* temp = *vm_list;
 			*vm_list = (*vm_list)->next;
 			parent = *vm_list;
 			free(temp);
-//			printf("REMOVE FROM LOCAL DATACENTER\n");
 
 	    }
 	    parent = actual;
 	    actual = actual->next;
 	}
 
+	if(parent->tend == current_time) {
+		// update the utilization matrix
+		utilization[parent->pm][0] -= parent->cpu_utilization;
+		utilization[parent->pm][1] -= parent->ram_utilization;
+		utilization[parent->pm][2] -= parent->net_utilization;
 
+		resources_requested[parent->pm][0] = resources_requested[parent->pm][0] - (float) parent->cpu;
+		resources_requested[parent->pm][1] = resources_requested[parent->pm][1] - (float) parent->ram;
+		resources_requested[parent->pm][2] = resources_requested[parent->pm][2] - (float) parent->net;
+
+		lost_revenue = lost_revenue + parent->revenue;
+
+		parent->vm_index = -1;
+		parent->tend = -1;
+		parent->pm = -1;
+		parent->SLA = 0;
+		parent->revenue = 0;
+		parent->next = NULL;
+    }
+	
 	VM_linked_list* parent_derived = *VM_list_derived;
 	VM_linked_list* actual_derived = parent_derived->next;
 
 	while(actual_derived != NULL) { 
 		if(parent_derived->tend == current_time) {
 			
+			lost_revenue = lost_revenue + parent_derived->revenue;
+
 			VM_linked_list* temp = *VM_list_derived;
 			*VM_list_derived = (*VM_list_derived)->next;
 			parent_derived = *VM_list_derived;
 			free(temp);
-//			printf("REMOVE FROM FEDERATE CLOUD\n");
+	    
 	    }
 	    parent_derived = actual_derived;
 	    actual_derived = actual_derived->next;
 	}
+
+	if(parent_derived->tend == current_time) {
+			
+		lost_revenue = lost_revenue + parent_derived->revenue;
+		parent_derived->vm_index = -1;
+		parent_derived->tend = -1;
+		parent_derived->pm = -1;
+		parent_derived->SLA = 0;
+		parent_derived->revenue = 0;
+		parent_derived->next = NULL;
+    }
+
+	return lost_revenue;
 
 }
 
