@@ -8,10 +8,10 @@
 /* include libraries */
 #include "common.h"
 
-#define SIGMA_POWER 0.3348023636
-#define SIGMA_REVENUE 0.2038473718
-#define SIGMA_RESOURCES 0.1265479009
-#define SIGMA_QOS 0.1517860231
+#define SIGMA_POWER 4.576200675
+#define SIGMA_REVENUE 2.78626014
+#define SIGMA_RESOURCES 1.729702812
+#define SIGMA_QOS 2.074666659
 
 /* definitions */
 typedef struct PM_weight_pair_node{

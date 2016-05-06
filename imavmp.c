@@ -274,7 +274,7 @@ int main (int argc, char *argv[]) {
 
 				}
  				// Save to FILE 
- 				fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit] );
+ 				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit] );
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
 				fprintf(economical_revenue_file, "%.4g\n", total_revenue_array[time_unit]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
@@ -357,7 +357,7 @@ int main (int argc, char *argv[]) {
 		}
 
 		// Save to FILE
-		fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit]);
+		fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit]);
 		fprintf(economical_revenue_file, "%.4g\n", total_revenue_array[time_unit]);
 		fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
 		fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
@@ -445,8 +445,8 @@ int main (int argc, char *argv[]) {
 		}
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
-		free_int_matrix(placement, 9);
-		free_int_matrix(H, h_size);
+//		free_int_matrix(placement, VM_FEATURES);
+//		free_int_matrix(H, h_size);
 		free_float_matrix(S, s_size);
 		// print_VM_list(VM_list_serviced);
 		// print_VM_list(VM_list_serviced_derived);
