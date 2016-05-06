@@ -16,7 +16,8 @@
 #define MAX_SLA 4
 
 /* 
- * parameter: path to the datacenter infrastructure file
+ * parameter 1: path to the datacenter infrastructure file
+ * parameter 2(optional): selected heuristic
  * returns: exit state
  */
 int main (int argc, char *argv[]) {
@@ -44,6 +45,10 @@ int main (int argc, char *argv[]) {
 	long total_qos = 0;
 
 	bool first_time = true;
+	char file_postfix [300] = "";
+	char file_name [300] = "";
+	char * temp_file_name;
+
 
 	double max_revenue = 0;
 	double min_revenue; 
@@ -63,20 +68,42 @@ int main (int argc, char *argv[]) {
 	FILE *execution_time_file;
 	FILE *weighted_sum_file;
 
+	// Heuristic Names
+	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
+
 	// Timer
 	clock_t start;
 	clock_t diff;
 	int msec;
 
+	if ( argc > 2 ) {
+		strcpy(temp_file_name, argv[1]);
+		temp_file_name = strtok (temp_file_name, "/");
+		while (temp_file_name != NULL)
+		{
+			sprintf(file_name,"%s",temp_file_name);
+			temp_file_name = strtok (NULL, "/");
+		}
+		sprintf(file_postfix,"-%s-%s",file_name,heuristics_names[atoi(argv[2])-1]);
+	}
 	// Files
 	execution_time_file = fopen("results/time","a");
 
 	// Objective functions files
-	power_consumption_file = fopen("results/power_consumption","a");
-	economical_revenue_file = fopen("results/economical_revenue","a");
-	quality_service_file = fopen("results/quality_service","a");
-	wasted_resources_file = fopen("results/wasted_resources","a");
-	weighted_sum_file = fopen("results/weighted_sum","a");
+	sprintf(file_name,"results/power_consumption%s",file_postfix);
+	power_consumption_file = fopen(file_name,"a");
+
+	sprintf(file_name,"results/economical_revenue%s",file_postfix);
+	economical_revenue_file = fopen(file_name,"a");
+
+	sprintf(file_name,"results/quality_service%s",file_postfix);
+	quality_service_file = fopen(file_name,"a");
+
+	sprintf(file_name,"results/wasted_resources%s",file_postfix);
+	wasted_resources_file = fopen(file_name,"a");
+
+	sprintf(file_name,"results/weighted_sum%s",file_postfix);
+	weighted_sum_file = fopen(file_name,"a");
 
 	// Resources files
 	cpu_utilization = fopen("results/cpu_utilization", "a");
@@ -85,9 +112,6 @@ int main (int argc, char *argv[]) {
 
 	// Heuristic
 	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** VM_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived);
-
-	// Heuristic Names
-	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
 	// VM linked list wich contains all VM currently hosted by local DC
 	VM_linked_list* VM_list = (VM_linked_list*)calloc(1,sizeof(VM_linked_list));
@@ -135,7 +159,6 @@ int main (int argc, char *argv[]) {
 	} 
     /* Good parameters */	
 	else {
-		printf("\nVMP - HEURISTIC APPROACH \n\n");
 
 		/* Get the number of physical machines and requests from the datacenter infrastructure file (argv[1]) */
 		int h_size = get_h_size(argv[1]);					// Number of Physical Machines
@@ -151,39 +174,45 @@ int main (int argc, char *argv[]) {
 		wasted_resources_ratio_array = (float *) calloc (total_t + 1, sizeof(float *));
 		power_consumption_array = (float *) calloc (total_t + 1, sizeof(float *));
 
-		printf("Total Physical Machines: %d\n", h_size); 
-		printf("Total request: %d\n", s_size);
-		printf("Unique VM: %d\n", unique_vms);
-		printf("Economical Revenue a priori: %li\n", revenue_a_priori);
-		printf("Quality of Service a priori: %li\n", qos_a_priori);
-
-		// Initial Placement matrix 
+		// Initial Placement matrix
 		int **placement = placement_initialization(VM_FEATURES, unique_vms);
-		
-		// Initial Utilization matrix 
+
+		// Initial Utilization matrix
 		float **utilization = utilization_initialization(h_size, RESOURCES);
 		float **resources_requested = utilization_initialization(h_size, RESOURCES);
-		
-		printf("\nDATACENTER LOADED SUCCESSFULLY\n");
-		printf("\nSELECT THE HEURISTIC TO USE");
-		printf("\n1-) First Fit");
-		printf("\n2-) Best Fit");
-		printf("\n3-) Worst Fit");
-		printf("\n4-) First Fit Decreasing");
-		printf("\n5-) Best Fit Decreasing");
 
-		while (heuristic == 0){
-			printf("\nOption: ");
-			scanf("%d",&heuristic);
-			if(heuristic > 5 || heuristic < 1) {
-				printf("\nINVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
-				heuristic = 0;
+		if(argc < 3 ) {
+
+			printf("\nVMP - HEURISTIC APPROACH \n\n");
+			printf("Total Physical Machines: %d\n", h_size);
+			printf("Total request: %d\n", s_size);
+			printf("Unique VM: %d\n", unique_vms);
+			printf("Economical Revenue a priori: %li\n", revenue_a_priori);
+			printf("Quality of Service a priori: %li\n", qos_a_priori);
+
+			printf("\nDATACENTER LOADED SUCCESSFULLY\n");
+			printf("\nSELECT THE HEURISTIC TO USE");
+			printf("\n1-) First Fit");
+			printf("\n2-) Best Fit");
+			printf("\n3-) Worst Fit");
+			printf("\n4-) First Fit Decreasing");
+			printf("\n5-) Best Fit Decreasing");
+
+			while (heuristic == 0) {
+				printf("\nOption: ");
+				scanf("%d", &heuristic);
+				if (heuristic > 5 || heuristic < 1) {
+					printf("\nINVALID OPTION, PLEASE SELECT THE HEURISTIC TO USE");
+					heuristic = 0;
+				}
 			}
+
+			printf("\nSTARTING THE EXPERIMENT");
+			printf("\nUSING %s HEURISTIC\n", heuristics_names[heuristic - 1]);
+		} else {
+			heuristic = atoi(argv[2]);
 		}
 
-		printf("\nSTARTING THE EXPERIMENT");
-		printf("\nUSING %s HEURISTIC\n", heuristics_names[heuristic-1]);
-		
 		// Set Timer
 		start = clock();
 		if( heuristic > 3 && heuristic <= 5){
@@ -247,7 +276,7 @@ int main (int argc, char *argv[]) {
  				// Save to FILE 
  				fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit] );
 				fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
-				fprintf(economical_revenue_file, "%li\n", total_revenue_array[time_unit]);
+				fprintf(economical_revenue_file, "%.4g\n", total_revenue_array[time_unit]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
 				fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue_array[time_unit], wasted_resources_ratio_array[time_unit], total_qos_array[time_unit] ));
 				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
@@ -289,7 +318,7 @@ int main (int argc, char *argv[]) {
 		// Remove all VM
 		
 		// Calculates objective functions
-		printf("T: %d", time_unit);
+//		printf("T: %d", time_unit);
 		power_consumption_array[time_unit] = power_consumption(utilization, H, h_size);
 		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos);
 		wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
@@ -329,7 +358,7 @@ int main (int argc, char *argv[]) {
 
 		// Save to FILE
 		fprintf(power_consumption_file, "%.4g\n", power_consumption_array[time_unit]);
-		fprintf(economical_revenue_file, "%li\n", total_revenue_array[time_unit]);
+		fprintf(economical_revenue_file, "%.4g\n", total_revenue_array[time_unit]);
 		fprintf(wasted_resources_file, "%.4g\n", wasted_resources_ratio_array[time_unit]);
 		fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
 		fprintf(weighted_sum_file, "%.4g\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue_array[time_unit], wasted_resources_ratio_array[time_unit], total_qos_array[time_unit] ));
@@ -351,11 +380,11 @@ int main (int argc, char *argv[]) {
 			normalized_revenue =  (revenue_to_normalized - max_revenue) / (min_revenue - max_revenue);
 		}
 
-		printf("\nRevenue");
-		printf("\nToNormalized: %f \n", revenue_to_normalized);
-		printf("MIN: %f\n", min_revenue);
-		printf("MAX: %f\n", max_revenue);
-		printf("Normalized Revenue: %f \n", normalized_revenue);
+//		printf("\nRevenue");
+//		printf("\nToNormalized: %f \n", revenue_to_normalized);
+//		printf("MIN: %f\n", min_revenue);
+//		printf("MAX: %f\n", max_revenue);
+//		printf("Normalized Revenue: %f \n", normalized_revenue);
 
 		// Normalized QoS
 		double normalized_qos = 0;
@@ -366,11 +395,11 @@ int main (int argc, char *argv[]) {
 			normalized_qos = (qos_to_normalized - max_qos) / (min_qos - max_qos);
 		}
 
-		printf("\nQoS");
-		printf("\nToNormalized: %f \n", qos_to_normalized);
-		printf("MIN: %f\n", min_qos);
-		printf("MAX: %f\n", max_qos);
-		printf("Normalized QoS: %f \n", normalized_qos);
+//		printf("\nQoS");
+//		printf("\nToNormalized: %f \n", qos_to_normalized);
+//		printf("MIN: %f\n", min_qos);
+//		printf("MAX: %f\n", max_qos);
+//		printf("Normalized QoS: %f \n", normalized_qos);
 
 		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos);
 
@@ -395,24 +424,25 @@ int main (int argc, char *argv[]) {
 		printf("\nFINAL - UTILIZATION\n");
 		print_float_matrix(utilization, h_size, RESOURCES);
 		printf("\nEXPERIMENT COMPLETED\n");*/
-		printf("\n************************RESULTS*************************\n");
-		printf("Simulated time: %d time units.\n", time_unit);
-		printf("Power Consumption: %.6g\n", average_power_consumption);
-		printf("Economical Revenue a priori: %li\n", revenue_a_priori);
-		printf("Economical Revenue: %li\n", total_revenue);
-		printf("Delta - Economical Revenue: %li\n", delta_revenue);
-		printf("Quality of Service a priori: %li\n", qos_a_priori);
-		printf("Quality of Service: %li\n", total_qos);
-		printf("Delta - Quality of Service: %li\n", delta_qos);
-		printf("Wasted Resources: %.6g\n", average_wasted_resource_ratio);
-		printf("Weighted Sum: %.8g\n", weighted_sum);
-		printf("Time taken %d seconds %d milliseconds\n", msec/1000, msec%1000);
-		printf("Number of times the objective function was assessed: %d\n", time_unit);
-		printf("Number of updated requests succesful: %d\n" , request_update);
-		printf("Number of serviced requests succesful: %d\n" , request_serviced);
-		printf("Number of rejected requests succesful: %d\n" , request_rejected);
-		printf("********************************************************\n");
-
+		if(argc < 3 ) {
+			printf("\n************************RESULTS*************************\n");
+			printf("Simulated time: %d time units.\n", time_unit);
+			printf("Power Consumption: %.6g\n", average_power_consumption);
+			printf("Economical Revenue a priori: %li\n", revenue_a_priori);
+			printf("Economical Revenue: %li\n", total_revenue);
+			printf("Delta - Economical Revenue: %li\n", delta_revenue);
+			printf("Quality of Service a priori: %li\n", qos_a_priori);
+			printf("Quality of Service: %li\n", total_qos);
+			printf("Delta - Quality of Service: %li\n", delta_qos);
+			printf("Wasted Resources: %.6g\n", average_wasted_resource_ratio);
+			printf("Weighted Sum: %.8g\n", weighted_sum);
+			printf("Time taken %d seconds %d milliseconds\n", msec / 1000, msec % 1000);
+			printf("Number of times the objective function was assessed: %d\n", time_unit);
+			printf("Number of updated requests succesful: %d\n", request_update);
+			printf("Number of serviced requests succesful: %d\n", request_serviced);
+			printf("Number of rejected requests succesful: %d\n", request_rejected);
+			printf("********************************************************\n");
+		}
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
 		free_int_matrix(placement, 9);

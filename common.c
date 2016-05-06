@@ -128,9 +128,9 @@ int number_unique_vm (float **S, int s_size, long * revenue_a_priori, long * qos
 		}
  	}
  	
- 	printf("Total CPU: %d\n", total_cpu );
- 	printf("Total RAM: %d\n", total_ram );
- 	printf("Total NET: %d\n", total_net );
+// 	printf("Total CPU: %d\n", total_cpu );
+// 	printf("Total RAM: %d\n", total_ram );
+// 	printf("Total NET: %d\n", total_net );
 
  	return number_unique_vm;
 }
