@@ -366,8 +366,8 @@ int main (int argc, char *argv[]) {
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
 		float average_power_consumption = calculate_average_from_array( power_consumption_array, total_t + 1 );
 
-		float normalized_wasted_resources_ratio = (average_wasted_resource_ratio - max_wasted_resources) / (min_wasted_resources - max_wasted_resources);
-		float normalized_power_consumption = (average_power_consumption - max_power) / (min_power - max_power);
+		float normalized_wasted_resources_ratio = (average_wasted_resource_ratio - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
+		float normalized_power_consumption = (average_power_consumption - min_power) / (max_power - min_power);
 
 		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &total_revenue, &total_qos);
 
@@ -377,7 +377,7 @@ int main (int argc, char *argv[]) {
 		double revenue_to_normalized = (double) delta_revenue;
 		
 		if(delta_revenue > 0) {
-			normalized_revenue =  (revenue_to_normalized - max_revenue) / (min_revenue - max_revenue);
+			normalized_revenue =  (revenue_to_normalized - min_revenue) / (max_revenue - min_revenue);
 		}
 
 //		printf("\nRevenue");
@@ -392,7 +392,7 @@ int main (int argc, char *argv[]) {
 		double qos_to_normalized = (double) delta_qos;
 
 		if(delta_qos > 0) {
-			normalized_qos = (qos_to_normalized - max_qos) / (min_qos - max_qos);
+			normalized_qos = (qos_to_normalized - min_qos) / (max_qos - min_qos);
 		}
 
 //		printf("\nQoS");
