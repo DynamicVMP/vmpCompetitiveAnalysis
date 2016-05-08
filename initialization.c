@@ -101,7 +101,7 @@ void create_structures(int*** population_P, int*** population_Q, int**** utiliza
         (*population_Q)[iterator_individual] = (int*)malloc(v_size*sizeof(int));
 
         /*4 objective functions*/
-        (*objectives_functions_values_aux)[iterator_individual] = (double*)malloc(4*sizeof(double));
+        (*objectives_functions_values_aux)[iterator_individual] = (double*)malloc(OBJECTIVE_FUNCTIONS*sizeof(double));
 
     }
 
@@ -114,8 +114,8 @@ void create_structures(int*** population_P, int*** population_Q, int**** utiliza
         (*utilization_P)[iterator_individual] = (int**)malloc(h_size*sizeof(int*));
         (*utilization_Q)[iterator_individual] = (int**)malloc(h_size*sizeof(int*));
         for(iterator_physical=0;iterator_physical<h_size;iterator_physical++){
-            (*utilization_P)[iterator_individual][iterator_physical] = (int*)malloc(3*sizeof(int));
-            (*utilization_Q)[iterator_individual][iterator_physical] = (int*)malloc(3*sizeof(int));
+            (*utilization_P)[iterator_individual][iterator_physical] = (int*)malloc(RESOURCES*sizeof(int));
+            (*utilization_Q)[iterator_individual][iterator_physical] = (int*)malloc(RESOURCES*sizeof(int));
         }
     }
 
