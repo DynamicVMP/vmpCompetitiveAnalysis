@@ -5,12 +5,7 @@
  * Corresponding Conference Paper: A Many-Objective Optimization Framework for Virtualized Datacenters
  */
 
-/* include libraries */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
+#include "common.h"
 
 /* function headers definitions */
 int** initialization(int** population,int number_of_individuals, int h_size, int v_size, float **V, int max_SLA);
