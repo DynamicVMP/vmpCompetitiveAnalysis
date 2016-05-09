@@ -50,7 +50,9 @@ int main (int argc, char *argv[]) {
         float **S = load_S(s_size, argv[1]);
 
         int t_max =(int)S[s_size-1][0];
-
+        char file_postfix [300] = "";
+        char file_name_scenario [300] = "";
+        char *token_file_name;
         /*number of virtual machines*/
         int v_size;
         /*matrix of virtual machines*/
@@ -80,6 +82,12 @@ int main (int argc, char *argv[]) {
             return 1;
         }
         /* the problem instance have at least one solution, so we can continue */
+
+        /*extract the filename scenario from the argument inputs/scenario_filename*/
+        strcpy(file_name_scenario, argv[1]);
+        token_file_name = strtok(file_name_scenario, "/");
+        token_file_name = strtok(NULL, "/");
+        sprintf(file_postfix, "%s", token_file_name);
 
         /*timer*/
         clock_t start;
@@ -188,7 +196,7 @@ int main (int argc, char *argv[]) {
             msec = diff * 1000 / CLOCKS_PER_SEC;
             total_time+=msec;
 
-            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],V, h_size, v_size, t);
+            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],V, h_size, v_size,file_postfix, t);
 
             // RESULTS
             printf("\nResults for time T=%d\n",t);
