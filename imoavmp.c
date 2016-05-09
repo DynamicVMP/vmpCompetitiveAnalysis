@@ -49,7 +49,7 @@ int main (int argc, char *argv[]) {
         int **H = load_H(h_size, argv[1]);
         float **S = load_S(s_size, argv[1]);
 
-        int t_max =(int)S[s_size-1][0];
+        int t_max =1/*(int)S[s_size-1][0]*/;
         char file_postfix [300] = "";
         char file_name_scenario [300] = "";
         char *token_file_name;
