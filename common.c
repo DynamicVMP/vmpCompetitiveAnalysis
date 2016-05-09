@@ -589,7 +589,7 @@ int get_worst_solution_index(double* weighted_sums, int number_of_individuals){
  * parameter: time t
  * returns: nothing, it's void
  */
-void report_solution(int *best_solution,double* objective_functions_solution, int** utilization, double weighted_sum,float** V, int h_size, int v_size, int t){
+void report_solution(int *best_solution,double* objective_functions_solution, int** utilization, double weighted_sum,float** V, int h_size, int v_size,char* file_postfix, int t){
 
     FILE *solutions_file;
     FILE *cpu_utilization_file;
@@ -598,17 +598,33 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     FILE *vms_request_derived_file;
     FILE *weighted_sums_file;
     FILE *objective_functions_file;
+    char file_name[300];
+
+
+
 
     int iterator,iterator2;
     bool flag_derived = false;
+    sprintf(file_name,"results/solutions-%s",file_postfix);
+    solutions_file = fopen(file_name, "a+");
 
-    solutions_file = fopen("results/solutions", "a+");
-    cpu_utilization_file = fopen("results/cpu_utilization", "a+");
-    ram_utilization_file = fopen("results/ram_utilization", "a+");
-    net_utilization_file = fopen("results/net_utilization", "a+");
-    vms_request_derived_file = fopen("results/vms_request_derived", "a+");
-    weighted_sums_file = fopen("results/weighted_sums", "a+");
-    objective_functions_file = fopen("results/objective_functions", "a+");
+    sprintf(file_name,"results/cpu_utilization-%s",file_postfix);
+    cpu_utilization_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/ram_utilization-%s",file_postfix);
+    ram_utilization_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/net_utilization-%s",file_postfix);
+    net_utilization_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/derived_vms-%s",file_postfix);
+    vms_request_derived_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/weighted_sums-%s",file_postfix);
+    weighted_sums_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/objective_function-%s",file_postfix);
+    objective_functions_file = fopen(file_name, "a+");
 
     //fprintf(solutions_file,"Final placement obtained for t=%d\n",t);
     for(iterator=0;iterator<v_size;iterator++){

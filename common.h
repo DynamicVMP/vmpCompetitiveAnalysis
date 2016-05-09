@@ -64,6 +64,6 @@ void free_int_matrix(int** matrix, int iterator_row);
 void free_utilization_matrix(int ***utilization,int individuals,int h_size);
 
 /*reports in files the utilization of the datacenter physical machines and the solution obtained */
-void report_solution(int *best_solution,double* objective_functions_solution,int** utilization,double weighted_sum,float** V,int h_size,int v_size,int t);
+void report_solution(int *best_solution,double* objective_functions_solution,int** utilization,double weighted_sum,float** V,int h_size,int v_size,char* file_postfix,int t);
 void copy_int_matrix(int** matrix_A, int** matrix_B, int rows, int columns);
 void copy_int_array(int* array_A, int* array_B, int array_size);
