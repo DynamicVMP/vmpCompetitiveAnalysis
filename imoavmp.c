@@ -34,7 +34,7 @@ int main (int argc, char *argv[]) {
         /* good parameters */
     else
     {
-
+        FILE * execution_time_file;
         /* Interactive Memetic Algorithm previous stuff */
         /* number of generation, for iterative reference of generations */
         int generation = 0;
@@ -225,6 +225,7 @@ int main (int argc, char *argv[]) {
 
             t++;
         }
+
         free_int_matrix(H, h_size);
         free_float_matrix(S, s_size);
 
@@ -232,6 +233,8 @@ int main (int argc, char *argv[]) {
         printf("Total Time taken %d seconds %d milliseconds\n", total_time / 1000, total_time % 1000);
         printf("Number of times the objective function was assessed: %d\n", OF_calc_count);
 
+        execution_time_file = fopen("results/time","a");
+        fprintf(execution_time_file,"%s Total Time taken %d seconds %d milliseconds\n",file_postfix,total_time / 1000, total_time % 1000);
 
         /* finish him */
         return 0;
