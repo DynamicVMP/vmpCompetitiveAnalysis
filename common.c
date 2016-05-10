@@ -597,7 +597,10 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     FILE *net_utilization_file;
     FILE *vms_request_derived_file;
     FILE *weighted_sums_file;
-    FILE *objective_functions_file;
+    FILE *power_consumption_file;
+    FILE *economical_revenue_file;
+    FILE *qos_file;
+    FILE *wasted_resources_file;
     char file_name[300];
 
 
@@ -623,16 +626,25 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     sprintf(file_name,"results/weighted_sums-%s",file_postfix);
     weighted_sums_file = fopen(file_name, "a+");
 
-    sprintf(file_name,"results/objective_function-%s",file_postfix);
-    objective_functions_file = fopen(file_name, "a+");
+    sprintf(file_name,"results/power_consumption-%s",file_postfix);
+    power_consumption_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/economical_revenue-%s",file_postfix);
+    economical_revenue_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/quality_of_service-%s",file_postfix);
+    qos_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/wasted_resources-%s",file_postfix);
+    wasted_resources_file = fopen(file_name, "a+");
 
     //fprintf(solutions_file,"Final placement obtained for t=%d\n",t);
     for(iterator=0;iterator<v_size;iterator++){
         fprintf(solutions_file, "%d\t", best_solution[iterator]);
     }
-    fprintf(solutions_file,"\n\n");
+    fprintf(solutions_file,"\n");
 
-    fprintf(weighted_sums_file, "%.3f\n\n", weighted_sum);
+    fprintf(weighted_sums_file, "%.3f\n", weighted_sum);
 
     for(iterator=0;iterator<v_size;iterator++){
        if(best_solution[iterator]==0 && V[iterator][0]>0){
@@ -647,35 +659,45 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
         fprintf(vms_request_derived_file, "\n");
     }
 
-    for(iterator=0;iterator<OBJECTIVE_FUNCTIONS;iterator++){
-        fprintf(objective_functions_file,"%.3f\t",objective_functions_solution[iterator]);
-    }
-    fprintf(objective_functions_file,"\n\n");
+    fprintf(economical_revenue_file,"%f",objective_functions_solution[0]);
+    fprintf(economical_revenue_file,"\n");
+
+    fprintf(power_consumption_file,"%f",objective_functions_solution[1]);
+    fprintf(power_consumption_file,"\n");
+
+    fprintf(qos_file,"%f",objective_functions_solution[2]);
+    fprintf(qos_file,"\n");
+
+    fprintf(wasted_resources_file,"%f",objective_functions_solution[3]);
+    fprintf(wasted_resources_file,"\n");
 
     //fprintf(cpu_utilization_file,"CPU utilization for t=%d\n",t);
     for(iterator=0;iterator<h_size;iterator++){
         fprintf(cpu_utilization_file, "%d\t", utilization[iterator][0]);
     }
-    fprintf(cpu_utilization_file, "\n\n");
+    fprintf(cpu_utilization_file, "\n");
 
     //fprintf(ram_utilization_file,"RAM utilization for t=%d\n",t);
     for(iterator=0;iterator<h_size;iterator++){
         fprintf(ram_utilization_file, "%d\t", utilization[iterator][1]);
     }
-    fprintf(ram_utilization_file, "\n\n");
+    fprintf(ram_utilization_file, "\n");
 
     //fprintf(net_utilization_file,"NET utilization for t=%d\n",t);
     for(iterator=0;iterator<h_size;iterator++){
         fprintf(net_utilization_file, "%d\t", utilization[iterator][2]);
     }
-    fprintf(net_utilization_file, "\n\n");
+    fprintf(net_utilization_file, "\n");
 
     fclose(solutions_file);
     fclose(cpu_utilization_file);
     fclose(ram_utilization_file);
     fclose(net_utilization_file);
     fclose(vms_request_derived_file);
-    fclose(objective_functions_file);
+    fclose(power_consumption_file);
+    fclose(wasted_resources_file);
+    fclose(economical_revenue_file);
+    fclose(qos_file);
     fclose(weighted_sums_file);
 }
 

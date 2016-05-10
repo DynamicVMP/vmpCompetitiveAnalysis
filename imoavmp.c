@@ -234,7 +234,7 @@ int main (int argc, char *argv[]) {
         printf("Number of times the objective function was assessed: %d\n", OF_calc_count);
 
         execution_time_file = fopen("results/time","a");
-        fprintf(execution_time_file,"%s Total Time taken %d seconds %d milliseconds\n",file_postfix,total_time / 1000, total_time % 1000);
+        fprintf(execution_time_file,"%s %d,%d\n",file_postfix,total_time / 1000, total_time % 1000);
 
         /* finish him */
         return 0;
