@@ -824,22 +824,26 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, long *total_revenue, long *total_qos ) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, long *total_revenue, long *total_qos, int *living_vms, int *living_derived_vms) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
+
+	*living_vms = 0;
+	*living_derived_vms = 0;
 
 	VM_linked_list* parent = *vm_list;
 	VM_linked_list* actual = parent->next;
 
 	while(actual != NULL) {
-
+		*living_vms = *living_vms + 1;
 		*total_revenue = *total_revenue + parent->revenue;
 		*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 		parent = actual;
 		actual = actual->next;
 	}
 	// Plus the last node
+	if(parent->vm_index != -1) *living_vms = *living_vms + 1;
 	*total_revenue = *total_revenue + parent->revenue;
 	*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 
@@ -847,7 +851,7 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	VM_linked_list* actual_derived = parent_derived->next;
 
 	while(actual_derived != NULL) {	
-
+		*living_derived_vms = *living_derived_vms + 1;
 		*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
 		*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		
@@ -855,6 +859,7 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 		actual_derived = actual_derived->next;
 	}
 	// Plus the last node
+	if(parent_derived->vm_index != -1) *living_derived_vms = *living_derived_vms + 1;
 	*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
 	*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 }
@@ -910,7 +915,10 @@ float wasted_resources (float **utilization, float **resources_requested, int **
  * parameter: number of physical machines
  * returns: power comsumption
  */
-float power_consumption (float **utilization, int **H, int h_size) {
+float power_consumption (float **utilization, int **H, int h_size, int *working_pms) {
+
+	*working_pms = 0;
+
 	/* iterate on physical machines */
 	int iterator_physical;
 	float utilidad = 0;
@@ -918,7 +926,7 @@ float power_consumption (float **utilization, int **H, int h_size) {
 
 	for (iterator_physical = 0 ; iterator_physical < h_size ; iterator_physical++) {
 		if (utilization[iterator_physical][0] > 0) {
-			
+			*working_pms = *working_pms + 1;
 			/* calculates utility of a physical machine */
 			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
 			/* calculates energy consumption of a physical machine */
