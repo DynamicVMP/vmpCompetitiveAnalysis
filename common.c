@@ -349,18 +349,18 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
     float min_delta_revenue_t=0;
     float max_power_consumption_t=0;
     float min_power_consumption_t=0;
-    float max_waste_resources_t=0;
-    float min_waste_resources_t=0;
-    float delta_revenue_tmp, delta_revenue_normalized,power_normalized, waste_resources_normalized;
+    float max_wasted_resources_t =0;
+    float min_wasted_resources_t =0;
+    float delta_revenue_tmp, delta_revenue_normalized,power_normalized, wasted_resources_normalized;
     double delta_qos_tmp,delta_qos_normalized;
 
 
     objective_functions_values = load_objective_functions(objective_functions_values,population,utilization,H,V,number_of_individuals,h_size,v_size,OF_calc_count);
 
-    max_delta_revenue_t = min_delta_revenue_t = revenue_a_priori_t - (float)objective_functions_values[0][0];
-    max_power_consumption_t = min_power_consumption_t = (float)objective_functions_values[0][1];
-    max_delta_qos_t= min_delta_qos_t = qos_a_priori_t - objective_functions_values[0][2] ;
-    max_waste_resources_t = min_waste_resources_t = (float)objective_functions_values[0][3];
+    max_delta_revenue_t  = revenue_a_priori_t - (float)objective_functions_values[0][0];
+    max_power_consumption_t  = (float)objective_functions_values[0][1];
+    max_delta_qos_t= qos_a_priori_t - objective_functions_values[0][2] ;
+    max_wasted_resources_t = (float)objective_functions_values[0][3];
 
     /*Calculacion of values to normalize objetice funtions*/
     for(iterator_individual=1;iterator_individual<number_of_individuals;iterator_individual++){
@@ -387,11 +387,11 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
             max_delta_qos_t = delta_qos_tmp;
         }
 
-        if(objective_functions_values[iterator_individual][3]<min_waste_resources_t){
-            min_waste_resources_t = (float)objective_functions_values[iterator_individual][3];
+        if(objective_functions_values[iterator_individual][3] < min_wasted_resources_t){
+            min_wasted_resources_t = (float)objective_functions_values[iterator_individual][3];
         }
-        if(objective_functions_values[iterator_individual][3]>max_waste_resources_t){
-            max_waste_resources_t = (float)objective_functions_values[iterator_individual][3];
+        if(objective_functions_values[iterator_individual][3] > max_wasted_resources_t){
+            max_wasted_resources_t = (float)objective_functions_values[iterator_individual][3];
         }
     }
 
@@ -419,16 +419,19 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
             delta_qos_normalized = (float)(delta_qos_tmp - min_delta_qos_t)/(max_delta_qos_t-min_delta_qos_t);
         }
 
-        if(objective_functions_values[iterator_individual][3]==min_waste_resources_t){
-            waste_resources_normalized=0;
+        if(objective_functions_values[iterator_individual][3] == min_wasted_resources_t){
+            wasted_resources_normalized =0;
         }else{
-            waste_resources_normalized = (float)(objective_functions_values[iterator_individual][3] - min_waste_resources_t)/(max_waste_resources_t-min_waste_resources_t);
+            wasted_resources_normalized = (float)(objective_functions_values[iterator_individual][3] -
+                                                  min_wasted_resources_t) / (
+                                                 max_wasted_resources_t - min_wasted_resources_t);
         }
 
-        //printf("\nrevenue normalized:%f, power normalized:%f, qos normalized:%f, waste normalized:%f\n",delta_revenue_normalized,power_normalized,delta_qos_normalized,waste_resources_normalized);
+        //printf("\nrevenue normalized:%f, power normalized:%f, qos normalized:%f, waste normalized:%f\n",delta_revenue_normalized,power_normalized,delta_qos_normalized,wasted_resources_normalized);
 
         /*compute the weighted sum based on the values of objective functions obtained and the weights configured*/
-        weighted_sums[iterator_individual] = calculates_weighted_sum(power_normalized,delta_revenue_normalized,waste_resources_normalized,delta_qos_normalized);
+        weighted_sums[iterator_individual] = calculates_weighted_sum(power_normalized, delta_revenue_normalized,
+                                                                     wasted_resources_normalized, delta_qos_normalized);
     }
 
     //printf("\t%.2f %.2f %.2f",power_consumption,economical_revenue,quality_of_service,);
