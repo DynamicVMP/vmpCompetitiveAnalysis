@@ -598,15 +598,20 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     FILE *cpu_utilization_file;
     FILE *ram_utilization_file;
     FILE *net_utilization_file;
-    FILE *vms_request_derived_file;
+    FILE *vm_requests_derived_file;
+    FILE *vm_requests_derived_count_file;
     FILE *weighted_sums_file;
     FILE *power_consumption_file;
     FILE *economical_revenue_file;
     FILE *qos_file;
     FILE *wasted_resources_file;
+    FILE *working_pms_count_file;
+    FILE *total_vm_requests_file;
+    FILE *vm_requests_served_file;
+
+
     char file_name[300];
-
-
+    int vms_derived_count=0, working_pms_count=0,vm_requests_served_count=0;
 
 
     int iterator,iterator2;
@@ -624,7 +629,19 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     net_utilization_file = fopen(file_name, "a+");
 
     sprintf(file_name,"results/derived_vms-%s",file_postfix);
-    vms_request_derived_file = fopen(file_name, "a+");
+    vm_requests_derived_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/working_pms-%s",file_postfix);
+    working_pms_count_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/vm_requests-%s",file_postfix);
+    total_vm_requests_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/vm_requests_served-%s",file_postfix);
+    vm_requests_served_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/derived_vms_count-%s",file_postfix);
+    vm_requests_derived_count_file = fopen(file_name, "a+");
 
     sprintf(file_name,"results/weighted_sums-%s",file_postfix);
     weighted_sums_file = fopen(file_name, "a+");
@@ -650,17 +667,32 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     fprintf(weighted_sums_file, "%.3f\n", weighted_sum);
 
     for(iterator=0;iterator<v_size;iterator++){
-       if(best_solution[iterator]==0 && V[iterator][0]>0){
-        for(iterator2=0;iterator2<VM_FEATURES;iterator2++){
-            fprintf(vms_request_derived_file, "%.3f\t", V[iterator][iterator2]);
-        }
-           flag_derived=true;
-           fprintf(vms_request_derived_file, "\n");
+       if(V[iterator][0]>0){
+           if(best_solution[iterator]==0){
+               vms_derived_count++;
+
+               for(iterator2=0;iterator2<VM_FEATURES;iterator2++){
+                   fprintf(vm_requests_derived_file, "%.3f\t", V[iterator][iterator2]);
+               }
+               flag_derived=true;
+               fprintf(vm_requests_derived_file, "\n");
+           }else{
+               vm_requests_served_count++;
+           }
        }
     }
     if(flag_derived){
-        fprintf(vms_request_derived_file, "\n");
+        fprintf(vm_requests_derived_file, "\n");
     }
+
+    fprintf(vm_requests_derived_count_file, "%d", vms_derived_count);
+    fprintf(vm_requests_derived_count_file, "\n");
+
+    fprintf(vm_requests_served_file,"%d",vm_requests_served_count);
+    fprintf(vm_requests_served_file,"\n");
+
+    fprintf(total_vm_requests_file, "%d", v_size);
+    fprintf(total_vm_requests_file, "\n");
 
     fprintf(economical_revenue_file,"%f",objective_functions_solution[0]);
     fprintf(economical_revenue_file,"\n");
@@ -674,34 +706,36 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     fprintf(wasted_resources_file,"%f",objective_functions_solution[3]);
     fprintf(wasted_resources_file,"\n");
 
-    //fprintf(cpu_utilization_file,"CPU utilization for t=%d\n",t);
     for(iterator=0;iterator<h_size;iterator++){
+        if(utilization[iterator][0]>0 && utilization[iterator][1]>0 && utilization[iterator][2]>0){
+            working_pms_count++;
+        }
         fprintf(cpu_utilization_file, "%d\t", utilization[iterator][0]);
-    }
-    fprintf(cpu_utilization_file, "\n");
-
-    //fprintf(ram_utilization_file,"RAM utilization for t=%d\n",t);
-    for(iterator=0;iterator<h_size;iterator++){
         fprintf(ram_utilization_file, "%d\t", utilization[iterator][1]);
-    }
-    fprintf(ram_utilization_file, "\n");
-
-    //fprintf(net_utilization_file,"NET utilization for t=%d\n",t);
-    for(iterator=0;iterator<h_size;iterator++){
         fprintf(net_utilization_file, "%d\t", utilization[iterator][2]);
     }
+    fprintf(cpu_utilization_file, "\n");
+    fprintf(ram_utilization_file, "\n");
     fprintf(net_utilization_file, "\n");
+
+    fprintf(working_pms_count_file, "%d", working_pms_count);
+    fprintf(working_pms_count_file, "\n");
+
 
     fclose(solutions_file);
     fclose(cpu_utilization_file);
     fclose(ram_utilization_file);
     fclose(net_utilization_file);
-    fclose(vms_request_derived_file);
+    fclose(vm_requests_derived_file);
+    fclose(vm_requests_derived_count_file);
     fclose(power_consumption_file);
     fclose(wasted_resources_file);
     fclose(economical_revenue_file);
     fclose(qos_file);
     fclose(weighted_sums_file);
+    fclose(working_pms_count_file);
+    fclose(total_vm_requests_file);
+    fclose(vm_requests_served_file);
 }
 
 /* free_utilization_matrix: free memory allocated for the utilization three dimensional matrix
