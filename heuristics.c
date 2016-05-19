@@ -707,7 +707,6 @@ bool update_VM_resources(int **placement, float **utilization, float **resources
 	
 	if(physical_machine == -1) {
 		free(temp_request);
-		// printf("THE CURRENT VM IS NOT IN THE CURRENT DATACENTER\n");
 		return false;
 	}
 

@@ -127,10 +127,6 @@ int number_unique_vm (float **S, int s_size, long * revenue_a_priori, long * qos
 			total_cpu = total_cpu + S[iterator_row][4];
 		}
  	}
- 	
-// 	printf("Total CPU: %d\n", total_cpu );
-// 	printf("Total RAM: %d\n", total_ram );
-// 	printf("Total NET: %d\n", total_net );
 
  	return number_unique_vm;
 }

@@ -67,9 +67,6 @@ int main (int argc, char *argv[]) {
 	FILE *economical_revenue_file;
 	FILE *quality_service_file;
 	FILE *wasted_resources_file;
-//	FILE *cpu_utilization;
-//	FILE *ram_utilization;
-//	FILE *net_utilization;
 	FILE *execution_time_file;
 	FILE *weighted_sum_file;
 	FILE *pm_usage;
@@ -114,11 +111,6 @@ int main (int argc, char *argv[]) {
 
 	sprintf(file_name,"results/pm_usage%s",file_postfix);
 	pm_usage = fopen(file_name,"a");
-
-	// Resources files
-//	cpu_utilization = fopen("results/cpu_utilization", "a");
-//	ram_utilization = fopen("results/ram_utilization", "a");
-//	net_utilization = fopen("results/net_utilization", "a");
 
 	// Heuristic
 	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** VM_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived);
@@ -289,19 +281,6 @@ int main (int argc, char *argv[]) {
 				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
-//				fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue_array[time_unit], wasted_resources_ratio_array[time_unit], total_qos_array[time_unit] ));
-//				print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
-//				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
-
-//				for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++) {
-					/* for each physical resource */
-//					fprintf(cpu_utilization,"%.4g\t",utilization[iterator_physical][0]);
-//					fprintf(ram_utilization,"%.4g\t",utilization[iterator_physical][1]);
-//					fprintf(net_utilization,"%.4g\t",utilization[iterator_physical][2]);
-//				}
-//				fprintf(cpu_utilization,"\n");
-//				fprintf(ram_utilization,"\n");
-//				fprintf(net_utilization,"\n");
 
 				time_unit = S[iterator_row][0];
 			}
@@ -318,10 +297,8 @@ int main (int argc, char *argv[]) {
 				// Update VM resources
 				if(S[iterator_row][0] <= S[iterator_row][13] 
 					&& update_VM_resources(placement, utilization, resources_requested, S[iterator_row], &VM_list, H)) {
-					// printf("\nVM Update successful!\n");
 					request_update++;
 				} else {
-					// printf("\nCan not update the VM. Request rejected\n");
 					request_rejected++;
 				}
 			}
@@ -329,7 +306,6 @@ int main (int argc, char *argv[]) {
 		// Remove all VM
 		
 		// Calculates objective functions
-//		printf("T: %d", time_unit);
 		power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
 		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos, &living_vms, &living_derived_vms);
 		wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
@@ -373,8 +349,6 @@ int main (int argc, char *argv[]) {
 		fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio_array[time_unit]);
 		fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
 		fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
-
-//		fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(power_consumption_array[time_unit], total_revenue_array[time_unit], wasted_resources_ratio_array[time_unit], total_qos_array[time_unit] ));
 
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
 		float average_power_consumption = calculate_average_from_array( power_consumption_array, total_t + 1 );
@@ -429,24 +403,8 @@ int main (int argc, char *argv[]) {
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
 
-//		print_placement_to_file("placement_result", placement, VM_FEATURES, unique_vms);
-//		print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 		fprintf(execution_time_file, "%d:%d\n", msec/1000, msec%1000);
 
-//		for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++) {
-			/* for each physical resource */
-//			fprintf(cpu_utilization,"%.4g\t",utilization[iterator_physical][0]);
-//			fprintf(ram_utilization,"%.4g\t",utilization[iterator_physical][1]);
-//			fprintf(net_utilization,"%.4g\t",utilization[iterator_physical][2]);
-//		}
-
-
-		// RESULTS
-		/*printf("\nFINAL - PLACEMENT\n");
-		print_int_matrix(placement, VM_FEATURES, unique_vms);
-		printf("\nFINAL - UTILIZATION\n");
-		print_float_matrix(utilization, h_size, RESOURCES);
-		printf("\nEXPERIMENT COMPLETED\n");*/
 		if(argc < 3 ) {
 			printf("\n************************RESULTS*************************\n");
 			printf("Simulated time: %d time units.\n", time_unit);
@@ -468,12 +426,9 @@ int main (int argc, char *argv[]) {
 		}
 		/* CLEANING */
 		free_float_matrix(utilization, h_size);
-//		free_int_matrix(placement, VM_FEATURES);
-//		free_int_matrix(H, h_size);
+
 		free_float_matrix(S, s_size);
-		// print_VM_list(VM_list_serviced);
-		// print_VM_list(VM_list_serviced_derived);
-		// print_double_array(total_revenue_array, 95);
+
 		free_VM_list(VM_list);
 		free_VM_list(VM_list_derived);
 		free_VM_list(VM_list_serviced);
