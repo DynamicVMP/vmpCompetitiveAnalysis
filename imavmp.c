@@ -48,6 +48,8 @@ int main (int argc, char *argv[]) {
 	long revenue_t = 0;
 	long total_revenue = 0;
 	long total_qos = 0;
+	long remove_revenue;
+
 
 	bool first_time = true;
 	char file_postfix [300] = "";
@@ -224,8 +226,6 @@ int main (int argc, char *argv[]) {
 			heuristic -= 3;
 		}
 
-		long removeRevenue;
-
 		time_unit = S[0][0];
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
 			revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
@@ -249,14 +249,13 @@ int main (int argc, char *argv[]) {
  			if(S[iterator_row][0] != time_unit || iterator_row+1 == s_size) {
 				
  				// Calculates Objective Functions
- 				removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
+ 				remove_revenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
 				economical_revenue(&VM_list, &VM_list_derived, &revenue_t, &total_qos_array[time_unit], &living_vms, &living_derived_vms);
 				power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
 				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
 
  				total_revenue_array[time_unit] = revenue_a_priori_t - revenue_t;
-
-				revenue_a_priori_t = revenue_a_priori_t - removeRevenue;
+				revenue_a_priori_t = revenue_a_priori_t - remove_revenue;
 
 				// Calculates the max and min of each objective function
 				if( first_time ) {
@@ -328,12 +327,15 @@ int main (int argc, char *argv[]) {
 		double qos_to_normalized = (double) delta_qos;
 
 		for(index = 0; index <= time_unit; index++){
+			
 			normalized_power_consumption = (power_consumption_array[index] - min_power) / (max_power - min_power);
+			
 			if(total_revenue_array[index] > 0) {
 				normalized_revenue =  ((double)total_revenue_array[index] - min_revenue) / (max_revenue - min_revenue);
 			}else{
 				normalized_revenue = 0;
 			}
+
 			normalized_wasted_resources_ratio = (wasted_resources_ratio_array[index] - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
 			if(total_qos_array[index] > 0) {
 				normalized_qos = ((double)total_qos_array[index] - min_qos) / (max_qos - min_qos);
@@ -396,10 +398,3 @@ int main (int argc, char *argv[]) {
 	}
 }
 
-/* check_instance: checks if the problem instance has at least one solution
- * returns: 1 if there is no solution, 0 if the is at least one solution
- */
-int check_instance() {
-	/* this return alllways 0 for now (this could be implemented this to check if a problem instance have at least one solution) */
-	return 0;
-}

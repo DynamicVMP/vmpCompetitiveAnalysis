@@ -77,18 +77,7 @@ bool check_resources(float *request, float **utilization, float **resources_requ
 				return false;
 			}
 			parent = parent->next;
-		} while(parent != NULL);
-
-		/*while(actual != NULL) {
-			if(parent->service == (int) request[1] && parent->pm == physical_machine) {
-				return false;
-			}
-			parent = actual;
-			actual = actual->next;			
-		}
-		if(parent->service == (int) request[1] && parent->pm == physical_machine) {
-			return false;
-		}*/		
+		} while(parent != NULL);	
 	}
 	
 	return flag;
@@ -292,7 +281,7 @@ void insert_VM_to_tend_list(VM_linked_list** vm_list, float *request, int physic
 		}
 		parent = actual;
 		actual = actual->next;
-	}	
+	}
 	// the new node will be inserted at the bottom of the list
 	parent->next = new_node;
 	return;
@@ -537,8 +526,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 
 	while(actual != NULL) { 
 		if(parent->tend != -1 && parent->tend < current_time) {
-			// update the placement matrix and set -1 PM for the VM
-			placement[2][parent->vm_index] = -1;
+
 			// update the utilization matrix
 			utilization[parent->pm][0] -= parent->cpu_utilization;
 			utilization[parent->pm][1] -= parent->ram_utilization;
@@ -560,6 +548,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	    actual = actual->next;
 	}
 
+	// Remove unique node
 	if(parent->tend != -1 && parent->tend < current_time) {
 		// update the utilization matrix
 		utilization[parent->pm][0] -= parent->cpu_utilization;
@@ -598,8 +587,8 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	    actual_derived = actual_derived->next;
 	}
 
+	// Remove unique node
 	if(parent_derived->tend != -1 && parent_derived->tend < current_time) {
-			
 		lost_revenue = lost_revenue + parent_derived->revenue;
 		parent_derived->vm_index = -1;
 		parent_derived->tend = -1;
@@ -626,9 +615,8 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 void update_VM_list(VM_linked_list** vm_list, float *request, int physical_machine) {
 
 	VM_linked_list* parent = *vm_list;
-	VM_linked_list* actual = parent->next;
 
-	while(actual != NULL )  {	
+	do {
 		if( parent->service == request[1] && parent->datacenter == request[2] && parent->vm_index == request[3]) { 
 			parent->vm_index = request[3];							// VM id
 			parent->service = request[1];							// Service
@@ -643,25 +631,9 @@ void update_VM_list(VM_linked_list** vm_list, float *request, int physical_machi
 			parent->revenue = request[10];							// Revenue
 			parent->SLA = request[11];								// SLA
 		}
-		parent = actual;
-		actual = actual->next;	
-	}
+		parent = parent->next;
 
-	// Process last node
-	if( parent->service == request[1] && parent->datacenter == request[2] && parent->vm_index == request[3]) { 
-		parent->service = request[1];							// Service
-		parent->datacenter = request[2];						// Datacenter
-		parent->vm_index = request[3];							// VM id
-		parent->cpu = request[4];
-		parent->ram = request[5];
-		parent->net = request[6];
-		parent->cpu_utilization = request[4]*request[7]/100;	// CPU Utilization
-		parent->ram_utilization = request[5]*request[8]/100;	// RAM Utilization
-		parent->net_utilization = request[6]*request[9]/100;  	// NET Utilization
-		parent->revenue = request[10];							// Revenue
-		parent->SLA = request[11];								// SLA
-		parent->tend = request[13];								// t end
-	}
+	} while(parent != NULL);
 }
 
 /**
@@ -822,6 +794,8 @@ void print_PM_list(PM_weight_pair_node* list) {
 	}
 	printf("NULL\n");
 }
+
+// ############################################## F.O. ################################################## //
 
 /**
  * economical_revenue: Calculates the total revenue and Quality of Service per VM allocated.
