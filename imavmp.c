@@ -25,6 +25,7 @@ int main (int argc, char *argv[]) {
     // Iterators 
     int iterator_row;
 	int iterator_physical;
+	int i;
 
 	// Variables
 	int request_serviced = 0;
@@ -43,6 +44,7 @@ int main (int argc, char *argv[]) {
 	double * total_revenue_array;
 	long * total_qos_array;
 	float * wasted_resources_ratio_array;
+	float ** wasted_resources_array;
 	float * power_consumption_array;
 	long revenue_a_priori_t = 0;
 	long revenue_t = 0;
@@ -178,6 +180,11 @@ int main (int argc, char *argv[]) {
 		wasted_resources_ratio_array = (float *) calloc (total_t + 1, sizeof(float *));
 		power_consumption_array = (float *) calloc (total_t + 1, sizeof(float *));
 
+		wasted_resources_array = (float **) calloc (total_t + 1, sizeof(float *));
+		for (i = 0; i < total_t + 1; i++) {
+			wasted_resources_array[i] = (float *) calloc (3, sizeof(float)); 	//[0] = cpu, [1] = ram, [2] = net
+		}
+
 		// Initial Placement matrix
 		int **placement = placement_initialization(VM_FEATURES, unique_vms);
 
@@ -252,7 +259,7 @@ int main (int argc, char *argv[]) {
  				removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
 				economical_revenue(&VM_list, &VM_list_derived, &revenue_t, &total_qos_array[time_unit], &living_vms, &living_derived_vms);
 				power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
-				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
+				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size, wasted_resources_array[time_unit]);
 
  				total_revenue_array[time_unit] = revenue_a_priori_t - revenue_t;
 

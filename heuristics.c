@@ -868,7 +868,7 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
  * parameter: h_size				Number of PMs
  * return: wasted_resources_ratio
  */
-float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size) {
+float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size, float *wasted_resources_obj) {
 
 	float wasted_cpu_resources = 0.0 , wasted_ram_resources = 0.0 , wasted_net_resources = 0.0;
 	float wasted_cpu_resources_ratio = 0.0 , wasted_ram_resources_ratio = 0.0 , wasted_net_resources_ratio = 0.0;
@@ -896,6 +896,10 @@ float wasted_resources (float **utilization, float **resources_requested, int **
 	wasted_cpu_resources_ratio = wasted_cpu_resources / working_pms;
 	wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
 	wasted_net_resources_ratio = wasted_net_resources / working_pms;
+
+	wasted_resources_obj[0] = wasted_cpu_resources_ratio;
+	wasted_resources_obj[1] = wasted_ram_resources_ratio;
+	wasted_resources_obj[2] = wasted_net_resources_ratio;
 
 	// sum the wasted resources ratio and divide with the number of resources cosidered (3 in this case)
 	wasted_resources_ratio = ( wasted_cpu_resources_ratio * alpha + wasted_ram_resources_ratio * beta + wasted_net_resources_ratio * gamma ) / 3;
