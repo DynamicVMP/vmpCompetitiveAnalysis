@@ -208,7 +208,7 @@ int get_v_size_per_t(float** matrix_s, int t, int max_row){
  */
 float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_priori_t, float *revenue_a_priori_t, int t){
 
-    int iterator;
+    int iterator,time_vm_living;
     float **matrix_v = (float**)malloc(v_size*sizeof(float*));
     for(iterator=0;iterator<v_size;iterator++){
         matrix_v[iterator] = (float *) malloc(VM_FEATURES * sizeof(float));
@@ -250,9 +250,9 @@ float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_p
                 matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
 
-
+                time_vm_living = t - (int)matrix_v[iterator_v][5] +1;
                 *qos_a_priori_t += pow(CONSTANT, matrix_v[iterator_v][3]) * matrix_v[iterator_v][3];
-                *revenue_a_priori_t += matrix_v[iterator_v][4];
+                *revenue_a_priori_t += matrix_v[iterator_v][4]*time_vm_living;
             }
             iterator_v++;
         }
@@ -338,7 +338,7 @@ int*** load_utilization(int*** utilization, int **population, int **H, float **V
  * returns: an array with the values of the objective function of each solution
  */
 double* load_weighted_sums(double **objective_functions_values, double *weighted_sums, int **population,
-                           int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size, double qos_a_priori_t, float revenue_a_priori_t, int* OF_calc_count)
+                           int ***utilization,float ** wasted_resources_obj, int **H, float **V, int number_of_individuals, int h_size, int v_size, double qos_a_priori_t, float revenue_a_priori_t, int* OF_calc_count, int t)
 {
     /* iterators */
     int iterator_individual;
@@ -355,7 +355,7 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
     double delta_qos_tmp,delta_qos_normalized;
 
 
-    objective_functions_values = load_objective_functions(objective_functions_values,population,utilization,H,V,number_of_individuals,h_size,v_size,OF_calc_count);
+    objective_functions_values = load_objective_functions(objective_functions_values,population,utilization,wasted_resources_obj,H,V,number_of_individuals,h_size,v_size,OF_calc_count,t);
 
     max_delta_revenue_t  = revenue_a_priori_t - (float)objective_functions_values[0][0];
     max_power_consumption_t  = (float)objective_functions_values[0][1];
@@ -424,7 +424,7 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
         }else{
             wasted_resources_normalized = (float)(objective_functions_values[iterator_individual][3] -
                                                   min_wasted_resources_t) / (
-                                                 max_wasted_resources_t - min_wasted_resources_t);
+                                                  max_wasted_resources_t - min_wasted_resources_t);
         }
 
         //printf("\nrevenue normalized:%f, power normalized:%f, qos normalized:%f, waste normalized:%f\n",delta_revenue_normalized,power_normalized,delta_qos_normalized,wasted_resources_normalized);
@@ -440,11 +440,11 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
 }
 
 
-double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count){
+double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization, float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t){
 
 
     /* iterators */
-    int iterator_individual,iterator_physical,iterator_virtual,physical_position;
+    int iterator_individual,iterator_physical,iterator_virtual,physical_position,time_vm_living;
     /* utility of a physical machine */
     float utilidad;
     /**/
@@ -494,6 +494,13 @@ double** load_objective_functions(double **objective_functions_values, int **pop
             wasted_ram_resources_ratio = wasted_ram_resources / working_pms;
             wasted_net_resources_ratio = wasted_net_resources / working_pms;
         }
+
+        /*save wasted resources*/
+        wasted_resources_obj[iterator_individual][0] = wasted_cpu_resources_ratio;
+        wasted_resources_obj[iterator_individual][1] = wasted_ram_resources_ratio;
+        wasted_resources_obj[iterator_individual][2] = wasted_net_resources_ratio;
+
+
         wasted_resources_ratio = ( wasted_cpu_resources_ratio * alpha + wasted_ram_resources_ratio * beta + wasted_net_resources_ratio * gamma ) / 3;
 
         economical_revenue = 0.0;
@@ -503,16 +510,23 @@ double** load_objective_functions(double **objective_functions_values, int **pop
         /* iterate on physical machines */
         for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
         {
+
             physical_position = population[iterator_individual][iterator_virtual];
             if (physical_position > 0)
             {
+                /*time_vm_living = tend - tinit + 1*/
+                time_vm_living  = t - (int)V[iterator_virtual][5]+1;
                 /* calculate the economical revenue */
-                economical_revenue += V[iterator_virtual][4];
+                economical_revenue += V[iterator_virtual][4]*time_vm_living;
                 /* calculate  the QoS */
                 quality_of_service += pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
             }else{
-                /* calculate the economical revenue */
-                economical_revenue += 0.9*V[iterator_virtual][4];
+                /*the VM is considered*/
+                if(V[iterator_virtual][0]>0) {
+                    time_vm_living  = t - (int)V[iterator_virtual][5]+1;
+                    /* calculate the economical revenue */
+                    economical_revenue += 0.3 * V[iterator_virtual][4] * time_vm_living;
+                }
             }
         }
 
@@ -592,7 +606,7 @@ int get_worst_solution_index(double* weighted_sums, int number_of_individuals){
  * parameter: time t
  * returns: nothing, it's void
  */
-void report_solution(int *best_solution,double* objective_functions_solution, int** utilization, double weighted_sum,float** V, int h_size, int v_size,char* file_postfix, int t){
+void report_solution(int *best_solution,double* objective_functions_solution, int** utilization, double weighted_sum,float* wasted_resources_obj,float** V, int h_size, int v_size,char* file_postfix, int t){
 
     FILE *solutions_file;
     FILE *cpu_utilization_file;
@@ -608,6 +622,9 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     FILE *working_pms_count_file;
     FILE *total_vm_requests_file;
     FILE *vm_requests_served_file;
+    FILE *wasted_cpu_resources_file;
+    FILE *wasted_ram_resources_file;
+    FILE *wasted_net_resources_file;
 
 
     char file_name[300];
@@ -658,6 +675,15 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     sprintf(file_name,"results/wasted_resources-%s",file_postfix);
     wasted_resources_file = fopen(file_name, "a+");
 
+    sprintf(file_name,"results/wasted_cpu_resources-%s",file_postfix);
+    wasted_cpu_resources_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/wasted_ram_resources-%s",file_postfix);
+    wasted_ram_resources_file = fopen(file_name, "a+");
+
+    sprintf(file_name,"results/wasted_net_resources-%s",file_postfix);
+    wasted_net_resources_file = fopen(file_name, "a+");
+
     //fprintf(solutions_file,"Final placement obtained for t=%d\n",t);
     for(iterator=0;iterator<v_size;iterator++){
         fprintf(solutions_file, "%d\t", best_solution[iterator]);
@@ -706,6 +732,16 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     fprintf(wasted_resources_file,"%f",objective_functions_solution[3]);
     fprintf(wasted_resources_file,"\n");
 
+    fprintf(wasted_cpu_resources_file, "%f", wasted_resources_obj[0]);
+    fprintf(wasted_cpu_resources_file, "\n");
+
+    fprintf(wasted_ram_resources_file, "%f", wasted_resources_obj[1]);
+    fprintf(wasted_ram_resources_file, "\n");
+
+    fprintf(wasted_net_resources_file, "%f", wasted_resources_obj[2]);
+    fprintf(wasted_net_resources_file, "\n");
+
+
     for(iterator=0;iterator<h_size;iterator++){
         if(utilization[iterator][0]>0 && utilization[iterator][1]>0 && utilization[iterator][2]>0){
             working_pms_count++;
@@ -736,6 +772,9 @@ void report_solution(int *best_solution,double* objective_functions_solution, in
     fclose(working_pms_count_file);
     fclose(total_vm_requests_file);
     fclose(vm_requests_served_file);
+    fclose(wasted_cpu_resources_file);
+    fclose(wasted_ram_resources_file);
+    fclose(wasted_net_resources_file);
 }
 
 /* free_utilization_matrix: free memory allocated for the utilization three dimensional matrix
@@ -951,4 +990,51 @@ void print_double_array(double *array, int columns)
     {
         printf("[DEBUG] [%d]: %f\n",iterator_column,array[iterator_column]);
     }
+}
+
+
+void update_previous_placement(int *best_solution,int v_size,int** previous_placement,int* previous_v_size){
+
+    if(*previous_v_size != v_size){
+        *previous_placement = (int*)malloc(v_size*sizeof(int));
+    }
+
+    *previous_v_size = v_size;
+    copy_int_array(*previous_placement,best_solution,*previous_v_size);
+}
+
+
+void report_migrations(int* best_solution, int v_size, int* previous_placement,int previous_v_size,float **V,char* file_postfix){
+
+
+    FILE* vm_migrations_count_file;
+    FILE* vm_memory_migrations_file;
+    char file_name[300];
+    int virtual_iterator, total_memory_migration, total_vm_migrations;
+
+
+    sprintf(file_name,"results/vm_migrations_count-%s",file_postfix);
+    vm_migrations_count_file = fopen(file_name,"a+");
+
+    sprintf(file_name,"results/vm_memory_migrations-%s",file_postfix);
+    vm_memory_migrations_file = fopen(file_name,"a+");
+
+    total_memory_migration =0;
+    total_vm_migrations = 0;
+    for(virtual_iterator=0;virtual_iterator<previous_v_size;virtual_iterator++){
+
+        /*if the vm is considered and now is in a different pm*/
+        if(V[virtual_iterator][0]>0 && previous_placement[virtual_iterator]!=best_solution[virtual_iterator]){
+            total_vm_migrations+=1;
+            total_memory_migration+=(int)V[virtual_iterator][1];//ram of vm
+        }
+
+    }
+
+    fprintf(vm_memory_migrations_file,"%d\n",total_memory_migration);
+    fprintf(vm_migrations_count_file,"%d\n",total_vm_migrations);
+
+    fclose(vm_memory_migrations_file);
+    fclose(vm_migrations_count_file);
+
 }

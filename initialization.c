@@ -85,12 +85,14 @@ int generate_solution_position(int max_posible, int SLA)
  * returns: nothing, it's void
  */
 void create_structures(int*** population_P, int*** population_Q, int**** utilization_P, int**** utilization_Q, double** weighted_sums_P,
-                       double** weighted_sums_Q, double***  objectives_functions_values_aux, int number_of_individuals, int v_size, int h_size){
+                       double** weighted_sums_Q, double***objectives_functions_values, float*** wasted_resources_obj, int number_of_individuals, int v_size, int h_size){
 
     int iterator_individual, iterator_physical;
 
     /*allocate memory for the matrix that  holds the value of each objective function for each individual */
-    *objectives_functions_values_aux = (double**)malloc(number_of_individuals*sizeof(double*));
+    *objectives_functions_values = (double**)malloc(number_of_individuals * sizeof(double*));
+
+    *wasted_resources_obj  = (float**)malloc(number_of_individuals*sizeof(float*));
 
     /*allocate memory for the populations*/
     *population_P = (int**)malloc(number_of_individuals*sizeof(int*));
@@ -101,8 +103,9 @@ void create_structures(int*** population_P, int*** population_Q, int**** utiliza
         (*population_Q)[iterator_individual] = (int*)malloc(v_size*sizeof(int));
 
         /*4 objective functions*/
-        (*objectives_functions_values_aux)[iterator_individual] = (double*)malloc(OBJECTIVE_FUNCTIONS*sizeof(double));
+        (*objectives_functions_values)[iterator_individual] = (double*)malloc(OBJECTIVE_FUNCTIONS * sizeof(double));
 
+        (*wasted_resources_obj)[iterator_individual] = (float*)malloc(RESOURCES*sizeof(float));
     }
 
     /*allocate memory for the structure that holds the utilization*/
