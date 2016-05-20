@@ -707,6 +707,7 @@ bool update_VM_resources(int **placement, float **utilization, float **resources
 	
 	if(physical_machine == -1) {
 		free(temp_request);
+		// printf("THE CURRENT VM IS NOT IN THE CURRENT DATACENTER\n");
 		return false;
 	}
 
@@ -832,35 +833,23 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	*living_derived_vms = 0;
 
 	VM_linked_list* parent = *vm_list;
-	VM_linked_list* actual = parent->next;
-
-	while(actual != NULL) {
+	do {
 		*living_vms = *living_vms + 1;
 		*total_revenue = *total_revenue + parent->revenue;
 		*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
-		parent = actual;
-		actual = actual->next;
-	}
-	// Plus the last node
-	if(parent->vm_index != -1) *living_vms = *living_vms + 1;
-	*total_revenue = *total_revenue + parent->revenue;
-	*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
-
-	VM_linked_list* parent_derived = *VM_list_derived;
-	VM_linked_list* actual_derived = parent_derived->next;
-
-	while(actual_derived != NULL) {	
-		*living_derived_vms = *living_derived_vms + 1;
-		*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
-		*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+		parent = parent->next;
+	} while(parent != NULL);
 		
-		parent_derived = actual_derived;
-		actual_derived = actual_derived->next;
-	}
-	// Plus the last node
-	if(parent_derived->vm_index != -1) *living_derived_vms = *living_derived_vms + 1;
-	*total_revenue = *total_revenue + parent_derived->revenue * 0.9;
-	*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+
+	// VMs Derived
+	VM_linked_list* parent_derived = *VM_list_derived;
+	do {
+		*living_derived_vms = *living_derived_vms + 1;
+		*total_revenue = *total_revenue + parent_derived->revenue * 0.3;
+		
+		parent_derived = parent_derived->next;
+	} while(parent_derived != NULL);
+
 }
 
 /**
@@ -929,7 +918,8 @@ float power_consumption (float **utilization, int **H, int h_size, int *working_
 			/* calculates utility of a physical machine */
 			utilidad = (float)utilization[iterator_physical][0] / (float)H[iterator_physical][0];
 			/* calculates energy consumption of a physical machine */
-			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				   + (float)H[iterator_physical][3]*0.6;
+			power_consumption += ((float)H[iterator_physical][3] - ((float)H[iterator_physical][3]*0.6)) * utilidad 				   
+			+ (float)H[iterator_physical][3]*0.6;
 		}
 	}
 	return power_consumption;
