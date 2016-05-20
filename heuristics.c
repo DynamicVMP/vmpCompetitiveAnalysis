@@ -71,8 +71,15 @@ bool check_resources(float *request, float **utilization, float **resources_requ
 
 	if(!update) {
 		VM_linked_list* parent = *vm_list;
-		VM_linked_list* actual = parent->next;	
-		while(actual != NULL) {
+		
+		do {
+			if(parent->service == (int) request[1] && parent->pm == physical_machine) {
+				return false;
+			}
+			parent = parent->next;
+		} while(parent != NULL);
+
+		/*while(actual != NULL) {
 			if(parent->service == (int) request[1] && parent->pm == physical_machine) {
 				return false;
 			}
@@ -81,7 +88,7 @@ bool check_resources(float *request, float **utilization, float **resources_requ
 		}
 		if(parent->service == (int) request[1] && parent->pm == physical_machine) {
 			return false;
-		}	
+		}*/		
 	}
 	
 	return flag;

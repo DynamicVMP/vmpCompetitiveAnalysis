@@ -39,7 +39,7 @@ int main (int argc, char *argv[]) {
 	long qos_a_priori = 0;
 	int vm_migrated = 0;
 	int heuristic = 0;
-	int time_unit = 0;
+	int time_unit;
 	double * total_revenue_array;
 	long * total_qos_array;
 	float * wasted_resources_ratio_array;
@@ -225,16 +225,34 @@ int main (int argc, char *argv[]) {
 
 		long removeRevenue;
 
+		time_unit = S[0][0];
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
  			
- 			if(S[iterator_row][0] != time_unit ) {
+			// If current_time is equal to VM tinit, allocated VM  
+			if(S[iterator_row][0] <= S[iterator_row][12]) {
+				revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
+				if( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &VM_list_derived, &VM_list, &VM_list_serviced, &VM_list_serviced_derived) ) {
+					request_serviced++;
+				} else {
+					request_rejected++;
+				}
+			} else {
+				// Update VM resources
+				if(S[iterator_row][0] <= S[iterator_row][13] 
+					&& update_VM_resources(placement, utilization, resources_requested, S[iterator_row], &VM_list, H)) {
+					request_update++;
+				} else {
+					request_rejected++;
+				}
+			}
+
+ 			if(S[iterator_row][0] != time_unit || iterator_row+1 == s_size) {
 				
  				// Calculates Objective Functions
  				removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
 				economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos, &living_vms, &living_derived_vms);
 				power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
 				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
- 				
  				total_revenue_array[time_unit] = revenue_a_priori_t - total_revenue;
 				revenue_a_priori_t = revenue_a_priori_t - removeRevenue;
 
@@ -286,71 +304,8 @@ int main (int argc, char *argv[]) {
 
 				time_unit = S[iterator_row][0];
 			}
-
-			// If current_time is equal to VM tinit, allocated VM  
-			if(S[iterator_row][0] <= S[iterator_row][12]) {
-				revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
-				if( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &VM_list_derived, &VM_list, &VM_list_serviced, &VM_list_serviced_derived) ) {
-					request_serviced++;
-				} else {
-					request_rejected++;
-				}
-			} else {
-				// Update VM resources
-				if(S[iterator_row][0] <= S[iterator_row][13] 
-					&& update_VM_resources(placement, utilization, resources_requested, S[iterator_row], &VM_list, H)) {
-					request_update++;
-				} else {
-					request_rejected++;
-				}
-			}
-		}
-		// Remove all VM
-		
-		// Calculates objective functions
-		power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
-		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos, &living_vms, &living_derived_vms);
-		wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size);
-		
-		total_revenue_array[time_unit] =  revenue_a_priori_t - total_revenue;
-		removeRevenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
-
-		power_consumption_array[time_unit + 1] = power_consumption(utilization, H, h_size, &working_pms);
-		wasted_resources_ratio_array[time_unit + 1] = wasted_resources(utilization, resources_requested, H, h_size);
-		economical_revenue(&VM_list, &VM_list_derived, &total_revenue, &total_qos, &living_vms, &living_derived_vms);
-		total_revenue_array[time_unit + 1] =  revenue_a_priori_t - total_revenue;
-
-		// Calculates the max and min of each objective function
-		if ( power_consumption_array[time_unit] < min_power ) {
-			min_power = power_consumption_array[time_unit];
-		} else if ( power_consumption_array[time_unit] > max_power ) {
-			max_power = power_consumption_array[time_unit];
 		}
 
-		if ( total_qos_array[time_unit] < min_qos ) {
-			min_qos = total_qos_array[time_unit];
-		} else if ( total_qos_array[time_unit] > max_qos ) {
-			max_qos = total_qos_array[time_unit];
-		}
-
-		if ( total_revenue_array[time_unit] < min_revenue ) {
-			min_revenue = total_revenue_array[time_unit];
-		} else if ( total_revenue_array[time_unit] > max_revenue ) {
-			max_revenue = total_revenue_array[time_unit];
-		}
-
-		if ( wasted_resources_ratio_array[time_unit] < min_wasted_resources ) {
-			min_wasted_resources = wasted_resources_ratio_array[time_unit];
-		} else if ( wasted_resources_ratio_array[time_unit] > max_wasted_resources ) {
-			max_wasted_resources = wasted_resources_ratio_array[time_unit];
-		}
-
-		// Save to FILE
-		fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit]);
-		fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit]);
-		fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio_array[time_unit]);
-		fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
-		fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
 
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
 		float average_power_consumption = calculate_average_from_array( power_consumption_array, total_t + 1 );
@@ -427,11 +382,8 @@ int main (int argc, char *argv[]) {
 			printf("********************************************************\n");
 		}
 		/* CLEANING */
-		print_float_matrix(utilization, h_size, RESOURCES);
 		free_float_matrix(utilization, h_size);
-
 		free_float_matrix(S, s_size);
-
 		free_VM_list(VM_list);
 		free_VM_list(VM_list_derived);
 		free_VM_list(VM_list_serviced);
