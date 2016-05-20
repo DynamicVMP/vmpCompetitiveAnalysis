@@ -35,7 +35,7 @@ int main (int argc, char *argv[]) {
         /* good parameters */
     else
     {
-
+        FILE * execution_time_file;
         /* Interactive Memetic Algorithm previous stuff */
         /* number of generation, for iterative reference of generations */
         int generation = 0;
@@ -53,6 +53,8 @@ int main (int argc, char *argv[]) {
         char file_postfix [300] = "";
         char file_name_scenario [300] = "";
         char *token_file_name;
+
+        int previous_v_size=0;
         /*number of virtual machines*/
         int v_size;
         /*matrix of virtual machines*/
@@ -99,8 +101,11 @@ int main (int argc, char *argv[]) {
         /*the best solution for the problem instance*/
         int* best_solution;
 
+        int* previous_placement;
+
         /*matrix that holds the objective functions values of each individual*/
         double** objectives_functions_values;
+        float** wasted_resources_obj;
 
         /*structures for Q and P  */
         int **Q;
@@ -113,6 +118,8 @@ int main (int argc, char *argv[]) {
         /*counters*/
         int t=1;
         int OF_calc_count=0;
+
+        //t_max=2;
 
         /* While t is less or equal to t_max of the scenario, run the memetic algorithm for the time t */
         while(t<=t_max) {
@@ -127,8 +134,7 @@ int main (int argc, char *argv[]) {
 
             /*reserve memory for the matrix and arrays used by the memetic algorithm*/
             create_structures(&P, &Q, &utilization_P, &utilization_Q, &weighted_sums_P, &weighted_sums_Q,
-                              &objectives_functions_values, NUMBER_OF_INDIVIDUALS, v_size, h_size);
-
+                              &objectives_functions_values,&wasted_resources_obj,NUMBER_OF_INDIVIDUALS, v_size, h_size);
             // Set Timer
             start = clock();
 
@@ -147,8 +153,8 @@ int main (int argc, char *argv[]) {
             //print_int_matrix(P,NUMBER_OF_INDIVIDUALS,v_size);
 
             /* Additional task: calculate the cost of each objective function for each solution */
-            weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P, H, V,
-                                                 NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count);
+            weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj, H, V,
+                                                 NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
 
             generation=0;
             /* While (stopping criterion is not met), do */
@@ -177,14 +183,14 @@ int main (int argc, char *argv[]) {
                 //print_int_matrix(Q,NUMBER_OF_INDIVIDUALS,v_size);
 
                 /* Additional task: calculate the cost of each objective function for each solution */
-                weighted_sums_Q = load_weighted_sums(objectives_functions_values, weighted_sums_Q, Q, utilization_Q,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count);
+                weighted_sums_Q = load_weighted_sums(objectives_functions_values, weighted_sums_Q, Q, utilization_Q,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
                 //print_float_array(objective_function_Q,NUMBER_OF_INDIVIDUALS);
 
                 P = population_evolution(P, Q, weighted_sums_P, weighted_sums_Q, NUMBER_OF_INDIVIDUALS, v_size);
 
                 /*Reload the utilization of P and the evaluation of each individual of P*/
                 utilization_P = load_utilization(utilization_P, P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
-                weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count);
+                weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
 
             }
 
@@ -196,7 +202,9 @@ int main (int argc, char *argv[]) {
             msec = diff * 1000 / CLOCKS_PER_SEC;
             total_time+=msec;
 
-            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],V, h_size, v_size,file_postfix, t);
+            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],wasted_resources_obj[index_best_solution],V, h_size, v_size,file_postfix, t);
+            report_migrations(best_solution,v_size,previous_placement,previous_v_size,V,file_postfix);
+            update_previous_placement(best_solution,v_size,&previous_placement,&previous_v_size);
 
             // RESULTS
             printf("\nResults for time T=%d\n",t);
@@ -223,11 +231,13 @@ int main (int argc, char *argv[]) {
             free(weighted_sums_P);
             free(weighted_sums_Q);
             free_double_matrix(objectives_functions_values, NUMBER_OF_INDIVIDUALS);
+            free_float_matrix(wasted_resources_obj,NUMBER_OF_INDIVIDUALS);
             free_utilization_matrix(utilization_P, NUMBER_OF_INDIVIDUALS, h_size);
             free_utilization_matrix(utilization_Q, NUMBER_OF_INDIVIDUALS, h_size);
 
             t++;
         }
+
         free_int_matrix(H, h_size);
         free_float_matrix(S, s_size);
 
@@ -235,6 +245,8 @@ int main (int argc, char *argv[]) {
         printf("Total Time taken %d seconds %d milliseconds\n", total_time / 1000, total_time % 1000);
         printf("Number of times the objective function was assessed: %d\n", OF_calc_count);
 
+        execution_time_file = fopen("results/time","a");
+        fprintf(execution_time_file,"%s %d,%d\n",file_postfix,total_time / 1000, total_time % 1000);
 
         /* finish him */
         return 0;

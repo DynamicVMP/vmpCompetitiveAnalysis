@@ -17,10 +17,10 @@
 #define S_HEADER "SCENARIO"
 #define TAM_BUFFER BUFSIZ
 #define CONSTANT 1000
-#define SIGMA_POWER 1.279626366
-#define SIGMA_REVENUE 1.559828872
-#define SIGMA_RESOURCES 2.370420922
-#define SIGMA_QOS 1.930521098
+#define SIGMA_POWER 1.329674004
+#define SIGMA_REVENUE 1.719854165
+#define SIGMA_RESOURCES 1.802271979
+#define SIGMA_QOS 2.141194374
 #define  VM_FEATURES 10
 #define RESOURCES 3
 #define OBJECTIVE_FUNCTIONS 4
@@ -45,13 +45,17 @@ int** load_H(int h_size, char path_to_file[]);
 
 /* load utilization of physical resources and costs of the considered objective functions */
 int*** load_utilization(int*** utilization,int **population, int **H, float **V, int number_of_individuals, int h_size, int v_size);
-double*load_weighted_sums(double **objective_functions_values, double *weighted_sums, int **population, int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size, double qos_a_priori_t, float revenue_a_priori_t, int *OF_calc_count);
-double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization, int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count);
+double*load_weighted_sums(double **objective_functions_values, double *weighted_sums, int **population, int ***utilization,float** wasted_resources_obj, int **H, float **V, int number_of_individuals, int h_size, int v_size, double qos_a_priori_t, float revenue_a_priori_t, int *OF_calc_count, int t);
+double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization,float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t);
 double calculates_weighted_sum(float power_normalized, float delta_revenue_normalized, float wasted_resources_normalized, double delta_qos_normalized);
 /* counts the quantity virtual machines requests*/
 int get_v_size_per_t(float** matrix_s,int t,int max_row);
 /* loads virtual machines requests*/
 float** load_v_per_t(float** matrix_s, int s_size, int v_size, double *qos_a_priori_t, float *revenue_a_priori_t, int t);
+
+void update_previous_placement(int *best_solution,int v_size,int** previous_placement,int* previous_v_size);
+void report_migrations(int* best_solution, int v_size, int* previous_placement,int previous_v_size,float **V,char* file_postfix);
+
 
 /*get the index of the best solution*/
 int get_best_solution_index(double* weighted_sums, int number_of_individuals);
@@ -64,7 +68,7 @@ void free_int_matrix(int** matrix, int iterator_row);
 void free_utilization_matrix(int ***utilization,int individuals,int h_size);
 
 /*reports in files the utilization of the datacenter physical machines and the solution obtained */
-void report_solution(int *best_solution,double* objective_functions_solution,int** utilization,double weighted_sum,float** V,int h_size,int v_size,char* file_postfix,int t);
+void report_solution(int *best_solution,double* objective_functions_solution,int** utilization,double weighted_sum,float* wasted_resources_obj,float** V,int h_size,int v_size,char* file_postfix,int t);
 void copy_int_matrix(int** matrix_A, int** matrix_B, int rows, int columns);
 void copy_int_array(int* array_A, int* array_B, int array_size);
 
