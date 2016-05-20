@@ -118,10 +118,12 @@ int number_unique_vm (float **S, int s_size, long * revenue_a_priori, long * qos
 	int total_net = 0;
 
 	for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
+
+		*revenue_a_priori = *revenue_a_priori + (long)S[iterator_row][10];
+		*qos_a_priori = *qos_a_priori + (custom_pow(CONSTANT,(int) S[iterator_row][11]) * (int) S[iterator_row][11]);
+
  		if(S[iterator_row][0] <= S[iterator_row][12]) {
 			number_unique_vm++;
-			*revenue_a_priori = *revenue_a_priori + (long)S[iterator_row][10];
-			*qos_a_priori = *qos_a_priori + (custom_pow(CONSTANT,(int) S[iterator_row][11]) * (int) S[iterator_row][11]);
 			total_net = total_net + S[iterator_row][6];
 			total_ram = total_ram + S[iterator_row][5];
 			total_cpu = total_cpu + S[iterator_row][4];
