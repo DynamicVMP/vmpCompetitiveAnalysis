@@ -70,6 +70,7 @@ int main (int argc, char *argv[]) {
 	FILE *execution_time_file;
 	FILE *weighted_sum_file;
 	FILE *pm_usage;
+	FILE *utilization_result;
 
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
@@ -281,6 +282,7 @@ int main (int argc, char *argv[]) {
 				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
+				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 
 				time_unit = S[iterator_row][0];
 			}
@@ -425,6 +427,7 @@ int main (int argc, char *argv[]) {
 			printf("********************************************************\n");
 		}
 		/* CLEANING */
+		print_float_matrix(utilization, h_size, RESOURCES);
 		free_float_matrix(utilization, h_size);
 
 		free_float_matrix(S, s_size);
