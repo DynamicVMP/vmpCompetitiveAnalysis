@@ -529,7 +529,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	VM_linked_list* actual = parent->next;
 
 	while(actual != NULL) { 
-		if(parent->tend == current_time) {
+		if(parent->tend < current_time) {
 			// update the placement matrix and set -1 PM for the VM
 			placement[2][parent->vm_index] = -1;
 			// update the utilization matrix
@@ -553,7 +553,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	    actual = actual->next;
 	}
 
-	if(parent->tend == current_time) {
+	if(parent->tend < current_time) {
 		// update the utilization matrix
 		utilization[parent->pm][0] -= parent->cpu_utilization;
 		utilization[parent->pm][1] -= parent->ram_utilization;
@@ -577,7 +577,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	VM_linked_list* actual_derived = parent_derived->next;
 
 	while(actual_derived != NULL) { 
-		if(parent_derived->tend == current_time) {
+		if(parent_derived->tend < current_time) {
 			
 			lost_revenue = lost_revenue + parent_derived->revenue;
 
@@ -591,7 +591,7 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	    actual_derived = actual_derived->next;
 	}
 
-	if(parent_derived->tend == current_time) {
+	if(parent_derived->tend < current_time) {
 			
 		lost_revenue = lost_revenue + parent_derived->revenue;
 		parent_derived->vm_index = -1;
