@@ -15,6 +15,9 @@ run_mini_input:
 run_all_inputs_with_all_heuristics:
 	ls inputs $1 | while read x; do for y in 1 2 3 4 5; do echo $$x $$y; ./imavmp inputs/$$x $$y; done; done
 
+run_all_new_inputs_with_all_heuristics:
+	ls new_inputs $1 | while read x; do for y in 1 2 3 4 5; do echo $$x $$y; ./imavmp new_inputs/$$x $$y; done; done
+
 run_normal_1:
 	./imavmp inputs/100.1-Normal
 

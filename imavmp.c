@@ -71,6 +71,7 @@ int main (int argc, char *argv[]) {
 	FILE *power_consumption_file;
 	FILE *economical_revenue_file;
 	FILE *quality_service_file;
+	FILE *wasted_resources_ratio_file;
 	FILE *wasted_resources_file;
 	FILE *execution_time_file;
 	FILE *weighted_sum_file;
@@ -108,6 +109,9 @@ int main (int argc, char *argv[]) {
 
 	sprintf(file_name,"results/quality_service%s",file_postfix);
 	quality_service_file = fopen(file_name,"a");
+
+	sprintf(file_name,"results/wasted_resources_ratio%s",file_postfix);
+	wasted_resources_ratio_file = fopen(file_name,"a");
 
 	sprintf(file_name,"results/wasted_resources%s",file_postfix);
 	wasted_resources_file = fopen(file_name,"a");
@@ -307,7 +311,8 @@ int main (int argc, char *argv[]) {
 				}
  				// Save to FILE
 				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit_from_zero] );
-				fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);
+				fprintf(wasted_resources_ratio_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);
+				fprintf(wasted_resources_file, "%f %f %f\n", wasted_resources_array[time_unit_from_zero][0], wasted_resources_array[time_unit_from_zero][1], wasted_resources_array[time_unit_from_zero][2]);
 				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit_from_zero]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit_from_zero]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
@@ -378,7 +383,6 @@ int main (int argc, char *argv[]) {
 
 		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos);
 
-		fprintf(weighted_sum_file, "%f\n", weighted_sum);
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
 
