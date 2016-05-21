@@ -234,6 +234,8 @@ int main (int argc, char *argv[]) {
 		}
 
 		time_unit = S[0][0];
+		int initial_time_unit = time_unit;
+		int time_unit_from_zero;
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
 			revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
 			// If current_time is equal to VM tinit, allocated VM  
@@ -253,64 +255,66 @@ int main (int argc, char *argv[]) {
 				}
 			}
 
- 			if(S[iterator_row][0] != time_unit || iterator_row+1 == s_size) {
-				
+ 			if(iterator_row + 1 == s_size || S[iterator_row][0] != S[iterator_row+1][0]) {
+				time_unit_from_zero = time_unit - initial_time_unit;
  				// Calculates Objective Functions
  				remove_revenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
-				economical_revenue(&VM_list, &VM_list_derived, &revenue_t, &total_qos_array[time_unit], &living_vms, &living_derived_vms);
-				power_consumption_array[time_unit] = power_consumption(utilization, H, h_size, &working_pms);
-				wasted_resources_ratio_array[time_unit] = wasted_resources(utilization, resources_requested, H, h_size, wasted_resources_array[time_unit]);
+				economical_revenue(&VM_list, &VM_list_derived, &revenue_t, &total_qos_array[time_unit_from_zero], &living_vms, &living_derived_vms);
+				power_consumption_array[time_unit_from_zero] = power_consumption(utilization, H, h_size, &working_pms);
+				wasted_resources_ratio_array[time_unit_from_zero] = wasted_resources(utilization, resources_requested, H, h_size, wasted_resources_array[time_unit_from_zero]);
 
- 				total_revenue_array[time_unit] = revenue_a_priori_t - revenue_t;
+ 				total_revenue_array[time_unit_from_zero] = revenue_a_priori_t - revenue_t;
 				revenue_a_priori_t = revenue_a_priori_t - remove_revenue;
 
 				// Calculates the max and min of each objective function
 				if( first_time ) {
-					min_power = power_consumption_array[time_unit];
-					max_power = power_consumption_array[time_unit];
-					min_qos = total_qos_array[time_unit];
-					max_qos = total_qos_array[time_unit];
-					min_revenue = total_revenue_array[time_unit];
-					max_revenue = total_revenue_array[time_unit];
-					min_wasted_resources = wasted_resources_ratio_array[time_unit];
-					max_wasted_resources = wasted_resources_ratio_array[time_unit];
+					min_power = power_consumption_array[time_unit_from_zero];
+					max_power = power_consumption_array[time_unit_from_zero];
+					min_qos = total_qos_array[time_unit_from_zero];
+					max_qos = total_qos_array[time_unit_from_zero];
+					min_revenue = total_revenue_array[time_unit_from_zero];
+					max_revenue = total_revenue_array[time_unit_from_zero];
+					min_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
+					max_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
 					first_time = false;
 				} else {
 
-					if ( power_consumption_array[time_unit] < min_power ) {
-						min_power = power_consumption_array[time_unit];
-					} else if ( power_consumption_array[time_unit] > max_power ) {
-						max_power = power_consumption_array[time_unit];
+					if ( power_consumption_array[time_unit_from_zero] < min_power ) {
+						min_power = power_consumption_array[time_unit_from_zero];
+					} else if ( power_consumption_array[time_unit_from_zero] > max_power ) {
+						max_power = power_consumption_array[time_unit_from_zero];
 					}
 
-					if ( total_qos_array[time_unit] < min_qos ) {
-						min_qos = total_qos_array[time_unit];
-					} else if ( total_qos_array[time_unit] > max_qos ) {
-						max_qos = total_qos_array[time_unit];
+					if ( total_qos_array[time_unit_from_zero] < min_qos ) {
+						min_qos = total_qos_array[time_unit_from_zero];
+					} else if ( total_qos_array[time_unit_from_zero] > max_qos ) {
+						max_qos = total_qos_array[time_unit_from_zero];
 					}
 
-					if ( total_revenue_array[time_unit] < min_revenue ) {
-						min_revenue = total_revenue_array[time_unit];
-					} else if ( total_revenue_array[time_unit] > max_revenue ) {
-						max_revenue = total_revenue_array[time_unit];
+					if ( total_revenue_array[time_unit_from_zero] < min_revenue ) {
+						min_revenue = total_revenue_array[time_unit_from_zero];
+					} else if ( total_revenue_array[time_unit_from_zero] > max_revenue ) {
+						max_revenue = total_revenue_array[time_unit_from_zero];
 					}
 
-					if ( wasted_resources_ratio_array[time_unit] < min_wasted_resources ) {
-						min_wasted_resources = wasted_resources_ratio_array[time_unit];
-					} else if ( wasted_resources_ratio_array[time_unit] > max_wasted_resources ) {
-						max_wasted_resources = wasted_resources_ratio_array[time_unit];
+					if ( wasted_resources_ratio_array[time_unit_from_zero] < min_wasted_resources ) {
+						min_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
+					} else if ( wasted_resources_ratio_array[time_unit_from_zero] > max_wasted_resources ) {
+						max_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
 					}
 
 				}
  				// Save to FILE
-				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit] );
-				fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio_array[time_unit]);
-				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit]);
-				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit]);
+				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit_from_zero] );
+				fprintf(wasted_resources_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);
+				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit_from_zero]);
+				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit_from_zero]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
 				total_revenue += revenue_t;
-				time_unit = S[iterator_row][0];
+				if ( iterator_row+1 != s_size ){
+					time_unit = S[iterator_row+1][0];
+				}
 			}
 		}
 
