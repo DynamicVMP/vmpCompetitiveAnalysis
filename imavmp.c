@@ -319,8 +319,8 @@ int main (int argc, char *argv[]) {
 		}
 
 
-		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, total_t + 1 );
-		float average_power_consumption = calculate_average_from_array( power_consumption_array, total_t + 1 );
+		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, time_unit_from_zero + 1 );
+		float average_power_consumption = calculate_average_from_array( power_consumption_array, time_unit_from_zero + 1);
 
 		float normalized_wasted_resources_ratio = 0;
 		float normalized_power_consumption = 0;
@@ -337,7 +337,7 @@ int main (int argc, char *argv[]) {
 		long delta_qos = qos_a_priori - total_qos;
 		double qos_to_normalized = (double) delta_qos;
 
-		for(index = 0; index <= time_unit; index++){
+		for(index = 0; index <= time_unit_from_zero; index++){
 			
 			normalized_power_consumption = (power_consumption_array[index] - min_power) / (max_power - min_power);
 			
@@ -348,11 +348,13 @@ int main (int argc, char *argv[]) {
 			}
 
 			normalized_wasted_resources_ratio = (wasted_resources_ratio_array[index] - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
+
 			if(total_qos_array[index] > 0) {
 				normalized_qos = ((double)total_qos_array[index] - min_qos) / (max_qos - min_qos);
 			}else{
 				normalized_qos = 0;
 			}
+
 			fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos));
 		}
 
