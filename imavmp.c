@@ -313,7 +313,7 @@ int main (int argc, char *argv[]) {
 				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit_from_zero] );
 				fprintf(wasted_resources_ratio_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);
 				fprintf(wasted_resources_file, "%f %f %f\n", wasted_resources_array[time_unit_from_zero][0], wasted_resources_array[time_unit_from_zero][1], wasted_resources_array[time_unit_from_zero][2]);
-				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit_from_zero]);
+				fprintf(economical_revenue_file, "%li\n", revenue_t);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit_from_zero]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
