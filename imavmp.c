@@ -236,6 +236,7 @@ int main (int argc, char *argv[]) {
 		time_unit = S[0][0];
 		int initial_time_unit = time_unit;
 		int time_unit_from_zero;
+		
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
 			revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
 			// If current_time is equal to VM tinit, allocated VM  
@@ -318,7 +319,6 @@ int main (int argc, char *argv[]) {
 			}
 		}
 
-
 		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, time_unit_from_zero + 1 );
 		float average_power_consumption = calculate_average_from_array( power_consumption_array, time_unit_from_zero + 1);
 
@@ -339,16 +339,20 @@ int main (int argc, char *argv[]) {
 
 		for(index = 0; index <= time_unit_from_zero; index++){
 			
+			// Power Consumption
 			normalized_power_consumption = (power_consumption_array[index] - min_power) / (max_power - min_power);
 			
+			// Wasted Resources
+			normalized_wasted_resources_ratio = (wasted_resources_ratio_array[index] - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
+			
+			// Revenue
 			if(total_revenue_array[index] > 0) {
 				normalized_revenue =  ((double)total_revenue_array[index] - min_revenue) / (max_revenue - min_revenue);
 			}else{
 				normalized_revenue = 0;
 			}
 
-			normalized_wasted_resources_ratio = (wasted_resources_ratio_array[index] - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
-
+			// Qos
 			if(total_qos_array[index] > 0) {
 				normalized_qos = ((double)total_qos_array[index] - min_qos) / (max_qos - min_qos);
 			}else{

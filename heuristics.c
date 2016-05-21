@@ -920,12 +920,14 @@ float power_consumption (float **utilization, int **H, int h_size, int *working_
  *
  * return 
  */
-float calculates_weighted_sum(float power, long total_revenue, float wasted_resources_ratio, long total_qos) {
+float calculates_weighted_sum(float power, double total_revenue, float wasted_resources_ratio, double total_qos) {
 
 	float power_normalized = power * SIGMA_POWER;
-	long revenue_normalized = total_revenue * SIGMA_REVENUE;
+	double revenue_normalized = total_revenue * SIGMA_REVENUE;
 	float wasted_resources_normalized = wasted_resources_ratio * SIGMA_RESOURCES;
-	long qos_normalized = total_qos * SIGMA_QOS;
+	double qos_normalized = total_qos * SIGMA_QOS;
+
+	//printf("P: %f\t R: %f\t WR: %f\t QoS: %f \n", power_normalized, revenue_normalized, wasted_resources_normalized, qos_normalized );
 
 	return power_normalized + revenue_normalized + wasted_resources_normalized + qos_normalized;
 
