@@ -157,7 +157,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
             for (iterator_physical=0; iterator_physical < h_size; iterator_physical++) {
 
                 /* iterate again on all virtual machines */
-                aux_cpu_sum, aux_net_sum, aux_mem_sum = 0;
+                aux_cpu_sum=0; aux_net_sum=0; aux_mem_sum = 0;
                 for (iterator_virtual_2 = 0; iterator_virtual_2 < v_size; iterator_virtual_2++)
                 {
                     /* if the VM is placed on the candidate physical machine and has SLA!=maxSLA, add its resources */
@@ -171,7 +171,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
                 /* if enough VMs with SLA!=maxSLA can be shutdown on PM(candidate) to accomodate the SLA(maxSLA) VM */
                 if (check_candidate_capacity(utilization,individual,candidate,V,iterator_virtual,H,aux_cpu_sum,aux_mem_sum,aux_net_sum)) {
                     /* iterate on virtual machines to put SLA(maxSLA) VM on PM(candidate) */
-                    aux_cpu_sum, aux_net_sum, aux_mem_sum = 0;
+                    aux_cpu_sum = 0;  aux_net_sum = 0; aux_mem_sum = 0;
                     for (iterator_virtual_2 = 0; iterator_virtual_2 < v_size; iterator_virtual_2++)
                     {
                         /* if the VM SLA != maxSLA and the VM was placed, add its resources */
