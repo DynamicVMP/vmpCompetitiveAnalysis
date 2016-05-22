@@ -357,10 +357,10 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
 
     objective_functions_values = load_objective_functions(objective_functions_values,population,utilization,wasted_resources_obj,H,V,number_of_individuals,h_size,v_size,OF_calc_count,t);
 
-    max_delta_revenue_t  = revenue_a_priori_t - (float)objective_functions_values[0][0];
-    max_power_consumption_t  = (float)objective_functions_values[0][1];
-    max_delta_qos_t= qos_a_priori_t - objective_functions_values[0][2] ;
-    max_wasted_resources_t = (float)objective_functions_values[0][3];
+    max_delta_revenue_t  = min_delta_revenue_t =revenue_a_priori_t - (float)objective_functions_values[0][0];
+    max_power_consumption_t  = min_power_consumption_t =(float)objective_functions_values[0][1];
+    max_delta_qos_t =  min_delta_qos_t =qos_a_priori_t - objective_functions_values[0][2] ;
+    max_wasted_resources_t = min_wasted_resources_t = (float)objective_functions_values[0][3];
 
     /*Calculacion of values to normalize objetice funtions*/
     for(iterator_individual=1;iterator_individual<number_of_individuals;iterator_individual++){
@@ -993,14 +993,17 @@ void print_double_array(double *array, int columns)
 }
 
 
-void update_previous_placement(int *best_solution,int v_size,int** previous_placement,int* previous_v_size){
+int* update_previous_placement(int *best_solution,int v_size,int* previous_placement,int* previous_v_size){
 
-    if(*previous_v_size != v_size){
-        *previous_placement = (int*)malloc(v_size*sizeof(int));
+    if(v_size>*previous_v_size){
+        free(previous_placement);
+        previous_placement = (int*)malloc(v_size*sizeof(int));
     }
 
     *previous_v_size = v_size;
-    copy_int_array(*previous_placement,best_solution,*previous_v_size);
+    copy_int_array(previous_placement,best_solution,*previous_v_size);
+
+    return previous_placement;
 }
 
 

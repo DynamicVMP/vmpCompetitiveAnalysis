@@ -53,7 +53,7 @@ int get_v_size_per_t(float** matrix_s,int t,int max_row);
 /* loads virtual machines requests*/
 float** load_v_per_t(float** matrix_s, int s_size, int v_size, double *qos_a_priori_t, float *revenue_a_priori_t, int t);
 
-void update_previous_placement(int *best_solution,int v_size,int** previous_placement,int* previous_v_size);
+int* update_previous_placement(int *best_solution,int v_size,int* previous_placemnet,int* previous_v_size);
 void report_migrations(int* best_solution, int v_size, int* previous_placement,int previous_v_size,float **V,char* file_postfix);
 
 

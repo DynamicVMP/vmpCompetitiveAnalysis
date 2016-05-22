@@ -101,7 +101,7 @@ int main (int argc, char *argv[]) {
         /*the best solution for the problem instance*/
         int* best_solution;
 
-        int* previous_placement;
+        int* previous_placement = malloc(sizeof(int));
 
         /*matrix that holds the objective functions values of each individual*/
         double** objectives_functions_values;
@@ -204,7 +204,7 @@ int main (int argc, char *argv[]) {
 
             report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],wasted_resources_obj[index_best_solution],V, h_size, v_size,file_postfix, t);
             report_migrations(best_solution,v_size,previous_placement,previous_v_size,V,file_postfix);
-            update_previous_placement(best_solution,v_size,&previous_placement,&previous_v_size);
+            previous_placement = update_previous_placement(best_solution,v_size,previous_placement,&previous_v_size);
 
             // RESULTS
             printf("\nResults for time T=%d\n",t);

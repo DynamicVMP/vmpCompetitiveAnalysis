@@ -8,8 +8,23 @@ clean:
 init:
 	rm -rf results/*
 
-run_all_scenarios: 
+run_all_inputs:
 	ls inputs  | while read x; do ./imoavmp inputs/$$x; done
+
+run_all_new_inputs:
+	ls inputs  | while read x; do ./imoavmp new_inputs/$$x; done
+
+run_new_poisson_1:
+	./imoavmp new_inputs/100.1-Poisson
+
+run_new_uniforme_1:
+	./imoavmp new_inputs/100.1-Uniforme
+
+run_new_poisson_2:
+	./imoavmp new_inputs/100.2-Poisson
+
+run_new_poisson_3:
+	./imoavmp new_inputs/100.3-Poisson
 
 run_normal_1:
 	./imoavmp inputs/100.1-Normal
