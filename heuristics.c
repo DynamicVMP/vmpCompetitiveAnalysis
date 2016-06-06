@@ -483,9 +483,9 @@ int compare_requests(float* request_A, float* request_B) {
 		return -1;
 	}
 
-	// The sum of all the resources multiplied by their coefficient divided by the number of resources
-	representative_weight_A = (request_A[4] * alpha + request_A[5] * beta + request_A[6] * gamma) / 3;
-	representative_weight_B = (request_B[4] * alpha + request_B[5] * beta + request_B[6] * gamma) / 3;
+	// Compares the requested CPU for now
+	representative_weight_A = request_A[4];
+	representative_weight_B = request_B[4];
 
 	if(representative_weight_A > representative_weight_B) {
 		return 1;
