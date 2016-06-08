@@ -57,11 +57,11 @@ int main (int argc, char *argv[]) {
         /*number of virtual machines*/
         int v_size;
         /*matrix of virtual machines*/
-        float **V;
+        float **V =malloc(sizeof(float*));
         /*Max QoS*/
-        double qos_a_priori;
+        double qos_a_priori=0.0;
         /*Max Economical Revenue*/
-        float revenue_a_priori_t;
+        float revenue_a_priori_t=0.0;
 
         /*printf("\nH\n\n");
         print_int_matrix(H,h_size,4);*/
@@ -118,7 +118,7 @@ int main (int argc, char *argv[]) {
         int t=1;
         int OF_calc_count=0;
 
-        //t_max=2;
+        //t_max=4;
 
         /* While t is less or equal to t_max of the scenario, run the memetic algorithm for the time t */
         while(t<=t_max) {
@@ -126,10 +126,10 @@ int main (int argc, char *argv[]) {
             /*load the number of virtual machines in time t*/
             v_size = get_v_size_per_t(S,t,s_size);
             /* load the virtual machines for time t*/
-            V = load_v_per_t(S,s_size,v_size,&qos_a_priori,&revenue_a_priori_t,t);
+            V = load_v_per_t(S,s_size,V,v_size,previous_placement,previous_v_size,&qos_a_priori,&revenue_a_priori_t,t);
 
             //printf("\nV\n\n");
-            //print_float_matrix(V,v_size,5);
+            //print_float_matrix(V,v_size,VM_FEATURES);
 
             /*reserve memory for the matrix and arrays used by the memetic algorithm*/
             create_structures(&P, &Q, &utilization_P, &utilization_Q, &weighted_sums_P, &weighted_sums_Q,
@@ -154,6 +154,8 @@ int main (int argc, char *argv[]) {
             /* Additional task: calculate the cost of each objective function for each solution */
             weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj, H, V,
                                                  NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
+
+
 
             generation=0;
             /* While (stopping criterion is not met), do */
@@ -193,6 +195,8 @@ int main (int argc, char *argv[]) {
 
             }
 
+            //print_double_matrix(objectives_functions_values,NUMBER_OF_INDIVIDUALS,OBJECTIVE_FUNCTIONS);
+            //print_double_array(weighted_sums_P,NUMBER_OF_INDIVIDUALS);
             index_best_solution = get_best_solution_index(weighted_sums_P, NUMBER_OF_INDIVIDUALS);
             best_solution = P[index_best_solution];
 
@@ -223,7 +227,7 @@ int main (int argc, char *argv[]) {
 
             /*cleaning*/
             free_int_matrix(P, NUMBER_OF_INDIVIDUALS);
-            free_float_matrix(V, v_size);
+            //free_float_matrix(V, v_size);
             free_int_matrix(Q, NUMBER_OF_INDIVIDUALS);
             free(weighted_sums_P);
             free(weighted_sums_Q);
@@ -237,6 +241,7 @@ int main (int argc, char *argv[]) {
 
         free_int_matrix(H, h_size);
         free_float_matrix(S, s_size);
+        free_float_matrix(V,v_size);
 
         printf("\nRESULTS\n");
         printf("Total Time taken %d seconds %d milliseconds\n", total_time / 1000, total_time % 1000);

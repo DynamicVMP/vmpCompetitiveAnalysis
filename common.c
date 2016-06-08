@@ -8,8 +8,6 @@
 /* include common header */
 #include "common.h"
 
-
-
 /**
  * get_s_size: get the number of request
  * parameter: path to file
@@ -206,18 +204,21 @@ int get_v_size_per_t(float** matrix_s, int t, int max_row){
  * parameter: the time t considered
  * returns: the matrix V of virtual machines
  */
-float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_priori_t, float *revenue_a_priori_t, int t){
+float ** load_v_per_t(float ** matrix_s, int s_size, float** V, int v_size, int* previous_placement, int previous_v_size, double *qos_a_priori_t, float *revenue_a_priori_t, int t){
 
-    int iterator,time_vm_living;
-    float **matrix_v = (float**)malloc(v_size*sizeof(float*));
+    int iterator,time_vm_living,iterator_v;
+
+    float** matrix_v = (float**)malloc(v_size*sizeof(float*));
     for(iterator=0;iterator<v_size;iterator++){
         matrix_v[iterator] = (float *) malloc(VM_FEATURES * sizeof(float));
     }
 
-    int iterator_v= 0;
+    iterator_v= 0;
     iterator = 0;
     *revenue_a_priori_t=0.0;
     *qos_a_priori_t =0.0;
+
+
     while(iterator<s_size && matrix_s[iterator][0]<=t){
 
         /* - This condition is used to consider only new vm request
@@ -237,6 +238,7 @@ float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_p
                 matrix_v[iterator_v][7] = 0;
                 matrix_v[iterator_v][8] = 0;
                 matrix_v[iterator_v][9] = 0;
+                matrix_v[iterator_v][10] = 0;
 
             }else {
                 matrix_v[iterator_v][0] = matrix_s[iterator][4]; //cpu
@@ -249,6 +251,7 @@ float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_p
                 matrix_v[iterator_v][7] = matrix_s[iterator][1]; //Sb
                 matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
+                matrix_v[iterator_v][10] = NOT_DERIVED;
 
                 time_vm_living = t - (int)matrix_v[iterator_v][5] +1;
                 *qos_a_priori_t += pow(CONSTANT, matrix_v[iterator_v][3]) * matrix_v[iterator_v][3];
@@ -258,6 +261,17 @@ float ** load_v_per_t(float ** matrix_s, int s_size, int v_size, double *qos_a_p
         }
         iterator++;
     }
+
+    /*verify the time t_derived of vms*/
+    for(iterator_v=0; iterator_v < previous_v_size; iterator_v++){
+        if(previous_placement[iterator_v]==0 && V[iterator_v][10]==NOT_DERIVED ){
+            matrix_v[iterator_v][10] = t-1;//t_vm_derived
+        }else if(previous_placement[iterator_v]==0 && V[iterator_v][10]!=NOT_DERIVED ){
+            matrix_v[iterator_v][10] = V[iterator_v][10];
+        }
+    }
+
+    free_float_matrix(V, previous_v_size);
 
     return matrix_v;
 }
@@ -455,8 +469,7 @@ double** load_objective_functions(double **objective_functions_values, int **pop
     float wasted_cpu_resources_ratio, wasted_ram_resources_ratio, wasted_net_resources_ratio;
     float alpha = 1.0, beta = 1.0, gamma = 1.0;
     /**/
-    int working_pms;
-
+    int working_pms,t_init,t_derived;
 
     /* value solution holds the weighted sum of each solution */
     /* iterate on individuals */
@@ -510,22 +523,20 @@ double** load_objective_functions(double **objective_functions_values, int **pop
         /* iterate on physical machines */
         for (iterator_virtual = 0 ; iterator_virtual < v_size ; iterator_virtual++)
         {
+            t_init = (int)V[iterator_virtual][5];
 
             physical_position = population[iterator_individual][iterator_virtual];
             if (physical_position > 0)
             {
-                /*time_vm_living = tend - tinit + 1*/
-                time_vm_living  = t - (int)V[iterator_virtual][5]+1;
                 /* calculate the economical revenue */
-                economical_revenue += V[iterator_virtual][4]*time_vm_living;
+                economical_revenue += calculates_economical_revenue(t,t_init,0,false,V[iterator_virtual][4]);
                 /* calculate  the QoS */
                 quality_of_service += pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
             }else{
                 /*the VM is considered*/
                 if(V[iterator_virtual][0]>0) {
-                    time_vm_living  = t - (int)V[iterator_virtual][5]+1;
-                    /* calculate the economical revenue */
-                    economical_revenue += 0.3 * V[iterator_virtual][4] * time_vm_living;
+                    t_derived = (int)V[iterator_virtual][10];
+                    economical_revenue += calculates_economical_revenue(t,t_init,t_derived,true,V[iterator_virtual][4]);
                 }
             }
         }
@@ -841,7 +852,7 @@ void free_int_matrix(int** matrix, int rows){
 }
 
 
-/* copy_int_float_matrix: copy the values of one matrix to another matrix with the same dimensions
+/* copy_int__matrix: copy the values of one matrix to another matrix with the same dimensions
  * parameter: matrix A
  * parameter  matrix B
  * parameter: number of rows
@@ -859,6 +870,8 @@ void copy_int_matrix(int**matrix_A, int** matrix_B,int rows, int columns){
     }
 
 }
+
+
 
 void copy_int_array(int* array_A, int* array_B,int array_size){
 
@@ -1027,7 +1040,7 @@ void report_migrations(int* best_solution, int v_size, int* previous_placement,i
     for(virtual_iterator=0;virtual_iterator<previous_v_size;virtual_iterator++){
 
         /*if the vm is considered and now is in a different pm*/
-        if(V[virtual_iterator][0]>0 && previous_placement[virtual_iterator]!=best_solution[virtual_iterator]){
+        if(V[virtual_iterator][0]>0 && V[virtual_iterator][10]==NOT_DERIVED && previous_placement[virtual_iterator]!=best_solution[virtual_iterator]){
             total_vm_migrations+=1;
             total_memory_migration+=(int)V[virtual_iterator][1];//ram of vm
         }
@@ -1039,5 +1052,31 @@ void report_migrations(int* best_solution, int v_size, int* previous_placement,i
 
     fclose(vm_memory_migrations_file);
     fclose(vm_migrations_count_file);
+
+}
+
+float calculates_economical_revenue(int t, int t_init, int t_derived,bool vm_derived, float revenue_unit){
+
+    float economical_revenue = 0.0;
+
+    /*if a vm was derived*/
+    if(vm_derived ) {
+
+        if(t_derived>0){
+
+            economical_revenue = (t_derived - t_init) * revenue_unit;
+            economical_revenue += ((t - t_derived + 1) * revenue_unit) * 0.3;
+
+        }else {
+            economical_revenue= (t - t_init)*revenue_unit;
+            economical_revenue+= revenue_unit*(float)0.3;
+
+        }
+    }else{
+
+        economical_revenue  = (t - t_init + 1) * revenue_unit;
+    }
+
+    return economical_revenue;
 
 }

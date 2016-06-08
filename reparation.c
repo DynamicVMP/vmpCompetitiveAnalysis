@@ -7,6 +7,7 @@
 
 /* include reparation stage header */
 #include "reparation.h"
+#include "common.h"
 
 /* reparation: repairs the population
  * parameter: population matrix
@@ -376,13 +377,13 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
             return feasibility;
         }
         /* A vm marked as off (when CPU = 0) must not be placed */
-        if ((V[iterator_virtual][0] == 0) && (population[iterator_individual][iterator_virtual] > 0)) {
+        if ((V[iterator_virtual][0] == 0 || V[iterator_virtual][10]!=NOT_DERIVED) && (population[iterator_individual][iterator_virtual] > 0)) {
             feasibility = 0;
             return feasibility;
         }
 
         /* Count VMs with SLA = max_SLA not market off and not placed */
-        if ((V[iterator_virtual][3] == max_SLA) && (V[iterator_virtual][0] > 0) && (population[iterator_individual][iterator_virtual] == 0)) {
+        if ((V[iterator_virtual][3] == max_SLA) && (V[iterator_virtual][0] > 0 && V[iterator_virtual][10]==NOT_DERIVED) && (population[iterator_individual][iterator_virtual] == 0)) {
             count_vm_sla_1_off++;
         }
 

@@ -29,7 +29,7 @@ int** initialization(int** population, int number_of_individuals, int h_size, in
         for (iterator_individual_position = 0; iterator_individual_position < v_size; iterator_individual_position++)
         {
             /*if a vm is considered*/
-            if(V[iterator_individual_position][0]>0){
+            if(V[iterator_individual_position][0]>0 && V[iterator_individual_position][10]==NOT_DERIVED){
                 /*individual with SLA != max_SLA */
                 if (V[iterator_individual_position][3] != max_SLA)
                 {

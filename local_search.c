@@ -7,6 +7,7 @@
 
 /* include local search stage header */
 #include "local_search.h"
+#include "common.h"
 
 /* local_search: local optimization of the population
  * parameter: population matrix
@@ -111,7 +112,7 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
                     /* get the position of the physical machine */
                     physical_position = population[iterator_individual][iterator_virtual];
 
-                    if (physical_position == 0 && V[iterator_virtual][0]>0)
+                    if (physical_position == 0 && V[iterator_virtual][0]>0 && V[iterator_virtual][10]==NOT_DERIVED)
                     {
                         /* iterate on virtual machines */
                         for (iterator_virtual2 = 0 ; iterator_virtual2 < v_size ; iterator_virtual2++)

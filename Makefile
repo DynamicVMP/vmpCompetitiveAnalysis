@@ -12,7 +12,7 @@ run_all_inputs:
 	ls inputs  | while read x; do ./imoavmp inputs/$$x; done
 
 run_all_new_inputs:
-	ls inputs  | while read x; do ./imoavmp new_inputs/$$x; done
+	ls new_inputs  | while read x; do ./imoavmp new_inputs/$$x; done
 
 run_new_poisson_1:
 	./imoavmp new_inputs/100.1-Poisson

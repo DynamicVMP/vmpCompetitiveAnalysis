@@ -144,8 +144,8 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
         {
             probability = drand48() *1.0;
 
-            /* if the vm is not marked as off (when CPU > 0), we do nothing */
-            if(V[iterator_virtual][0]>0) {
+            /* if the vm is not marked as off (when CPU > 0) of the vm was derived, we do nothing */
+            if(V[iterator_virtual][0]>0 && V[iterator_virtual]==NOT_DERIVED) {
                 /* if the probablidad is less than 1/v_size, performs the mutation */
                 if (probability < (float) 1 / v_size) {
                     /* get the position of the physical machine the random*/
