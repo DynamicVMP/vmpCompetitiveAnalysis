@@ -151,7 +151,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
         /* if the VM has SLA(maxSLA) and is not marked off and was not placed */
-        if  ((V[iterator_virtual][3] == max_SLA) && V[iterator_virtual][0]>0 && (population[individual][iterator_virtual] == 0))
+        if  ((V[iterator_virtual][3] == max_SLA) && V[iterator_virtual][0]>0 && V[iterator_virtual][10]==NOT_DERIVED && (population[individual][iterator_virtual] == 0))
         {
             /* iterate through all physical machines, starting at a random offset */
             candidate = (rand() % h_size) + 1; //1 >= candidate <= h_size
