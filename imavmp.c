@@ -87,6 +87,8 @@ int main (int argc, char *argv[]) {
 	FILE *normalized_qos_file;
 	FILE *normalized_power_consumption_file;
 
+	FILE *all_results_file;
+
 	
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
@@ -146,6 +148,8 @@ int main (int argc, char *argv[]) {
 	
 	sprintf(file_name, "results/normalized_power_consumption%s", file_postfix); 
 	normalized_power_consumption_file = fopen(file_name,"a");
+
+	all_results_file = fopen("results/all_results","a");
 
 	// Heuristic
 	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** VM_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived);
@@ -321,6 +325,11 @@ int main (int argc, char *argv[]) {
 		double normalized_revenue = 0;
 		double normalized_qos = 0;
 
+		float power_consumption_result = 0;
+		double revenue_result = 0;
+		double qos_result = 0;
+		float wasted_resources_result = 0;
+
 		for(index = 0; index <= time_unit_from_zero; index++){
 			
 			// Power Consumption
@@ -345,7 +354,24 @@ int main (int argc, char *argv[]) {
 			fprintf(normalized_power_consumption_file, "%f\n", normalized_power_consumption);
 
 			fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(normalized_power_consumption, normalized_revenue, wasted_resources_ratio_array[index], normalized_qos));
+
+			// For final output
+			power_consumption_result += normalized_power_consumption;
+			revenue_result += normalized_revenue;
+			qos_result += normalized_qos;
+			wasted_resources_result += wasted_resources_ratio_array[index];
 		}
+
+		power_consumption_result = power_consumption_result / total_t;
+		revenue_result = revenue_result / total_t;
+		qos_result = qos_result / total_t;
+		wasted_resources_result = wasted_resources_result / total_t;
+
+		fprintf(all_results_file,"%s,%f,POWER_CONSUMPTION,", file_postfix, power_consumption_result );
+		fprintf(all_results_file,"%f,REVENUE,", revenue_result);
+		fprintf(all_results_file,"%f,QOS,", qos_result);
+		fprintf(all_results_file,"%f,WASTED_RESOURCES,", wasted_resources_result);
+		fprintf(all_results_file,"%f,WEIGHTED_SUM\n",calculates_weighted_sum(power_consumption_result,revenue_result,wasted_resources_result,qos_result));
 
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
@@ -369,6 +395,7 @@ int main (int argc, char *argv[]) {
 		free_VM_list(VM_list_derived);
 		free_VM_list(VM_list_serviced);
 		free_VM_list(VM_list_serviced_derived);
+		fclose(all_results_file);
 		/* finish him */
 		return 0;
 	}
