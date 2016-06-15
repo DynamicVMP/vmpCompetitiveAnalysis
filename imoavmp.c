@@ -118,7 +118,7 @@ int main (int argc, char *argv[]) {
         int t=1;
         int OF_calc_count=0;
 
-        //t_max=4;
+        //t_max=6;
 
         /* While t is less or equal to t_max of the scenario, run the memetic algorithm for the time t */
         while(t<=t_max) {

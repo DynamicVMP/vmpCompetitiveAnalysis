@@ -133,8 +133,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
 
                 if (!migration)
                 {
-                    //if(vj(actual) es vm nueva para la t actual se puede apagar)
-                    if (iterator_virtual>=previous_v_size) {
+                    //if (iterator_virtual>=previous_v_size) {
                         /* delete requirements from physical machine migration source */
                         utilization[individual][population[individual][iterator_virtual] - 1][0] -= V[iterator_virtual][0];
                         utilization[individual][population[individual][iterator_virtual] - 1][1] -= V[iterator_virtual][1];
@@ -144,7 +143,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
                         population[individual][iterator_virtual] = 0;
                         /* virtual machine correctly "deleted" */
                         migration = 1;
-                    }
+
                 }
             }
         }

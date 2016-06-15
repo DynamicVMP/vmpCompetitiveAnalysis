@@ -6,8 +6,10 @@
  */
 
 /* include libraries */
-#include "common.h"
+
 #define TOURNAMENT_SIZE 2
+#define NOT_DERIVED 0
+#include <stdbool.h>
 
 /* function headers definitions */
 int selection(double *objective_function, int number_of_individuals);
@@ -18,3 +20,4 @@ int ** population_evolution(int **P, int **Q, double * weighted_sums_P, double *
 int ** crossover_individuals(int **populationQ,int **populationP, int position_parent1, int position_parent2, int v_size);
 void quicksort_sort(double *weighted_sums,int ** population, int first_index, int last_index);
 int quicksort_partition(double *weighted_sums,int ** population, int first_index, int last_index);
+void free_int_matrix(int** matrix, int iterator_row);

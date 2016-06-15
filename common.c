@@ -373,7 +373,7 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
             .min_power_consumption = 0,
             .max_qos = qos_a_priori_t,
             .min_qos=0,
-            .max_revenue = revenue_a_priori_t,
+            .max_revenue = revenue_a_priori_t*(float)0.7,
             .min_revenue = 0,
     };
     float power_normalized, revenue_normalized,wasted_resources_normalized;
@@ -525,7 +525,7 @@ double** load_objective_functions(double **objective_functions_values,MinMaxValu
                     //economical_revenue += calculates_economical_revenue(t,t_init,t_derived,true,V[iterator_virtual][4]);
                     time_vm_living = t - t_init + 1;
                     //ojo con esto !!! verificar el calculo
-                    economical_revenue+= V[iterator_virtual][4]*time_vm_living*0.7;
+                    economical_revenue+= V[iterator_virtual][4]*0.7;
                 }
             }
         }
