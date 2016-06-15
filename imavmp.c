@@ -16,7 +16,7 @@
 #define MAX_SLA 4
 
 #define MIN_POWER 0
-#define MAX_POWER 27600
+#define MAX_POWER 9600
 #define MIN_QOS 0
 #define MIN_REVENUE 0
 #define MIN_WR 0
