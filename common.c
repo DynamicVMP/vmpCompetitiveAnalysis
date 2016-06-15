@@ -531,12 +531,24 @@ double** load_objective_functions(double **objective_functions_values,MinMaxValu
         }
 
 
-        /*guardar el normalizado nomas ya ahora*/
 
-        objective_functions_values[iterator_individual][0] = (economical_revenue - min_max_values.min_revenue)/(min_max_values.max_revenue - min_max_values.min_revenue);
-        objective_functions_values[iterator_individual][1] = (power_consumption - min_max_values.min_power_consumption)/(min_max_values.max_power_consumption - min_max_values.min_power_consumption);
-        objective_functions_values[iterator_individual][2] = (quality_of_service - min_max_values.min_qos)/(min_max_values.max_qos - min_max_values.min_qos);
-        objective_functions_values[iterator_individual][3] = wasted_resources_ratio;
+        if(v_size>0) {
+            objective_functions_values[iterator_individual][0] = (economical_revenue - min_max_values.min_revenue) /
+                                                                 (min_max_values.max_revenue -
+                                                                  min_max_values.min_revenue);
+            objective_functions_values[iterator_individual][1] =
+                    (power_consumption - min_max_values.min_power_consumption) /
+                    (min_max_values.max_power_consumption - min_max_values.min_power_consumption);
+            objective_functions_values[iterator_individual][2] =
+                    (quality_of_service - min_max_values.min_qos) / (min_max_values.max_qos - min_max_values.min_qos);
+            objective_functions_values[iterator_individual][3] = wasted_resources_ratio;
+        }else{
+            objective_functions_values[iterator_individual][0] =0;
+            objective_functions_values[iterator_individual][1] =0;
+            objective_functions_values[iterator_individual][2] =0;
+            objective_functions_values[iterator_individual][3] =0;
+        }
+
 
     }
 

@@ -237,8 +237,9 @@ int** population_evolution(int **P, int **Q, double *weighted_sums_P, double *we
     // print_int_matrix(PQ,number_of_individuals*2,v_size);
     //printf("\n\n");
     /*sort the union of the population P and Q by the value of the objective function*/
-    quicksort_sort(objective_function_PQ,PQ,0,number_of_individuals*2 - 1);
-
+    if(v_size>0) {
+        quicksort_sort(objective_function_PQ, PQ, 0, number_of_individuals * 2 - 1);
+    }
     // print_float_array(objective_function_PQ,number_of_individuals*2);
     //print_int_matrix(PQ,number_of_individuals*2,v_size);
     // printf("\n\n");

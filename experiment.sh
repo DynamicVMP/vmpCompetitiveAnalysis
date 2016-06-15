@@ -1,9 +1,7 @@
 #!/bin/bash
 
-file_name=$1
-
-for i in `seq 0 $2`;
+for i in `seq 0 $1`;
 do
-   ./imoavmp $file_name $i
+    make run_all_new_inputs
 done
 
