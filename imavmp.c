@@ -300,7 +300,6 @@ int main (int argc, char *argv[]) {
 				max_revenue[time_unit_from_zero] = revenue_a_priori_t;
 				max_qos[time_unit_from_zero] = qos_a_priori_t; 
 
-				printf("Max QoS = %li\n", max_qos[time_unit_from_zero]);
  				// Save to FILE`
 				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit_from_zero] );
 				fprintf(wasted_resources_ratio_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);

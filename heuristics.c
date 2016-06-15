@@ -814,7 +814,9 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 
 	VM_linked_list* parent = *vm_list;
 	do {
-		*living_vms = *living_vms + 1;
+		if(parent->vm_index != -1) {
+			*living_vms = *living_vms + 1;
+		}
 		*qos_apriori += (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 		parent = parent->next;
 	} while(parent != NULL);
@@ -822,14 +824,15 @@ void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_deri
 	// VMs Derived
 	VM_linked_list* parent_derived = *VM_list_derived;
 	do {
-		*living_derived_vms = *living_derived_vms + 1;
+		if(parent_derived-> vm_index != -1){
+			*living_derived_vms = *living_derived_vms + 1;
+		}
 		*total_revenue = *total_revenue + (double) parent_derived->revenue * 0.7;
 		*qos_apriori += (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		parent_derived = parent_derived->next;
 	} while(parent_derived != NULL);
 
-	printf("1000/4MUCHO %li \n", 1000 / 4000000000000);
 }
 
 /**
