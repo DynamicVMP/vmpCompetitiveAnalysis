@@ -61,7 +61,7 @@ void insert_VM_to_tend_list(VM_linked_list** vm_list, float * request, int h_ind
 bool time_comparator(int time_A, int time_B);
 bool update_VM_resources(int **placement, float **utilization, float **resources_requested, float *request, VM_linked_list** vm_list, int **H);
 void update_VM_list(VM_linked_list** vm_tend_list, float *request, int physical_machine);
-long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int currnt_time, int h_size);
+void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int currnt_time, int h_size, long *remove_revenue, long *remove_qos);
 
 /* Print functions definitions */
 void print_VM_list(VM_linked_list* list_to_free);
@@ -76,7 +76,7 @@ void free_list(PM_weight_pair_node* list_to_free);
 
 /* objective functions */
 float power_consumption (float **utilization, int **H, int h_size, int *working_pms);
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, long *revenue, long *qos, int *living_vms, int *living_derived_vms);
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, double *revenue, long *qos, int *living_vms, int *living_derived_vms, long * qos_apriori);
 float wasted_resources (float **utilization, float **resources_requested, int **H, int h_size, float *wasted_resources_obj);
 float calculates_weighted_sum(float power, double total_revenue, float wasted_resources_ratio, double total_qos);
 

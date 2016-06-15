@@ -17,7 +17,7 @@
 #define S_HEADER "SCENARIOS"
 
 #define TAM_BUFFER BUFSIZ
-#define CONSTANT 1000
+#define CONSTANT 10
 #define BIG_COST 1000000
 
 

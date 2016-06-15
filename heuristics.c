@@ -516,10 +516,11 @@ bool time_comparator(int time_A, int time_B) {
  * parameter h_size: Number of physical machines
  * return: nothing, it's a void function.
  */
-long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int current_time,
-	int h_size) {
+void remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derived, int **placement, float **utilization, float **resources_requested, int current_time,
+	int h_size, long *remove_revenue, long *remove_qos) {
 
-	long lost_revenue = 0;
+	*remove_revenue = 0;
+	*remove_qos = 0;
 
 	VM_linked_list* parent = *vm_list;
 	VM_linked_list* actual = parent->next;
@@ -535,8 +536,6 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 			resources_requested[parent->pm][0] = resources_requested[parent->pm][0] - (float) parent->cpu;
 			resources_requested[parent->pm][1] = resources_requested[parent->pm][1] - (float) parent->ram;
 			resources_requested[parent->pm][2] = resources_requested[parent->pm][2] - (float) parent->net;
-
-			lost_revenue = lost_revenue + parent->revenue;
 
 			VM_linked_list* temp = *vm_list;
 			*vm_list = (*vm_list)->next;
@@ -559,8 +558,6 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 		resources_requested[parent->pm][1] = resources_requested[parent->pm][1] - (float) parent->ram;
 		resources_requested[parent->pm][2] = resources_requested[parent->pm][2] - (float) parent->net;
 
-		lost_revenue = lost_revenue + parent->revenue;
-
 		parent->vm_index = -1;
 		parent->tend = -1;
 		parent->pm = -1;
@@ -572,10 +569,12 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 	VM_linked_list* parent_derived = *VM_list_derived;
 	VM_linked_list* actual_derived = parent_derived->next;
 
+	// VMs Derived
 	while(actual_derived != NULL) { 
 		if(parent_derived->tend != -1 && parent_derived->tend < current_time) {
 			
-			lost_revenue = lost_revenue + parent_derived->revenue;
+			*remove_revenue = *remove_revenue + parent_derived->revenue*0.7;
+			*remove_qos = *remove_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 
 			VM_linked_list* temp = *VM_list_derived;
 			*VM_list_derived = (*VM_list_derived)->next;
@@ -589,7 +588,8 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 
 	// Remove unique node
 	if(parent_derived->tend != -1 && parent_derived->tend < current_time) {
-		lost_revenue = lost_revenue + parent_derived->revenue;
+		*remove_revenue = *remove_revenue + parent_derived->revenue*0.7;
+		*remove_qos = *remove_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		parent_derived->vm_index = -1;
 		parent_derived->tend = -1;
 		parent_derived->pm = -1;
@@ -597,9 +597,6 @@ long remove_VM_by_time(VM_linked_list** vm_list, VM_linked_list** VM_list_derive
 		parent_derived->revenue = 0;
 		parent_derived->next = NULL;
     }
-
-	return lost_revenue;
-
 }
 
 
@@ -805,32 +802,34 @@ void print_PM_list(PM_weight_pair_node* list) {
  * parameter: total_qos     Quality of Service
  * return: nothing, it's a void function
  */
-void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, long *total_revenue, long *total_qos, int *living_vms, int *living_derived_vms) {
+void economical_revenue (VM_linked_list** vm_list, VM_linked_list** VM_list_derived, double *total_revenue, long *total_qos, int *living_vms, int *living_derived_vms, long * qos_apriori) {
 	
 	*total_revenue = 0;
 	*total_qos = 0;
+	*qos_apriori = 0;
 
 	*living_vms = 0;
 	*living_derived_vms = 0;
 
+
 	VM_linked_list* parent = *vm_list;
 	do {
 		*living_vms = *living_vms + 1;
-		*total_revenue = *total_revenue + parent->revenue;
-		*total_qos = *total_qos + (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
+		*qos_apriori += (custom_pow(CONSTANT,parent->SLA) * parent->SLA);
 		parent = parent->next;
 	} while(parent != NULL);
 		
-
 	// VMs Derived
 	VM_linked_list* parent_derived = *VM_list_derived;
 	do {
 		*living_derived_vms = *living_derived_vms + 1;
-		*total_revenue = *total_revenue + parent_derived->revenue * 0.3;
-		
+		*total_revenue = *total_revenue + (double) parent_derived->revenue * 0.7;
+		*qos_apriori += (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
+		*total_qos = *total_qos + (custom_pow(CONSTANT,parent_derived->SLA) * parent_derived->SLA);
 		parent_derived = parent_derived->next;
 	} while(parent_derived != NULL);
 
+	printf("1000/4MUCHO %li \n", 1000 / 4000000000000);
 }
 
 /**

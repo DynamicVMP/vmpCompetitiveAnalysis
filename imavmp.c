@@ -15,6 +15,13 @@
 #define VM_FEATURES 11
 #define MAX_SLA 4
 
+#define MIN_POWER 0
+#define MAX_POWER 27600
+#define MIN_QOS 0
+#define MIN_REVENUE 0
+#define MIN_WR 0
+#define MAX_WR 1
+
 /* 
  * parameter 1: path to the datacenter infrastructure file
  * parameter 2(optional): selected heuristic
@@ -46,26 +53,22 @@ int main (int argc, char *argv[]) {
 	float * wasted_resources_ratio_array;
 	float ** wasted_resources_array;
 	float * power_consumption_array;
+	long * max_revenue;
+	long * max_qos;
+
 	long revenue_a_priori_t = 0;
+	long qos_a_priori_t = 0;
 	long revenue_t = 0;
 	long total_revenue = 0;
 	long total_qos = 0;
-	long remove_revenue;
-
+	long remove_revenue = 0;
+	long remove_qos = 0;
 
 	bool first_time = true;
 	char file_postfix [300] = "";
 	char file_name [300] = "";
 	char * temp_file_name;
 	char aux_file_name [300] = "";
-
-
-	double max_revenue = 0;
-	double min_revenue; 
-	long max_qos = 0; 
-	long min_qos;
-	float max_wasted_resources, min_wasted_resources;
-	float max_power, min_power;
 
 	// File pointers
 	FILE *power_consumption_file;
@@ -77,7 +80,14 @@ int main (int argc, char *argv[]) {
 	FILE *weighted_sum_file;
 	FILE *pm_usage;
 	FILE *utilization_result;
+	FILE *max_revenue_file;
+	FILE *max_qos_file;	
 
+	FILE *normalized_revenue_file;
+	FILE *normalized_qos_file;
+	FILE *normalized_power_consumption_file;
+
+	
 	// Heuristic Names
 	char *heuristics_names[] = {"FIRST FIT", "BEST FIT", "WORST FIT", "FIRST FIT DECREASING", "BEST FIT DECREASING"};
 
@@ -121,6 +131,21 @@ int main (int argc, char *argv[]) {
 
 	sprintf(file_name,"results/pm_usage%s",file_postfix);
 	pm_usage = fopen(file_name,"a");
+
+	sprintf(file_name,"results/max_revenue%s",file_postfix);
+	max_revenue_file = fopen(file_name,"a");		
+
+	sprintf(file_name,"results/max_qos%s",file_postfix);
+	max_qos_file = fopen(file_name,"a");
+
+	sprintf(file_name, "results/normalized_revenue%s", file_postfix);
+	normalized_revenue_file = fopen(file_name,"a");
+	
+	sprintf(file_name, "results/normalized_qos%s", file_postfix);
+	normalized_qos_file = fopen(file_name,"a");
+	
+	sprintf(file_name, "results/normalized_power_consumption%s", file_postfix); 
+	normalized_power_consumption_file = fopen(file_name,"a");
 
 	// Heuristic
 	bool (*heuristics_array[3]) (float *S, float **utilization, float **resources_requested, int **placement, int **H, int h_size, VM_linked_list** VM_list_derived, VM_linked_list** VM_list, VM_linked_list** VM_list_serviced, VM_linked_list** VM_list_serviced_derived);
@@ -186,6 +211,9 @@ int main (int argc, char *argv[]) {
 		wasted_resources_ratio_array = (float *) calloc (total_t + 1, sizeof(float *));
 		power_consumption_array = (float *) calloc (total_t + 1, sizeof(float *));
 
+		max_revenue = (long *) calloc (total_t + 1, sizeof(long *));
+		max_qos = (long *) calloc (total_t + 1, sizeof(long *));
+
 		wasted_resources_array = (float **) calloc (total_t + 1, sizeof(float *));
 		for (i = 0; i < total_t + 1; i++) {
 			wasted_resources_array[i] = (float *) calloc (3, sizeof(float)); 	//[0] = cpu, [1] = ram, [2] = net
@@ -242,7 +270,7 @@ int main (int argc, char *argv[]) {
 		int time_unit_from_zero;
 		
 		for (iterator_row = 0; iterator_row < s_size; ++iterator_row) {
-			revenue_a_priori_t = revenue_a_priori_t + S[iterator_row][10];
+			revenue_a_priori_t += S[iterator_row][10]*0.7;
 			// If current_time is equal to VM tinit, allocated VM  
 			if(S[iterator_row][0] <= S[iterator_row][12]) {
 				if( (*heuristics_array[heuristic-1]) (S[iterator_row], utilization, resources_requested, placement, H, h_size, &VM_list_derived, &VM_list, &VM_list_serviced, &VM_list_serviced_derived) ) {
@@ -263,143 +291,71 @@ int main (int argc, char *argv[]) {
  			if(iterator_row + 1 == s_size || S[iterator_row][0] != S[iterator_row+1][0]) {
 				time_unit_from_zero = time_unit - initial_time_unit;
  				// Calculates Objective Functions
- 				remove_revenue = remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size);
-				economical_revenue(&VM_list, &VM_list_derived, &revenue_t, &total_qos_array[time_unit_from_zero], &living_vms, &living_derived_vms);
+ 				remove_VM_by_time(&VM_list, &VM_list_derived, placement, utilization, resources_requested, time_unit, h_size, &remove_revenue, &remove_qos);
+				economical_revenue(&VM_list, &VM_list_derived, &total_revenue_array[time_unit_from_zero], &total_qos_array[time_unit_from_zero], &living_vms, &living_derived_vms, &qos_a_priori_t);
+
 				power_consumption_array[time_unit_from_zero] = power_consumption(utilization, H, h_size, &working_pms);
 				wasted_resources_ratio_array[time_unit_from_zero] = wasted_resources(utilization, resources_requested, H, h_size, wasted_resources_array[time_unit_from_zero]);
-
- 				total_revenue_array[time_unit_from_zero] = revenue_a_priori_t - revenue_t;
 				revenue_a_priori_t = revenue_a_priori_t - remove_revenue;
+				max_revenue[time_unit_from_zero] = revenue_a_priori_t;
+				max_qos[time_unit_from_zero] = qos_a_priori_t; 
 
-				// Calculates the max and min of each objective function
-				if( first_time ) {
-					min_power = power_consumption_array[time_unit_from_zero];
-					max_power = power_consumption_array[time_unit_from_zero];
-					min_qos = total_qos_array[time_unit_from_zero];
-					max_qos = total_qos_array[time_unit_from_zero];
-					min_revenue = total_revenue_array[time_unit_from_zero];
-					max_revenue = total_revenue_array[time_unit_from_zero];
-					min_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
-					max_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
-					first_time = false;
-				} else {
-
-					if ( power_consumption_array[time_unit_from_zero] < min_power ) {
-						min_power = power_consumption_array[time_unit_from_zero];
-					} else if ( power_consumption_array[time_unit_from_zero] > max_power ) {
-						max_power = power_consumption_array[time_unit_from_zero];
-					}
-
-					if ( total_qos_array[time_unit_from_zero] < min_qos ) {
-						min_qos = total_qos_array[time_unit_from_zero];
-					} else if ( total_qos_array[time_unit_from_zero] > max_qos ) {
-						max_qos = total_qos_array[time_unit_from_zero];
-					}
-
-					if ( total_revenue_array[time_unit_from_zero] < min_revenue ) {
-						min_revenue = total_revenue_array[time_unit_from_zero];
-					} else if ( total_revenue_array[time_unit_from_zero] > max_revenue ) {
-						max_revenue = total_revenue_array[time_unit_from_zero];
-					}
-
-					if ( wasted_resources_ratio_array[time_unit_from_zero] < min_wasted_resources ) {
-						min_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
-					} else if ( wasted_resources_ratio_array[time_unit_from_zero] > max_wasted_resources ) {
-						max_wasted_resources = wasted_resources_ratio_array[time_unit_from_zero];
-					}
-
-				}
- 				// Save to FILE
+				printf("Max QoS = %li\n", max_qos[time_unit_from_zero]);
+ 				// Save to FILE`
 				fprintf(power_consumption_file, "%f\n", power_consumption_array[time_unit_from_zero] );
 				fprintf(wasted_resources_ratio_file, "%f\n", wasted_resources_ratio_array[time_unit_from_zero]);
 				fprintf(wasted_resources_file, "%f %f %f\n", wasted_resources_array[time_unit_from_zero][0], wasted_resources_array[time_unit_from_zero][1], wasted_resources_array[time_unit_from_zero][2]);
-				fprintf(economical_revenue_file, "%li\n", revenue_t);
+				fprintf(economical_revenue_file, "%f\n", total_revenue_array[time_unit_from_zero]);
 				fprintf(quality_service_file, "%li\n", total_qos_array[time_unit_from_zero]);
 				fprintf(pm_usage, "%d %d %d\n", working_pms, living_vms, living_derived_vms);
+				fprintf(max_revenue_file, "%li\n", max_revenue[time_unit_from_zero]);
+				fprintf(max_qos_file, "%li\n", max_qos[time_unit_from_zero]);
+
 				print_utilization_matrix_to_file("utilization_result", utilization, h_size, RESOURCES);
-				total_revenue += revenue_t;
 				if ( iterator_row+1 != s_size ){
 					time_unit = S[iterator_row+1][0];
 				}
 			}
 		}
 
-		float average_wasted_resource_ratio = calculate_average_from_array( wasted_resources_ratio_array, time_unit_from_zero + 1 );
-		float average_power_consumption = calculate_average_from_array( power_consumption_array, time_unit_from_zero + 1);
-
-		float normalized_wasted_resources_ratio = 0;
 		float normalized_power_consumption = 0;
-
-		economical_revenue(&VM_list_serviced, &VM_list_serviced_derived, &revenue_t, &total_qos, &living_vms, &living_derived_vms);
-
-		// Normalized Revenue
 		double normalized_revenue = 0;
-		long delta_revenue = revenue_a_priori - total_revenue;
-		double revenue_to_normalized = (double) delta_revenue;
-
-		// Normalized QoS
 		double normalized_qos = 0;
-		long delta_qos = qos_a_priori - total_qos;
-		double qos_to_normalized = (double) delta_qos;
 
 		for(index = 0; index <= time_unit_from_zero; index++){
 			
 			// Power Consumption
-			normalized_power_consumption = (power_consumption_array[index] - min_power) / (max_power - min_power);
-			
-			// Wasted Resources
-			normalized_wasted_resources_ratio = (wasted_resources_ratio_array[index] - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
+			normalized_power_consumption = (power_consumption_array[index] - MIN_POWER) / (MAX_POWER - MIN_POWER);
 			
 			// Revenue
 			if(total_revenue_array[index] > 0) {
-				normalized_revenue =  ((double)total_revenue_array[index] - min_revenue) / (max_revenue - min_revenue);
+				normalized_revenue =  ((double)total_revenue_array[index] - MIN_REVENUE) / (max_revenue[index] - MIN_REVENUE);
 			}else{
 				normalized_revenue = 0;
 			}
 
-			// Qos
+			// QoS
 			if(total_qos_array[index] > 0) {
-				normalized_qos = ((double)total_qos_array[index] - min_qos) / (max_qos - min_qos);
+				normalized_qos = ((double)total_qos_array[index] - MIN_QOS) / (max_qos[index] - MIN_QOS);
 			}else{
 				normalized_qos = 0;
 			}
 
-			fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos));
-		}
+			fprintf(normalized_revenue_file, "%f\n", normalized_revenue);
+			fprintf(normalized_qos_file, "%f\n", normalized_qos);
+			fprintf(normalized_power_consumption_file, "%f\n", normalized_power_consumption);
 
-
-		normalized_power_consumption = (average_power_consumption - min_power) / (max_power - min_power);
-		if(delta_revenue > 0) {
-			normalized_revenue =  (revenue_to_normalized - min_revenue) / (max_revenue - min_revenue);
-		}else{
-			normalized_revenue = 0;
+			fprintf(weighted_sum_file, "%f\n", calculates_weighted_sum(normalized_power_consumption, normalized_revenue, wasted_resources_ratio_array[index], normalized_qos));
 		}
-		normalized_wasted_resources_ratio = (average_wasted_resource_ratio - min_wasted_resources) / (max_wasted_resources - min_wasted_resources);
-		if(delta_qos > 0) {
-			normalized_qos = (qos_to_normalized - min_qos) / (max_qos - min_qos);
-		}else{
-			normalized_qos = 0;
-		}
-
-		float weighted_sum = calculates_weighted_sum(normalized_power_consumption, normalized_revenue, normalized_wasted_resources_ratio, normalized_qos);
 
 		diff = clock() - start;
 		msec = diff * 1000 / CLOCKS_PER_SEC;
 
 		fprintf(execution_time_file, "%d:%d\n", msec/1000, msec%1000);
-
 		if(argc < 3 ) {
 			printf("\n************************RESULTS*************************\n");
 			printf("Simulated time: %d time units.\n", time_unit);
-			printf("Power Consumption: %.6g\n", average_power_consumption);
 			printf("Economical Revenue a priori: %li\n", revenue_a_priori);
-			printf("Economical Revenue: %li\n", total_revenue);
-			printf("Delta - Economical Revenue: %li\n", delta_revenue);
-			printf("Quality of Service a priori: %li\n", qos_a_priori);
-			printf("Quality of Service: %li\n", total_qos);
-			printf("Delta - Quality of Service: %li\n", delta_qos);
-			printf("Wasted Resources: %.6g\n", average_wasted_resource_ratio);
-			printf("Weighted Sum: %.8g\n", weighted_sum);
 			printf("Time taken %d seconds %d milliseconds\n", msec / 1000, msec % 1000);
 			printf("Number of times the objective function was assessed: %d\n", time_unit);
 			printf("Number of updated requests succesful: %d\n", request_update);
