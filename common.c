@@ -252,6 +252,7 @@ float ** load_v_per_t(float ** matrix_s, int s_size, float** V, int v_size, int*
                 matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
                 matrix_v[iterator_v][10] = NOT_DERIVED;
+                maxtrix
 
                 time_vm_living = t - (int)matrix_v[iterator_v][5] +1;
                 *qos_a_priori_t += pow(CONSTANT, matrix_v[iterator_v][3]) * matrix_v[iterator_v][3];
@@ -356,62 +357,39 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
 {
     /* iterators */
     int iterator_individual;
+    /*float max_power_consumption_t, min_power_consumption_t,max_revenue_t,min_revenue_t,max_wasted_resources_t,min_wasted_resources_t;
+    float power_consumption_normalized,revenue_normalized;
+    double max_qos,min_qos;
+    double qos_normalized;*/
+    /*el wasted resources no se normaliza, por lo tanto no se puede */
+    /*min_power_consumption_t = 0;
+    max_power_consumption_t = MAX_POWER_CONSUMPTION;
+    min_revenue_t = 0;
+    max_revenue_t = revenue_a_priori_t*(float)0.7;
+    max_qos=qos_a_priori_t;
+    min_qos=0;*/
 
-    double max_delta_qos_t=0;
-    double min_delta_qos_t=0;
-    float max_delta_revenue_t=0;
-    float min_delta_revenue_t=0;
-    float max_power_consumption_t=0;
-    float min_power_consumption_t=0;
-    float max_wasted_resources_t =0;
-    float min_wasted_resources_t =0;
-    float delta_revenue_tmp, delta_revenue_normalized,power_normalized, wasted_resources_normalized;
-    double delta_qos_tmp,delta_qos_normalized;
+    MinMaxValues min_max_values = {
+            .max_power_consumption = MAX_POWER_CONSUMPTION,
+            .min_power_consumption = 0,
+            .max_qos = qos_a_priori_t,
+            .min_qos=0,
+            .max_revenue = revenue_a_priori_t*(float)0.7,
+            .min_revenue = 0,
+    };
+    float power_normalized, revenue_normalized,wasted_resources_normalized;
+    double qos_normalized;
 
+    objective_functions_values = load_objective_functions(objective_functions_values,min_max_values,population,utilization,wasted_resources_obj,H,V,number_of_individuals,h_size,v_size,OF_calc_count,t);
 
-    objective_functions_values = load_objective_functions(objective_functions_values,population,utilization,wasted_resources_obj,H,V,number_of_individuals,h_size,v_size,OF_calc_count,t);
-
-    max_delta_revenue_t  = min_delta_revenue_t =revenue_a_priori_t - (float)objective_functions_values[0][0];
+    /*max_delta_revenue_t  = min_delta_revenue_t =revenue_a_priori_t - (float)objective_functions_values[0][0];
     max_power_consumption_t  = min_power_consumption_t =(float)objective_functions_values[0][1];
     max_delta_qos_t =  min_delta_qos_t =qos_a_priori_t - objective_functions_values[0][2] ;
-    max_wasted_resources_t = min_wasted_resources_t = (float)objective_functions_values[0][3];
-
-    /*Calculacion of values to normalize objetice funtions*/
-    for(iterator_individual=1;iterator_individual<number_of_individuals;iterator_individual++){
-        delta_revenue_tmp = revenue_a_priori_t - (float)objective_functions_values[iterator_individual][0];
-        if(delta_revenue_tmp<min_delta_revenue_t){
-            min_delta_revenue_t = delta_revenue_tmp;
-        }
-        if(delta_revenue_tmp>max_delta_revenue_t){
-            max_delta_revenue_t = delta_revenue_tmp;
-        }
-
-        if(objective_functions_values[iterator_individual][1]<min_power_consumption_t){
-            min_power_consumption_t = (float)objective_functions_values[iterator_individual][1];
-        }
-        if(objective_functions_values[iterator_individual][1]>max_power_consumption_t){
-            max_power_consumption_t = (float)objective_functions_values[iterator_individual][1];
-        }
-
-        delta_qos_tmp = qos_a_priori_t - objective_functions_values[iterator_individual][2];
-        if(delta_qos_tmp<min_delta_qos_t){
-            min_delta_qos_t = delta_qos_tmp;
-        }
-        if(delta_qos_tmp>max_delta_qos_t){
-            max_delta_qos_t = delta_qos_tmp;
-        }
-
-        if(objective_functions_values[iterator_individual][3] < min_wasted_resources_t){
-            min_wasted_resources_t = (float)objective_functions_values[iterator_individual][3];
-        }
-        if(objective_functions_values[iterator_individual][3] > max_wasted_resources_t){
-            max_wasted_resources_t = (float)objective_functions_values[iterator_individual][3];
-        }
-    }
+    max_wasted_resources_t = min_wasted_resources_t = (float)objective_functions_values[0][3];*/
 
     for(iterator_individual=0;iterator_individual<number_of_individuals;iterator_individual++){
 
-        delta_revenue_tmp = revenue_a_priori_t - (float)objective_functions_values[iterator_individual][0];
+        /*delta_revenue_tmp = revenue_a_priori_t - (float)objective_functions_values[iterator_individual][0];
         delta_qos_tmp = qos_a_priori_t - objective_functions_values[iterator_individual][2];
 
         //printf("\nrevenue :%f, power:%f, qos:%f, waste:%f",delta_revenue_tmp,objective_functions_values[iterator_individual][1],delta_qos_tmp,objective_functions_values[iterator_individual][3]);
@@ -439,13 +417,19 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
             wasted_resources_normalized = (float)(objective_functions_values[iterator_individual][3] -
                                                   min_wasted_resources_t) / (
                                                   max_wasted_resources_t - min_wasted_resources_t);
-        }
+        }*/
 
         //printf("\nrevenue normalized:%f, power normalized:%f, qos normalized:%f, waste normalized:%f\n",delta_revenue_normalized,power_normalized,delta_qos_normalized,wasted_resources_normalized);
 
+
+        revenue_normalized = (float)objective_functions_values[iterator_individual][0];
+        power_normalized = (float)objective_functions_values[iterator_individual][1];
+        qos_normalized = objective_functions_values[iterator_individual][2];
+        wasted_resources_normalized= (float)objective_functions_values[iterator_individual][3];
+
         /*compute the weighted sum based on the values of objective functions obtained and the weights configured*/
-        weighted_sums[iterator_individual] = calculates_weighted_sum(power_normalized, delta_revenue_normalized,
-                                                                     wasted_resources_normalized, delta_qos_normalized);
+        weighted_sums[iterator_individual] = calculates_weighted_sum(power_normalized, revenue_normalized,
+                                                                     wasted_resources_normalized, qos_normalized);
     }
 
     //printf("\t%.2f %.2f %.2f",power_consumption,economical_revenue,quality_of_service,);
@@ -454,7 +438,7 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
 }
 
 
-double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization, float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t){
+double** load_objective_functions(double **objective_functions_values,MinMaxValues min_max_values, int **population, int ***utilization, float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t){
 
 
     /* iterators */
@@ -529,21 +513,30 @@ double** load_objective_functions(double **objective_functions_values, int **pop
             if (physical_position > 0)
             {
                 /* calculate the economical revenue */
-                economical_revenue += calculates_economical_revenue(t,t_init,0,false,V[iterator_virtual][4]);
+                //economical_revenue += calculates_economical_revenue(t,t_init,0,false,V[iterator_virtual][4]);
+                economical_revenue+= 0;
                 /* calculate  the QoS */
-                quality_of_service += pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
+                //quality_of_service += pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
+                quality_of_service+=0;
             }else{
                 /*the VM is considered*/
                 if(V[iterator_virtual][0]>0) {
-                    t_derived = (int)V[iterator_virtual][10];
-                    economical_revenue += calculates_economical_revenue(t,t_init,t_derived,true,V[iterator_virtual][4]);
+                    quality_of_service+= pow(CONSTANT, V[iterator_virtual][3]) * V[iterator_virtual][3];
+                    //t_derived = (int)V[iterator_virtual][10];
+                    //economical_revenue += calculates_economical_revenue(t,t_init,t_derived,true,V[iterator_virtual][4]);
+                    time_vm_living = t - t_init + 1;
+                    //ojo con esto !!! verificar el calculo
+                    economical_revenue+= V[iterator_virtual][4]*time_vm_living*0.7;
                 }
             }
         }
 
-        objective_functions_values[iterator_individual][0] = economical_revenue;
-        objective_functions_values[iterator_individual][1] = power_consumption;
-        objective_functions_values[iterator_individual][2] = quality_of_service;
+
+        /*guardar el normalizado nomas ya ahora*/
+
+        objective_functions_values[iterator_individual][0] = (economical_revenue - min_max_values.min_revenue)/(min_max_values.max_revenue - min_max_values.min_revenue);
+        objective_functions_values[iterator_individual][1] = (power_consumption - min_max_values.min_power_consumption)/(min_max_values.max_power_consumption - min_max_values.min_power_consumption);
+        objective_functions_values[iterator_individual][2] = (quality_of_service - min_max_values.min_qos)/(min_max_values.max_qos - min_max_values.min_qos);
         objective_functions_values[iterator_individual][3] = wasted_resources_ratio;
 
     }

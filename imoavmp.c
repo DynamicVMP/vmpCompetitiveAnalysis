@@ -13,7 +13,7 @@
 #include "variation.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_INDIVIDUALS 100
+#define NUMBER_OF_INDIVIDUALS 1000
 #define NUMBER_OF_GENERATIONS 100
 
 #define MAX_SLA 4

@@ -133,6 +133,8 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
 
                 if (!migration)
                 {
+                    if(vj(actual) es vm nueva para la t actual se puede apagar)
+                    if (iterator_virtual>size_aterior)
                     /* delete requirements from physical machine migration source */
                     utilization[individual][population[individual][iterator_virtual]-1][0] -= V[iterator_virtual][0];
                     utilization[individual][population[individual][iterator_virtual]-1][1] -= V[iterator_virtual][1];
@@ -147,6 +149,8 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
         }
     }
 
+
+    ///ELIMINAR POR QUE PUEDE QUE UNA NUEVA APAGUE YA LAS DERIVADAS. HACER VOLAR
     /* after everything else is ok, repair SLA placement priority */
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
@@ -371,11 +375,15 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
     /* constraint 2: Service Level Agreement (SLA) provision. Virtual machines with SLA = max_SLA have to be placed mandatorily */
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
-        if (V[iterator_virtual][3] == max_SLA && population[iterator_individual][iterator_virtual] == 0)
+        //hacer volar
+        /*if (V[iterator_virtual][3] == max_SLA && population[iterator_individual][iterator_virtual] == 0)
         {
             feasibility = 0;
             return feasibility;
-        }
+        }*/
+
+        if(V[iterator_virtual][0] == 0 && V[iterator_virtual][10]==NOT_DERIVED && iter)
+
         /* A vm marked as off (when CPU = 0) must not be placed */
         if ((V[iterator_virtual][0] == 0 || V[iterator_virtual][10]!=NOT_DERIVED) && (population[iterator_individual][iterator_virtual] > 0)) {
             feasibility = 0;
@@ -383,22 +391,23 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
         }
 
         /* Count VMs with SLA = max_SLA not market off and not placed */
-        if ((V[iterator_virtual][3] == max_SLA) && (V[iterator_virtual][0] > 0 && V[iterator_virtual][10]==NOT_DERIVED) && (population[iterator_individual][iterator_virtual] == 0)) {
+        /*if ((V[iterator_virtual][3] == max_SLA) && (V[iterator_virtual][0] > 0 && V[iterator_virtual][10]==NOT_DERIVED) && (population[iterator_individual][iterator_virtual] == 0)) {
             count_vm_sla_1_off++;
-        }
+        }*/
 
         /* Count placed VMs with SLA != max_SLA */
-        if ((V[iterator_virtual][3] != max_SLA) && (population[iterator_individual][iterator_virtual] > 0) ) {
+        /*if ((V[iterator_virtual][3] != max_SLA) && (population[iterator_individual][iterator_virtual] > 0) ) {
             count_vm_sla_0_on++;
-        }
+        }*/
 
     }
 
+    /*hacer volar*/
     /* If there are placed VMs with not max_SLA  while VMs with SLA max_SLA were not placed, repair */
-    if ((count_vm_sla_1_off > 0) && (count_vm_sla_0_on > 0)) {
+    /*if ((count_vm_sla_1_off > 0) && (count_vm_sla_0_on > 0)) {
         feasibility = 0;
         return feasibility;
-    }
+    }*/
 
     /* constraints 3-5: Resource capacity of physical machines. Iterate on physical machines */
     for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++)

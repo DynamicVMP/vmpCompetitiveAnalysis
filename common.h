@@ -17,14 +17,24 @@
 #define S_HEADER "SCENARIO"
 #define TAM_BUFFER BUFSIZ
 #define CONSTANT 1000
-#define SIGMA_POWER 1.329674004
-#define SIGMA_REVENUE 1.719854165
-#define SIGMA_RESOURCES 1.802271979
-#define SIGMA_QOS 2.141194374
+#define SIGMA_POWER 1.390319258
+#define SIGMA_REVENUE 2.137863157
+#define SIGMA_RESOURCES 1.4586249869
+#define SIGMA_QOS 2.739278717
 #define  VM_FEATURES 11
 #define RESOURCES 3
 #define OBJECTIVE_FUNCTIONS 4
 #define NOT_DERIVED 0
+#define MAX_POWER_CONSUMPTION 27600
+
+typedef struct{
+    float min_power_consumption;
+    float max_power_consumption;
+    float min_revenue;
+    float max_revenue;
+    double min_qos;
+    double max_qos;
+}MinMaxValues;
 
 /* get the number of physical and virtual machines */
 int get_h_size(char path_to_file[]);
@@ -47,7 +57,7 @@ int** load_H(int h_size, char path_to_file[]);
 /* load utilization of physical resources and costs of the considered objective functions */
 int*** load_utilization(int*** utilization,int **population, int **H, float **V, int number_of_individuals, int h_size, int v_size);
 double*load_weighted_sums(double **objective_functions_values, double *weighted_sums, int **population, int ***utilization,float** wasted_resources_obj, int **H, float **V, int number_of_individuals, int h_size, int v_size, double qos_a_priori_t, float revenue_a_priori_t, int *OF_calc_count, int t);
-double** load_objective_functions(double **objective_functions_values, int **population, int ***utilization,float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t);
+double** load_objective_functions(double **objective_functions_values,MinMaxValues min_max_values,int **population, int ***utilization,float** wasted_resources_obj,int **H, float **V, int number_of_individuals, int h_size, int v_size, int* OF_calc_count, int t);
 double calculates_weighted_sum(float power_normalized, float delta_revenue_normalized, float wasted_resources_normalized, double delta_qos_normalized);
 float calculates_economical_revenue(int t, int t_init, int t_derived,bool vm_derived, float revenue_unit);
 
