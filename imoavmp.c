@@ -13,7 +13,7 @@
 #include "variation.h"
 
 /* definitions (this could be parameters) */
-#define NUMBER_OF_INDIVIDUALS 1000
+#define NUMBER_OF_INDIVIDUALS 100
 #define NUMBER_OF_GENERATIONS 100
 
 #define MAX_SLA 4
@@ -138,14 +138,14 @@ int main (int argc, char *argv[]) {
             start = clock();
 
             /* Initialize population P_0 */
-            P = initialization(P, NUMBER_OF_INDIVIDUALS, h_size, v_size, V, MAX_SLA);
+            P = initialization(P, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, V, MAX_SLA);
             //print_int_matrix(P,NUMBER_OF_INDIVIDUALS,v_size);
 
             /* Additional task: load the utilization of physical machines and network links of all individuals/solutions */
             utilization_P = load_utilization(utilization_P, P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
 
             /* P0’ = repair infeasible solutions of P_0 */
-            P = reparation(P, utilization_P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size, MAX_SLA);
+            P = reparation(P, utilization_P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, MAX_SLA);
 
             /*  apply local search to solutions of P_0’ */
             P = local_search(P, utilization_P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
@@ -163,7 +163,7 @@ int main (int argc, char *argv[]) {
                 /* this is a new generation! */
                 generation++;
                 /* Additional task: Q_u is a random generated population, lets initialize it */
-                Q = initialization(Q, NUMBER_OF_INDIVIDUALS, h_size, v_size, V, MAX_SLA);
+                Q = initialization(Q, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, V, MAX_SLA);
                 //print_int_matrix(Q,NUMBER_OF_INDIVIDUALS,v_size);
                 /* Q_u=selection and crossover of solutions of P_u */
                 Q = selection_and_crossover(Q, P, weighted_sums_P, NUMBER_OF_INDIVIDUALS, v_size);
@@ -175,7 +175,7 @@ int main (int argc, char *argv[]) {
                 utilization_Q = load_utilization(utilization_Q, Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
 
                 /* Q_u'' = repair infeasible solutions of Q_u' */
-                Q = reparation(Q, utilization_Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size, MAX_SLA);
+                Q = reparation(Q, utilization_Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size, previous_v_size, MAX_SLA);
 
                 /* Q_u'''= apply local search to solutions of Q_u'' */
                 Q = local_search(Q, utilization_Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);

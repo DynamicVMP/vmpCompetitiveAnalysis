@@ -17,7 +17,7 @@
  * parameter: the max level of SLA
  * returns: population matrix
  */
-int** initialization(int** population, int number_of_individuals, int h_size, int v_size, float **V, int max_SLA)
+int** initialization(int** population, int number_of_individuals, int h_size, int v_size,int previous_v_size, float **V, int max_SLA)
 {
     /* iterators */
     int iterator_individual;
@@ -30,18 +30,25 @@ int** initialization(int** population, int number_of_individuals, int h_size, in
         {
             /*if a vm is considered*/
             if(V[iterator_individual_position][0]>0 && V[iterator_individual_position][10]==NOT_DERIVED){
-                /*individual with SLA != max_SLA */
-                if (V[iterator_individual_position][3] != max_SLA)
-                {
-                    /*assign to each virtual machine a random generated physical machine*/
+
+                if(iterator_individual_position>=previous_v_size){
                     population[iterator_individual][iterator_individual_position] = generate_solution_position(h_size, 0);
-                }
-                /*individual with SLA == max_SLA*/
-                if (V[iterator_individual_position][3] == max_SLA)
-                {
-                    /*assign to each virtual machine a random generated physical machine*/
+                }else{
                     population[iterator_individual][iterator_individual_position] = generate_solution_position(h_size, 1);
                 }
+                /*individual with SLA != max_SLA */
+                //(if (V[iterator_individual_position][3] != max_SLA)
+                //{
+                    /*assign to each virtual machine a random generated physical machine*/
+                    //population[iterator_individual][iterator_individual_position] = generate_solution_position(h_size, 0);
+                //}
+                /*individual with SLA == max_SLA*/
+                //if (V[iterator_individual_position][3] == max_SLA)
+                //{
+                    /*assign to each virtual machine a random generated physical machine*/
+                //    population[iterator_individual][iterator_individual_position] = generate_solution_position(h_size, 1);
+                //}
+
             }else{
                 population[iterator_individual][iterator_individual_position] = 0;
             }
@@ -56,16 +63,16 @@ int** initialization(int** population, int number_of_individuals, int h_size, in
  * parameter: SLA of the individual. for max_SLA the placement is mandatory
  * returns: random number between 0 and parameter max_posible
  */
-int generate_solution_position(int max_posible, int SLA)
+int generate_solution_position(int max_posible, int option)
 {
     /*assign to each virtual machine a random generated physical machine from 0 to the maximum possible*/
-    if (SLA == 0)
+    if (option == 0)
     {
         /*integer from 0 to max_posible + 1*/
         return rand() % (max_posible + 1);
     }
     /*assign to each virtual machine a random generated physical machine from 1 to the maximum possible*/
-    if (SLA == 1)
+    if (option == 1)
     {
         /*integer from 1 to max_posible*/
         return rand() % max_posible + 1;

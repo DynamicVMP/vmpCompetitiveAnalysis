@@ -19,10 +19,10 @@
  * parameter: the max level of SLA
  * returns: repaired population matrix
  */
-int** reparation(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size, int max_SLA)
+int** reparation(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size,int previous_v_size, int max_SLA)
 {
     /* repairs population from not feasible individuals */
-    repair_population(population, utilization, H, V, number_of_individuals, h_size, v_size, max_SLA);
+    repair_population(population, utilization, H, V, number_of_individuals, h_size, v_size,previous_v_size, max_SLA);
     return population;
 }
 
@@ -37,7 +37,7 @@ int** reparation(int ** population, int *** utilization, int ** H, float ** V, i
  * parameter: the max level of SLA
  * returns: nothing, it's void()
  */
-void repair_population(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size, int max_SLA)
+void repair_population(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size,int previous_v_size, int max_SLA)
 {
     /* iterators */
     int iterator_individual = 0;
@@ -45,12 +45,12 @@ void repair_population(int ** population, int *** utilization, int ** H, float *
     /* iterate on individuals */
     for (iterator_individual = 0; iterator_individual < number_of_individuals ; iterator_individual++)
     {
-        feasibility = check_feasibility(population,utilization,iterator_individual,H,V,h_size,v_size,max_SLA);
+        feasibility = check_feasibility(population,utilization,iterator_individual,H,V,h_size,v_size,previous_v_size,max_SLA);
 
         /* if the individual is not feasible */
         if (feasibility == 0)
         {
-            repair_individual(population, utilization, H, V, number_of_individuals, h_size, v_size, max_SLA,iterator_individual);
+            repair_individual(population, utilization, H, V, number_of_individuals, h_size, v_size,previous_v_size, max_SLA,iterator_individual);
         }
     }
 }
@@ -67,7 +67,7 @@ void repair_population(int ** population, int *** utilization, int ** H, float *
  * parameter: identifier of the not feasible individual to repair
  * returns: nothing, it's void()
  */
-void repair_individual(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size, int max_SLA, int individual)
+void repair_individual(int ** population, int *** utilization, int ** H, float ** V, int number_of_individuals, int h_size, int v_size,int previous_v_size, int max_SLA, int individual)
 {
     /*iterators*/
     int iterator_virtual = 0;
@@ -133,95 +133,23 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
 
                 if (!migration)
                 {
-                    if(vj(actual) es vm nueva para la t actual se puede apagar)
-                    if (iterator_virtual>size_aterior)
-                    /* delete requirements from physical machine migration source */
-                    utilization[individual][population[individual][iterator_virtual]-1][0] -= V[iterator_virtual][0];
-                    utilization[individual][population[individual][iterator_virtual]-1][1] -= V[iterator_virtual][1];
-                    utilization[individual][population[individual][iterator_virtual]-1][2] -= V[iterator_virtual][2];
+                    //if(vj(actual) es vm nueva para la t actual se puede apagar)
+                    if (iterator_virtual>=previous_v_size) {
+                        /* delete requirements from physical machine migration source */
+                        utilization[individual][population[individual][iterator_virtual] - 1][0] -= V[iterator_virtual][0];
+                        utilization[individual][population[individual][iterator_virtual] - 1][1] -= V[iterator_virtual][1];
+                        utilization[individual][population[individual][iterator_virtual] - 1][2] -= V[iterator_virtual][2];
 
-                    /* refresh the population */
-                    population[individual][iterator_virtual] = 0;
-                    /* virtual machine correctly "deleted" */
-                    migration = 1;
+                        /* refresh the population */
+                        population[individual][iterator_virtual] = 0;
+                        /* virtual machine correctly "deleted" */
+                        migration = 1;
+                    }
                 }
             }
         }
     }
 
-
-    ///ELIMINAR POR QUE PUEDE QUE UNA NUEVA APAGUE YA LAS DERIVADAS. HACER VOLAR
-    /* after everything else is ok, repair SLA placement priority */
-    for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
-    {
-        /* if the VM has SLA(maxSLA) and is not marked off and was not placed */
-        if  ((V[iterator_virtual][3] == max_SLA) && V[iterator_virtual][0]>0 && V[iterator_virtual][10]==NOT_DERIVED && (population[individual][iterator_virtual] == 0))
-        {
-            /* iterate through all physical machines, starting at a random offset */
-            candidate = (rand() % h_size) + 1; //1 >= candidate <= h_size
-            for (iterator_physical=0; iterator_physical < h_size; iterator_physical++) {
-
-                /* iterate again on all virtual machines */
-                aux_cpu_sum=0; aux_net_sum=0; aux_mem_sum = 0;
-                for (iterator_virtual_2 = 0; iterator_virtual_2 < v_size; iterator_virtual_2++)
-                {
-                    /* if the VM is placed on the candidate physical machine and has SLA!=maxSLA, add its resources */
-                    if ((population[individual][iterator_virtual_2] == candidate) && (V[iterator_virtual_2][3] != max_SLA)){
-                        aux_cpu_sum += V[iterator_virtual_2][0];
-                        aux_mem_sum += V[iterator_virtual_2][1];
-                        aux_net_sum += V[iterator_virtual_2][2];
-                    }
-                }
-
-                /* if enough VMs with SLA!=maxSLA can be shutdown on PM(candidate) to accomodate the SLA(maxSLA) VM */
-                if (check_candidate_capacity(utilization,individual,candidate,V,iterator_virtual,H,aux_cpu_sum,aux_mem_sum,aux_net_sum)) {
-                    /* iterate on virtual machines to put SLA(maxSLA) VM on PM(candidate) */
-                    aux_cpu_sum = 0;  aux_net_sum = 0; aux_mem_sum = 0;
-                    for (iterator_virtual_2 = 0; iterator_virtual_2 < v_size; iterator_virtual_2++)
-                    {
-                        /* if the VM SLA != maxSLA and the VM was placed, add its resources */
-                        if ((population[individual][iterator_virtual_2] == candidate) && (V[iterator_virtual_2][3] != max_SLA)){
-                            aux_cpu_sum += V[iterator_virtual_2][0];
-                            aux_mem_sum += V[iterator_virtual_2][1];
-                            aux_net_sum += V[iterator_virtual_2][2];
-
-                            /* delete requirements from candidate physical machine */
-                            utilization[individual][candidate - 1][0] -= V[iterator_virtual_2][0];
-                            utilization[individual][candidate - 1][1] -= V[iterator_virtual_2][1];
-                            utilization[individual][candidate - 1][2] -= V[iterator_virtual_2][2];
-
-                            /* shutdown the VM with SLA!=maxSLA */
-                            population[individual][iterator_virtual_2] = 0;
-
-                            /* if enough VMs were shut down, leave */
-                            if ((aux_cpu_sum >= V[iterator_virtual][0]) && (aux_mem_sum >= V[iterator_virtual][1]) && (aux_net_sum >= V[iterator_virtual][2])) {
-                                break;
-                            }
-                        }
-                    }
-                    /* add requirements of VM with SLA(maxSLA) */
-                    utilization[individual][candidate - 1][0] += V[iterator_virtual][0];
-                    utilization[individual][candidate - 1][1] += V[iterator_virtual][1];
-                    utilization[individual][candidate - 1][2] += V[iterator_virtual][2];
-
-                    /* place VM with SLA(maxSLA) to PM(candidate) */
-                    population[individual][iterator_virtual] = candidate;
-
-                    /* VM with SLA(maxSLA) successfully placed, continue to the next VM */
-                    break;
-                }
-
-                if (candidate < h_size)
-                {
-                    candidate++;
-                }
-                else
-                {
-                    candidate = 1;
-                }
-            }
-        }
-    }
 
     /* after repair the SLA placement priority, repair the solution to complain the fault tolerance constraint if is necessary*/
     /*iterate on virtual machines*/
@@ -361,7 +289,7 @@ int is_overloaded(int ** H, int *** utilization, int individual, int physical)
  * parameter: the max level of SLA
  * returns: 1 if yes, 0 if no
  */
-int check_feasibility(int** population,int *** utilization,int iterator_individual,int ** H, float ** V,int h_size,int v_size,int max_SLA){
+int check_feasibility(int** population,int *** utilization,int iterator_individual,int ** H, float ** V,int h_size,int v_size,int previous_v_size,int max_SLA){
 
     /* every individual is feasible until it's probed other thing */
     int feasibility = 1;
@@ -369,9 +297,9 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
     int iterator_virtual,iterator_virtual_2, iterator_physical;
     int physical_position, service;
     /*vms with sla != max_SLA on*/
-    int count_vm_sla_0_on=0;
+    //int count_vm_sla_0_on=0;
     /*vms with sla == max_SLA off*/
-    int count_vm_sla_1_off=0;
+    //int count_vm_sla_1_off=0;
     /* constraint 2: Service Level Agreement (SLA) provision. Virtual machines with SLA = max_SLA have to be placed mandatorily */
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
@@ -382,7 +310,10 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
             return feasibility;
         }*/
 
-        if(V[iterator_virtual][0] == 0 && V[iterator_virtual][10]==NOT_DERIVED && iter)
+        if(population[iterator_individual][iterator_virtual] == 0 && V[iterator_virtual][10]==NOT_DERIVED && iterator_virtual<previous_v_size){
+            feasibility = 0;
+            return feasibility;
+        }
 
         /* A vm marked as off (when CPU = 0) must not be placed */
         if ((V[iterator_virtual][0] == 0 || V[iterator_virtual][10]!=NOT_DERIVED) && (population[iterator_individual][iterator_virtual] > 0)) {

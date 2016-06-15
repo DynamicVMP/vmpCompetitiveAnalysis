@@ -252,11 +252,10 @@ float ** load_v_per_t(float ** matrix_s, int s_size, float** V, int v_size, int*
                 matrix_v[iterator_v][8] = matrix_s[iterator][2]; //DCc
                 matrix_v[iterator_v][9] = matrix_s[iterator][3]; //Vj
                 matrix_v[iterator_v][10] = NOT_DERIVED;
-                maxtrix
 
                 time_vm_living = t - (int)matrix_v[iterator_v][5] +1;
                 *qos_a_priori_t += pow(CONSTANT, matrix_v[iterator_v][3]) * matrix_v[iterator_v][3];
-                *revenue_a_priori_t += matrix_v[iterator_v][4]*time_vm_living;
+                *revenue_a_priori_t += matrix_v[iterator_v][4]*time_vm_living*0.7;
             }
             iterator_v++;
         }
@@ -374,7 +373,7 @@ double* load_weighted_sums(double **objective_functions_values, double *weighted
             .min_power_consumption = 0,
             .max_qos = qos_a_priori_t,
             .min_qos=0,
-            .max_revenue = revenue_a_priori_t*(float)0.7,
+            .max_revenue = revenue_a_priori_t,
             .min_revenue = 0,
     };
     float power_normalized, revenue_normalized,wasted_resources_normalized;
@@ -1048,12 +1047,12 @@ void report_migrations(int* best_solution, int v_size, int* previous_placement,i
 
 }
 
-float calculates_economical_revenue(int t, int t_init, int t_derived,bool vm_derived, float revenue_unit){
+/*float calculates_economical_revenue(int t, int t_init, int t_derived,bool vm_derived, float revenue_unit){
 
     float economical_revenue = 0.0;
 
     /*if a vm was derived*/
-    if(vm_derived ) {
+    /*if(vm_derived ) {
 
         if(t_derived>0){
 
@@ -1072,4 +1071,4 @@ float calculates_economical_revenue(int t, int t_init, int t_derived,bool vm_der
 
     return economical_revenue;
 
-}
+}*/

@@ -149,15 +149,16 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
                 /* if the probablidad is less than 1/v_size, performs the mutation */
                 if (probability < (float) 1 / v_size) {
                     /* get the position of the physical machine the random*/
-                    if (V[iterator_virtual][3] == max_SLA)
+                    /*if (V[iterator_virtual][3] == max_SLA)
                     {
                         physical_position = rand() % h_size + 1;
                     }
                     else
                     {
                         physical_position = rand() % h_size;
-                    }
+                    }*/
 
+                    physical_position = rand() % h_size + 1;
 
                     /* performs the mutation operation */
                     if (physical_position != population[iterator_individual][iterator_virtual])
@@ -167,14 +168,15 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
                         while (physical_position == aux && h_size > 1) {
                             /*
                              * individual with SLA = max_SLA*/
-                            if (V[iterator_virtual][3] == max_SLA)
+                            /*if (V[iterator_virtual][3] == max_SLA)
                             {
                                 physical_position = rand() % h_size + 1;
                             }
                             else
                             {
                                 physical_position = rand() % h_size;
-                            }
+                            }*/
+                            physical_position = rand() % h_size + 1;
                             if (physical_position != population[iterator_individual][iterator_virtual])
                                 population[iterator_individual][iterator_virtual] = physical_position;
                         }
