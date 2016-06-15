@@ -25,7 +25,7 @@
 #define RESOURCES 3
 #define OBJECTIVE_FUNCTIONS 4
 #define NOT_DERIVED 0
-#define MAX_POWER_CONSUMPTION 27600
+#define MAX_POWER_CONSUMPTION 9600
 
 typedef struct{
     float min_power_consumption;
