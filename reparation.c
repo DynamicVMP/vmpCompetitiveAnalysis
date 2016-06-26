@@ -16,6 +16,7 @@
  * parameter: number of individuals
  * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: number of virtual machines in the previous placement
  * parameter: the max level of SLA
  * returns: repaired population matrix
  */
@@ -34,6 +35,7 @@ int** reparation(int ** population, int *** utilization, int ** H, float ** V, i
  * parameter: number of individuals
  * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: number of virtual machines in the previous placement
  * parameter: the max level of SLA
  * returns: nothing, it's void()
  */
@@ -63,6 +65,7 @@ void repair_population(int ** population, int *** utilization, int ** H, float *
  * parameter: number of individuals
  * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: number of virtual machines in the previous placement
  * parameter: the max level of SLA
  * parameter: identifier of the not feasible individual to repair
  * returns: nothing, it's void()
@@ -74,10 +77,7 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
     int iterator_virtual_2 = 0;
     int iterator_physical = 0;
 
-    /*auxiliary sums*/
-    int aux_cpu_sum = 0;
-    int aux_mem_sum = 0;
-    int aux_net_sum = 0;
+
     /*id of a service*/
     int service;
     /*id of a physical machine*/
@@ -133,16 +133,15 @@ void repair_individual(int ** population, int *** utilization, int ** H, float *
 
                 if (!migration)
                 {
-                    //if (iterator_virtual>=previous_v_size) {
-                        /* delete requirements from physical machine migration source */
-                        utilization[individual][population[individual][iterator_virtual] - 1][0] -= V[iterator_virtual][0];
-                        utilization[individual][population[individual][iterator_virtual] - 1][1] -= V[iterator_virtual][1];
-                        utilization[individual][population[individual][iterator_virtual] - 1][2] -= V[iterator_virtual][2];
+                    /* delete requirements from physical machine migration source */
+                    utilization[individual][population[individual][iterator_virtual] - 1][0] -= V[iterator_virtual][0];
+                    utilization[individual][population[individual][iterator_virtual] - 1][1] -= V[iterator_virtual][1];
+                    utilization[individual][population[individual][iterator_virtual] - 1][2] -= V[iterator_virtual][2];
 
-                        /* refresh the population */
-                        population[individual][iterator_virtual] = 0;
-                        /* virtual machine correctly "deleted" */
-                        migration = 1;
+                    /* refresh the population */
+                    population[individual][iterator_virtual] = 0;
+                    /* virtual machine correctly "deleted" */
+                    migration = 1;
 
                 }
             }
@@ -246,18 +245,6 @@ int check_pm_capacity(int ***utilization, int individual, int candidate, float *
 }
 
 
-int check_candidate_capacity(int ***utilization, int individual, int candidate, float **V, int virtual_machine, int**H, int aux_cpu_sum, int aux_ram_sum, int aux_net_sum){
-
-    if((utilization[individual][candidate-1][0] - aux_cpu_sum + V[virtual_machine][0] <= H[candidate-1][0])
-            && (utilization[individual][candidate-1][1]- aux_ram_sum + V[virtual_machine][1] <= H[candidate-1][1])
-            && (utilization[individual][candidate-1][2]- aux_net_sum + V[virtual_machine][2] <= H[candidate-1][2])){
-        return 1;
-    }
-    return 0;
-
-}
-
-
 /* is_overloaded: verifies if a physical machine is overloaded
  * parameter: physical machine resources matrix
  * parameter: utilization of the physical machines matrix
@@ -285,6 +272,7 @@ int is_overloaded(int ** H, int *** utilization, int individual, int physical)
  * parameter: virtual machine requirements matrix
  * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: number of virtual machines in the previous placement
  * parameter: the max level of SLA
  * returns: 1 if yes, 0 if no
  */
@@ -295,20 +283,10 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
     /*iterators*/
     int iterator_virtual,iterator_virtual_2, iterator_physical;
     int physical_position, service;
-    /*vms with sla != max_SLA on*/
-    //int count_vm_sla_0_on=0;
-    /*vms with sla == max_SLA off*/
-    //int count_vm_sla_1_off=0;
-    /* constraint 2: Service Level Agreement (SLA) provision. Virtual machines with SLA = max_SLA have to be placed mandatorily */
+
     for (iterator_virtual = 0; iterator_virtual < v_size; iterator_virtual++)
     {
-        //hacer volar
-        /*if (V[iterator_virtual][3] == max_SLA && population[iterator_individual][iterator_virtual] == 0)
-        {
-            feasibility = 0;
-            return feasibility;
-        }*/
-
+        /*If a vm isn't a new vm and is not derived, it must be placed */
         if(population[iterator_individual][iterator_virtual] == 0 && V[iterator_virtual][10]==NOT_DERIVED && iterator_virtual<previous_v_size){
             feasibility = 0;
             return feasibility;
@@ -320,24 +298,8 @@ int check_feasibility(int** population,int *** utilization,int iterator_individu
             return feasibility;
         }
 
-        /* Count VMs with SLA = max_SLA not market off and not placed */
-        /*if ((V[iterator_virtual][3] == max_SLA) && (V[iterator_virtual][0] > 0 && V[iterator_virtual][10]==NOT_DERIVED) && (population[iterator_individual][iterator_virtual] == 0)) {
-            count_vm_sla_1_off++;
-        }*/
-
-        /* Count placed VMs with SLA != max_SLA */
-        /*if ((V[iterator_virtual][3] != max_SLA) && (population[iterator_individual][iterator_virtual] > 0) ) {
-            count_vm_sla_0_on++;
-        }*/
-
     }
 
-    /*hacer volar*/
-    /* If there are placed VMs with not max_SLA  while VMs with SLA max_SLA were not placed, repair */
-    /*if ((count_vm_sla_1_off > 0) && (count_vm_sla_0_on > 0)) {
-        feasibility = 0;
-        return feasibility;
-    }*/
 
     /* constraints 3-5: Resource capacity of physical machines. Iterate on physical machines */
     for (iterator_physical = 0; iterator_physical < h_size ; iterator_physical++)

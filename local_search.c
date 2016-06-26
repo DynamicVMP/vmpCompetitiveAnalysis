@@ -25,10 +25,8 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
     int iterator_individual = 0;
     int physical_position = 0;
     int physical_position2 = 0;
-    int iterator_position = 0;
     int iterator_virtual = 0;
     int iterator_virtual2 = 0;
-    int iterator_physical = 0;
     int option = 0;
     /* randon value */
     float val_rand;
@@ -112,6 +110,7 @@ int** local_search(int **population, int ***utilization, int **H, float **V, int
                     /* get the position of the physical machine */
                     physical_position = population[iterator_individual][iterator_virtual];
 
+                    /*checks if a vm is no derived, is considered for the placement and wasn't placed*/
                     if (physical_position == 0 && V[iterator_virtual][0]>0 && V[iterator_virtual][10]==NOT_DERIVED)
                     {
                         /* iterate on virtual machines */

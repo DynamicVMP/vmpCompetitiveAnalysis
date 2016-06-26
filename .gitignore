@@ -2,4 +2,3 @@
 CMakeLists.txt
 *.o
 imoavmp
-results/

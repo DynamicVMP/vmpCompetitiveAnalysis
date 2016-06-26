@@ -56,11 +56,8 @@ int** selection_and_crossover(int **populationQ, int **populationP, double *weig
     for(iterator=0;iterator<number_of_individuals/2;iterator++){
         father = selection(weighted_sums_P, number_of_individuals);
         mother = selection(weighted_sums_P, number_of_individuals);
-        //printf("\nfather %d\n",father);
-        // printf("\nmother %d\n",mother);
         /* Q = crossover solutions */
         populationQ = crossover_individuals(populationQ,populationP,father, mother, v_size);
-        //print_int_matrix(Q,number_of_individuals,v_size);
     }
 
     return populationQ;
@@ -78,7 +75,7 @@ int** crossover_individuals(int **populationQ, int **populationP, int position_p
 {
     /* iterators */
     int iterator_virtual;
-    /* auxiliary parameter */
+    /* auxiliary parameter, keeps an individual */
     int aux;
 
     /* iterate on virtual machines and performs the crossing */
@@ -121,8 +118,9 @@ int** crossover_individuals(int **populationQ, int **populationP, int position_p
 /* mutation: performs the mutation operation
  * parameter: population matrix
  * parameter: number of individuals
- * parameter: number of physical_position machines
+ * parameter: number of physical machines
  * parameter: number of virtual machines
+ * parameter: the SLA max
  * returns: the mutation population
  */
 int** mutation(int **population, float **V, int number_of_individuals, int h_size, int v_size, int max_SLA)
@@ -144,20 +142,11 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
         {
             probability = drand48() *1.0;
 
-            /* if the vm is not marked as off (when CPU > 0) of the vm was derived, we do nothing */
+            /* if the vm is not marked as off (when CPU > 0) the vm wasn't derived */
             if(V[iterator_virtual][0]>0 && V[iterator_virtual]==NOT_DERIVED) {
                 /* if the probablidad is less than 1/v_size, performs the mutation */
                 if (probability < (float) 1 / v_size) {
                     /* get the position of the physical machine the random*/
-                    /*if (V[iterator_virtual][3] == max_SLA)
-                    {
-                        physical_position = rand() % h_size + 1;
-                    }
-                    else
-                    {
-                        physical_position = rand() % h_size;
-                    }*/
-
                     physical_position = rand() % h_size + 1;
 
                     /* performs the mutation operation */
@@ -165,17 +154,9 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
                         population[iterator_individual][iterator_virtual] = physical_position;
                     else {
                         aux = population[iterator_individual][iterator_virtual];
+                        /*generate a new physical_position if the one generated is the current physical_position*/
                         while (physical_position == aux && h_size > 1) {
-                            /*
-                             * individual with SLA = max_SLA*/
-                            /*if (V[iterator_virtual][3] == max_SLA)
-                            {
-                                physical_position = rand() % h_size + 1;
-                            }
-                            else
-                            {
-                                physical_position = rand() % h_size;
-                            }*/
+
                             physical_position = rand() % h_size + 1;
                             if (physical_position != population[iterator_individual][iterator_virtual])
                                 population[iterator_individual][iterator_virtual] = physical_position;
@@ -191,8 +172,8 @@ int** mutation(int **population, float **V, int number_of_individuals, int h_siz
 /* population_evolution: update the population P
  * parameter: population matrix P
  * parameter: evolved population matrix Q
- * parameter: the cost of the objective function of the population matrix P
- * parameter: the cost of the objective function of population matrix Q
+ * parameter: the weighted_sums of the objective functions of the population matrix P
+ * parameter: the weighted_sums of the objective functions of the population matrix Q
  * parameter: number of individual
  * parameter: number of virtual machines
  * returns: population matrix P
@@ -233,16 +214,10 @@ int** population_evolution(int **P, int **Q, double *weighted_sums_P, double *we
         iterator_individual_Q++;
     }
 
-    //print_float_array(objective_function_PQ,number_of_individuals*2);
-    // print_int_matrix(PQ,number_of_individuals*2,v_size);
-    //printf("\n\n");
     /*sort the union of the population P and Q by the value of the objective function*/
     if(v_size>0) {
         quicksort_sort(objective_function_PQ, PQ, 0, number_of_individuals * 2 - 1);
     }
-    // print_float_array(objective_function_PQ,number_of_individuals*2);
-    //print_int_matrix(PQ,number_of_individuals*2,v_size);
-    // printf("\n\n");
 
     /*The n_individuals with the best values ​​of objective function are selected for the next generation of the population P*/
     for (iterator_individual_P=0; iterator_individual_P < number_of_individuals; iterator_individual_P++)
@@ -252,9 +227,6 @@ int** population_evolution(int **P, int **Q, double *weighted_sums_P, double *we
             P[iterator_individual_P][iterator_individual_position]=PQ[iterator_individual_P][iterator_individual_position];
         }
     }
-
-    //printf("\n New Population P\n");
-    //print_int_matrix(P,number_of_individuals,v_size);
 
     /*free the memory allocated for the auxiliary structures*/
     free_int_matrix(PQ,number_of_individuals);
@@ -343,7 +315,6 @@ int quicksort_partition(double *weighted_sums,int ** population, int first_index
         population[first_index] = population[down_index];
         population[down_index] = pivot_indv;
     }
-
 
     return down_index;
 

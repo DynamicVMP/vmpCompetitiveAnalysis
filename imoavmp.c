@@ -15,7 +15,6 @@
 /* definitions (this could be parameters) */
 #define NUMBER_OF_INDIVIDUALS 100
 #define NUMBER_OF_GENERATIONS 100
-
 #define MAX_SLA 4
 
 /* main: Interactive Memetic Algorithm for Virtual Machine Placement(IMAVMP)
@@ -35,6 +34,7 @@ int main (int argc, char *argv[]) {
     else
     {
         FILE * execution_time_file;
+
         /* Interactive Memetic Algorithm previous stuff */
         /* number of generation, for iterative reference of generations */
         int generation = 0;
@@ -43,15 +43,12 @@ int main (int argc, char *argv[]) {
         /* get the size of the scenario */
         int s_size = get_s_size(argv[1]);
 
-        // printf("\nH=%d, V=%d, L=%d\n",h_size,v_size,l_size);
         /* load physical machines resources, virtual machines requirements and scenario from the datacenter infrastructure file */
         int **H = load_H(h_size, argv[1]);
         float **S = load_S(s_size, argv[1]);
 
+        /*the final t for the scenario considered*/
         int t_max =(int)S[s_size-1][0];
-        char file_postfix [300] = "";
-        char file_name_scenario [300] = "";
-        char *token_file_name;
 
         int previous_v_size=0;
         /*number of virtual machines*/
@@ -62,12 +59,6 @@ int main (int argc, char *argv[]) {
         double qos_a_priori=0.0;
         /*Max Economical Revenue*/
         float revenue_a_priori_t=0.0;
-
-        /*printf("\nH\n\n");
-        print_int_matrix(H,h_size,4);*/
-
-        /*printf("\nS\n\n");
-        print_float_matrix(S,s_size,14);*/
 
         /* seed for rand() */
         srand((unsigned int) time(NULL));
@@ -82,9 +73,14 @@ int main (int argc, char *argv[]) {
             printf("\nThe problem has no solution, call Amazon EC2\n");
             return 1;
         }
+
         /* the problem instance have at least one solution, so we can continue */
 
         /*extract the filename scenario from the argument inputs/scenario_filename*/
+        char file_postfix [300] = "";
+        char file_name_scenario [300] = "";
+        char *token_file_name;
+
         strcpy(file_name_scenario, argv[1]);
         token_file_name = strtok(file_name_scenario, "/");
         token_file_name = strtok(NULL, "/");
@@ -100,10 +96,12 @@ int main (int argc, char *argv[]) {
         /*the best solution for the problem instance*/
         int* best_solution;
 
+        /*the previous placement*/
         int* previous_placement = malloc(sizeof(int));
 
         /*matrix that holds the objective functions values of each individual*/
         double** objectives_functions_values;
+        /*matrix that holds the wasted resources values of each individual*/
         float** wasted_resources_obj;
 
         /*structures for Q and P  */
@@ -114,11 +112,8 @@ int main (int argc, char *argv[]) {
         int ***utilization_P;
         double *weighted_sums_P;
 
-        /*counters*/
+        /*the initial time t*/
         int t=1;
-        int OF_calc_count=0;
-
-        //t_max=6;
 
         /* While t is less or equal to t_max of the scenario, run the memetic algorithm for the time t */
         while(t<=t_max) {
@@ -128,34 +123,27 @@ int main (int argc, char *argv[]) {
             /* load the virtual machines for time t*/
             V = load_v_per_t(S,s_size,V,v_size,previous_placement,previous_v_size,&qos_a_priori,&revenue_a_priori_t,t);
 
-            //printf("\nV\n\n");
-            //print_float_matrix(V,v_size,VM_FEATURES);
-
             /*reserve memory for the matrix and arrays used by the memetic algorithm*/
             create_structures(&P, &Q, &utilization_P, &utilization_Q, &weighted_sums_P, &weighted_sums_Q,
                               &objectives_functions_values,&wasted_resources_obj,NUMBER_OF_INDIVIDUALS, v_size, h_size);
-            // Set Timer
+            /*Set Timer*/
             start = clock();
 
             /* Initialize population P_0 */
             P = initialization(P, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, V, MAX_SLA);
-            //print_int_matrix(P,NUMBER_OF_INDIVIDUALS,v_size);
 
             /* Additional task: load the utilization of physical machines and network links of all individuals/solutions */
-            utilization_P = load_utilization(utilization_P, P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
+            utilization_P = load_utilization(utilization_P, P, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
 
-            /* P0’ = repair infeasible solutions of P_0 */
+            /* P0' = repair infeasible solutions of P_0 */
             P = reparation(P, utilization_P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, MAX_SLA);
 
-            /*  apply local search to solutions of P_0’ */
+            /*P0'' apply local search to solutions of P_0' */
             P = local_search(P, utilization_P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
-            //print_int_matrix(P,NUMBER_OF_INDIVIDUALS,v_size);
 
             /* Additional task: calculate the cost of each objective function for each solution */
             weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj, H, V,
-                                                 NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
-
-
+                                                 NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,t);
 
             generation=0;
             /* While (stopping criterion is not met), do */
@@ -164,7 +152,7 @@ int main (int argc, char *argv[]) {
                 generation++;
                 /* Additional task: Q_u is a random generated population, lets initialize it */
                 Q = initialization(Q, NUMBER_OF_INDIVIDUALS, h_size, v_size,previous_v_size, V, MAX_SLA);
-                //print_int_matrix(Q,NUMBER_OF_INDIVIDUALS,v_size);
+
                 /* Q_u=selection and crossover of solutions of P_u */
                 Q = selection_and_crossover(Q, P, weighted_sums_P, NUMBER_OF_INDIVIDUALS, v_size);
 
@@ -172,7 +160,7 @@ int main (int argc, char *argv[]) {
                 Q = mutation(Q, V, NUMBER_OF_INDIVIDUALS, h_size, v_size, MAX_SLA);
 
                 /* Additional task: load the utilization of physical machines and network links of all individuals/solutions */
-                utilization_Q = load_utilization(utilization_Q, Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
+                utilization_Q = load_utilization(utilization_Q, Q, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
 
                 /* Q_u'' = repair infeasible solutions of Q_u' */
                 Q = reparation(Q, utilization_Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size, previous_v_size, MAX_SLA);
@@ -180,23 +168,18 @@ int main (int argc, char *argv[]) {
                 /* Q_u'''= apply local search to solutions of Q_u'' */
                 Q = local_search(Q, utilization_Q, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
 
-                //printf("\nQ CREATED SUCCESSFULLY G:%d\n\n",generation);
-                //print_int_matrix(Q,NUMBER_OF_INDIVIDUALS,v_size);
-
                 /* Additional task: calculate the cost of each objective function for each solution */
-                weighted_sums_Q = load_weighted_sums(objectives_functions_values, weighted_sums_Q, Q, utilization_Q,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
-                //print_float_array(objective_function_Q,NUMBER_OF_INDIVIDUALS);
+                weighted_sums_Q = load_weighted_sums(objectives_functions_values, weighted_sums_Q, Q, utilization_Q,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,t);
 
                 P = population_evolution(P, Q, weighted_sums_P, weighted_sums_Q, NUMBER_OF_INDIVIDUALS, v_size);
 
                 /*Reload the utilization of P and the evaluation of each individual of P*/
-                utilization_P = load_utilization(utilization_P, P, H, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
-                weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,&OF_calc_count,t);
+                utilization_P = load_utilization(utilization_P, P, V, NUMBER_OF_INDIVIDUALS, h_size, v_size);
+                weighted_sums_P = load_weighted_sums(objectives_functions_values, weighted_sums_P, P, utilization_P,wasted_resources_obj,  H,  V, NUMBER_OF_INDIVIDUALS, h_size, v_size,qos_a_priori,revenue_a_priori_t,t);
 
             }
 
-            //print_double_matrix(objectives_functions_values,NUMBER_OF_INDIVIDUALS,OBJECTIVE_FUNCTIONS);
-            //print_double_array(weighted_sums_P,NUMBER_OF_INDIVIDUALS);
+            /*select an individual as the best solution*/
             index_best_solution = get_best_solution_index(weighted_sums_P, NUMBER_OF_INDIVIDUALS);
             best_solution = P[index_best_solution];
 
@@ -205,8 +188,11 @@ int main (int argc, char *argv[]) {
             msec = diff * 1000 / CLOCKS_PER_SEC;
             total_time+=msec;
 
-            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],wasted_resources_obj[index_best_solution],V, h_size, v_size,file_postfix, t);
-            report_migrations(best_solution,v_size,previous_placement,previous_v_size,V,file_postfix);
+            /*report the information obtained*/
+            report_solution(best_solution,objectives_functions_values[index_best_solution], utilization_P[index_best_solution], weighted_sums_P[index_best_solution],wasted_resources_obj[index_best_solution],V, h_size, v_size,file_postfix);
+            report_migrations(best_solution,previous_placement,previous_v_size,V,file_postfix);
+
+            /*update the previous placement*/
             previous_placement = update_previous_placement(best_solution,v_size,previous_placement,&previous_v_size);
 
             // RESULTS
@@ -221,9 +207,6 @@ int main (int argc, char *argv[]) {
             printf("Qos a priori:%g\n",qos_a_priori);
             printf("Economical Revenue a priori:%g\n",revenue_a_priori_t);
             printf("Time taken %d seconds %d milliseconds\n", msec / 1000, msec % 1000);
-
-            //print_double_matrix(objectives_functions_values,NUMBER_OF_INDIVIDUALS,OBJECTIVE_FUNCTIONS);
-            //print_double_array(weighted_sums_P,NUMBER_OF_INDIVIDUALS);
 
             /*cleaning*/
             free_int_matrix(P, NUMBER_OF_INDIVIDUALS);
@@ -245,8 +228,6 @@ int main (int argc, char *argv[]) {
 
         printf("\nRESULTS\n");
         printf("Total Time taken %d seconds %d milliseconds\n", total_time / 1000, total_time % 1000);
-        printf("Number of times the objective function was assessed: %d\n", OF_calc_count);
-
         execution_time_file = fopen("results/time","a");
         fprintf(execution_time_file,"%s %d,%d\n",file_postfix,total_time / 1000, total_time % 1000);
 

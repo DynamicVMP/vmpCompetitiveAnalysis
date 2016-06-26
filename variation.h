@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 /* function headers definitions */
+
 int selection(double *objective_function, int number_of_individuals);
 int **selection_and_crossover(int **populationQ, int **populationP, double *weighted_sums_P, int number_of_individuals,
                               int v_size);
